@@ -1,0 +1,32 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Users/vcham/Documents/VS Code Programs/Benchmark[39m
+
+ [31m❯[39m src/components/OperationalDashboard.test.jsx [2m([22m[2m7 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 443[2mms[22m[39m
+     [32m✓[39m renders the dashboard title[32m 106[2mms[22m[39m
+     [32m✓[39m renders the locked overlay with correct text[32m 47[2mms[22m[39m
+     [32m✓[39m renders all 5 input fields[32m 51[2mms[22m[39m
+     [32m✓[39m allows typing into input fields[32m 70[2mms[22m[39m
+     [32m✓[39m renders the "Compare My Bank" button[32m 37[2mms[22m[39m
+     [32m✓[39m renders the REAL GaugeCharts with benchmark seed data[32m 46[2mms[22m[39m
+[31m     [31m×[31m unlocks the dashboard and displays user data when form is submitted[39m[32m 84[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/OperationalDashboard.test.jsx[2m > [22mOperationalDashboard Integration[2m > [22munlocks the dashboard and displays user data when form is submitted
+[31m[1mReferenceError[22m: waitFor is not defined[39m
+[36m [2m❯[22m src/components/OperationalDashboard.test.jsx:[2m83:9[22m[39m
+    [90m 81| [39m
+    [90m 82| [39m        [90m// Verify Overlay is GONE[39m
+    [90m 83| [39m        [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   | [39m        [31m^[39m
+    [90m 84| [39m            expect(screen.queryByText('Unlock Your Full Scorecard')).n…
+    [90m 85| [39m        })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 14:55:22
+[2m   Duration [22m 1.82s[2m (transform 73ms, setup 85ms, import 396ms, tests 443ms, environment 681ms)[22m
+

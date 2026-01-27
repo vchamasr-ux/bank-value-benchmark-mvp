@@ -1,0 +1,1 @@
+REDIRECT_TO: https://api.fdic.gov/banks/institutions/?filters=NAME%3A*chase*%20AND%20ACTIVE%3A1&fields=NAME,CITY,STNAME,CERT&limit=10&format=json
