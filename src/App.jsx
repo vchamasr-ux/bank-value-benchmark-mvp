@@ -23,8 +23,8 @@ function App() {
           if (bankData) {
             setFinancials(calculateKPIs(bankData));
 
-            // Now fetch Peer Group Benchmark based on Assets
-            const benchmarkData = await getPeerGroupBenchmark(bankData.ASSET);
+            // Now fetch Peer Group Benchmark based on Assets and Location (State)
+            const benchmarkData = await getPeerGroupBenchmark(bankData.ASSET, bankData.STALP);
             if (benchmarkData) {
               setBenchmarks({
                 ...calculateKPIs(benchmarkData),
@@ -69,7 +69,22 @@ function App() {
         ) : (
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedBank.NAME}</h2>
-            <p className="text-gray-600 mb-6">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
+            <p className="text-gray-600 mb-2">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
+
+            {financials && financials.raw && (
+              <div className="mb-6 inline-block bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                <span className="text-gray-500 font-medium mr-2">Total Assets:</span>
+                <span className="text-xl font-bold text-blue-900">
+                  {(() => {
+                    const asset = parseFloat(financials.raw.ASSET) * 1000;
+                    if (asset >= 1e12) return `$${(asset / 1e12).toFixed(2)}T`;
+                    if (asset >= 1e9) return `$${(asset / 1e9).toFixed(2)}B`;
+                    if (asset >= 1e6) return `$${(asset / 1e6).toFixed(1)}M`;
+                    return `$${asset.toLocaleString()}`;
+                  })()}
+                </span>
+              </div>
+            )}
 
             <button
               onClick={() => setSelectedBank(null)}

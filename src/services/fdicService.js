@@ -9,12 +9,13 @@ export const searchBank = async (name) => {
     if (!name) return [];
 
     // FDIC API requires specific filters string format
-    // We search for ACTIVE institutions where name contains the search term
-    const filters = `NAME:*${name}* AND ACTIVE:1`;
-    const fields = 'NAME,CITY,STNAME,CERT';
+    // We search for ACTIVE institutions using the flexible 'search' parameter
+    // and sort by ASSET DESC to prioritize the largest banks.
+    const searchQuery = `NAME:"${name}" AND ACTIVE:1`;
+    const fields = 'NAME,CITY,STNAME,STALP,CERT';
     const limit = 10;
 
-    const url = `${FDIC_API_BASE}?filters=${encodeURIComponent(filters)}&fields=${fields}&limit=${limit}&format=json`;
+    const url = `${FDIC_API_BASE}?search=${encodeURIComponent(searchQuery)}&sort_by=ASSET&sort_order=DESC&fields=${fields}&limit=${limit}&format=json`;
 
     try {
         const response = await fetch(url);
@@ -36,7 +37,7 @@ export const getBankFinancials = async (certId) => {
     if (!certId) return null;
 
     // Fetch latest report.
-    const fields = 'REPDTE,ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS';
+    const fields = 'REPDTE,ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP';
 
     const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=1&sort_by=REPDTE&sort_order=DESC&format=json`;
 
@@ -58,21 +59,25 @@ export const getBankFinancials = async (certId) => {
 };
 
 
-import { calculateKPIs } from '../utils/kpiCalculator';
+import { calculateKPIs } from '../utils/kpiCalculator.js';
+import { getProximityScore } from '../utils/stateMapping.js';
 
 /**
  * Fetch aggregate benchmark data for the bank's Asset Peer Group via Sampling.
  * @param {number} assetSize - The bank's total assets (in thousands).
+ * @param {string} subjectState - The 2-letter state code of the subject bank (e.g. 'VA').
  * @returns {Promise<Object>} - The raw aggregate financial data for the peer group.
  */
-export const getPeerGroupBenchmark = async (assetSize) => {
+export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
     if (!assetSize) return null;
 
     // Define Asset Classes (in Thousands)
     // Class 1: < $100M (100,000)
     // Class 2: $100M - $1B (1,000,000)
     // Class 3: $1B - $10B (10,000,000)
-    // Class 4: > $10B
+    // Class 4: $10B - $50B (50,000,000)
+    // Class 5: $50B - $250B (250,000,000)
+    // Class 6: > $250B
 
     let assetFilter = '';
     let groupName = '';
@@ -86,14 +91,20 @@ export const getPeerGroupBenchmark = async (assetSize) => {
     } else if (assetSize < 10000000) {
         assetFilter = 'ASSET:[1000000 TO 10000000]';
         groupName = 'Assets $1B - $10B';
+    } else if (assetSize < 50000000) {
+        assetFilter = 'ASSET:[10000000 TO 50000000]';
+        groupName = 'Assets $10B - $50B';
+    } else if (assetSize < 250000000) {
+        assetFilter = 'ASSET:[50000000 TO 250000000]';
+        groupName = 'Assets $50B - $250B';
     } else {
-        assetFilter = 'ASSET:[10000000 TO *]';
-        groupName = 'Assets > $10B';
+        assetFilter = 'ASSET:[250000000 TO *]';
+        groupName = 'Assets > $250B';
     }
 
-    const fields = 'ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME';
-    // Fetch a sample of 20 banks in this tier
-    const limit = 20;
+    const fields = 'ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
+    // Fetch a larger sample (N=500) to find enough neighbors
+    const limit = 500;
 
     // Using /financials to get actual list of banks
     // Added sort_by=REPDTE to ensure we get 2025/latest data
@@ -105,9 +116,37 @@ export const getPeerGroupBenchmark = async (assetSize) => {
 
         const json = await response.json();
         if (json.data && json.data.length > 0) {
+            // Flatten to just the data objects
+            const rawCandidates = json.data.map(item => item.data);
+
+            // Deduplicate by CERT ID (keep only the first occurrence, which is latest due to sort)
+            const seenCerts = new Set();
+            const candidates = [];
+
+            for (const d of rawCandidates) {
+                // Ensure we have a CERT to check against
+                // If distinct banks somehow share a CERT (unlikely) or it's missing, we might skip.
+                // The API guarantees unique CERT for unique active institutions usually.
+                if (d.CERT && !seenCerts.has(d.CERT)) {
+                    seenCerts.add(d.CERT);
+                    candidates.push(d);
+                }
+            }
+
+            // Sort candidates by proximity to subjectState
+            if (subjectState) {
+                candidates.sort((a, b) => {
+                    const scoreA = getProximityScore(subjectState, a.STALP);
+                    const scoreB = getProximityScore(subjectState, b.STALP);
+                    return scoreA - scoreB;
+                });
+            }
+
+            // Slice top 20
+            const peers = candidates.slice(0, 20);
+
             // Revert: Calculate Aggregate of the sample
-            const total = json.data.reduce((acc, curr) => {
-                const d = curr.data;
+            const total = peers.reduce((acc, d) => {
                 return {
                     ASSET: acc.ASSET + (parseFloat(d.ASSET) || 0),
                     NUMEMP: acc.NUMEMP + (parseFloat(d.NUMEMP) || 0),
@@ -125,8 +164,7 @@ export const getPeerGroupBenchmark = async (assetSize) => {
 
             // Extract peer bank details for the modal AND calculate distributions
             const peerKPIs = [];
-            const peerBanks = json.data.map(item => {
-                const d = item.data;
+            const peerBanks = peers.map(d => {
                 // Calculate KPIs for this specific bank to build distribution
                 const kpis = calculateKPIs(d);
                 if (kpis) {
