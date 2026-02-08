@@ -21,16 +21,31 @@ function App() {
       getBankFinancials(selectedBank.CERT)
         .then(async (bankData) => {
           if (bankData) {
-            setFinancials(calculateKPIs(bankData));
+            // bankData is now an array of 5 quarters
+            const historicalKPIs = calculateKPIs(bankData);
+            const latestKPIs = historicalKPIs[0];
+            setFinancials(latestKPIs);
+            // Store history in the financials object or separate state?
+            // Let's attach history to the latest object for simplicity in passing down
+            latestKPIs.history = historicalKPIs;
 
             // Now fetch Peer Group Benchmark based on Assets and Location (State)
-            const benchmarkData = await getPeerGroupBenchmark(bankData.ASSET, bankData.STALP);
+            // Use latest Asset size
+            const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
             if (benchmarkData) {
+              // Aggregate peer states for Map
+              const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
+                const st = peer.stalp;
+                acc[st] = (acc[st] || 0) + 1;
+                return acc;
+              }, {});
+
               setBenchmarks({
                 ...calculateKPIs(benchmarkData),
                 groupName: benchmarkData.groupName,
                 sampleSize: benchmarkData.sampleSize,
                 peerBanks: benchmarkData.peerBanks,
+                peerStateCounts, // Pass to dashboard
                 p25: benchmarkData.p25,
                 p75: benchmarkData.p75
               });

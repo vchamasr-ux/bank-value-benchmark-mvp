@@ -3,8 +3,29 @@
  * @param {Object} data - The raw data object from the API (ASSET, INTEXP, etc.)
  * @returns {Object} - An object containing formatted KPI values.
  */
+/**
+ * Format YYYYMMDD to "Qx YYYY"
+ */
+export const formatQuarter = (dateString) => {
+    if (!dateString || dateString.length !== 8) return dateString;
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(4, 6);
+    let q = '';
+    if (month === '03') q = 'Q1';
+    else if (month === '06') q = 'Q2';
+    else if (month === '09') q = 'Q3';
+    else if (month === '12') q = 'Q4';
+    else return dateString; // Fallback
+    return `${q} ${year}`;
+};
+
 export const calculateKPIs = (data) => {
     if (!data) return null;
+
+    // Handle array of historical data
+    if (Array.isArray(data)) {
+        return data.map(item => calculateKPIs(item));
+    }
 
     // Helper to parse string numbers to float, default to 0
     const val = (key) => parseFloat(data[key]) || 0;
@@ -96,6 +117,7 @@ export const calculateKPIs = (data) => {
     }
 
     return {
+        reportDate: formatQuarter(data.REPDTE),
         efficiencyRatio: efficiencyRatio.toFixed(2),
         costOfFunds: costOfFunds.toFixed(2),
         nonInterestIncomePercent: nonInterestIncomePercent.toFixed(2),

@@ -39,7 +39,7 @@ export const getBankFinancials = async (certId) => {
     // Fetch latest report.
     const fields = 'REPDTE,ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP';
 
-    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=1&sort_by=REPDTE&sort_order=DESC&format=json`;
+    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=5&sort_by=REPDTE&sort_order=DESC&format=json`;
 
     try {
         const response = await fetch(url);
@@ -49,7 +49,8 @@ export const getBankFinancials = async (certId) => {
         }
         const data = await response.json();
         if (data.data.length > 0) {
-            return data.data[0].data;
+            // Return array of historical records (sorted DESC by date)
+            return data.data.map(item => item.data);
         }
         return null;
     } catch (error) {
@@ -175,6 +176,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     name: d.NAME,
                     city: d.CITY,
                     state: d.STNAME,
+                    stalp: d.STALP,
                     asset: parseFloat(d.ASSET) || 0
                 };
             });

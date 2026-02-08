@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
+import USMap from './USMap';
+import TrendSparkline from './TrendSparkline';
 
 const FinancialDashboard = ({ financials, benchmarks }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
@@ -50,110 +52,146 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                 banks={benchmarks?.peerBanks || []}
             />
 
+            {/* Geographic Distribution Map */}
+            {benchmarks && benchmarks.peerStateCounts && (
+                <div className="flex justify-center pb-4 border-b border-gray-100">
+                    <USMap
+                        subjectState={financials.raw.STALP}
+                        peerStates={benchmarks.peerStateCounts}
+                    />
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {/* 1. Efficiency Ratio (Lower is Better) */}
-                <GaugeChart
-                    label="Efficiency Ratio"
-                    value={parseFloat(financials.efficiencyRatio)}
-                    min={30}
-                    max={90}
-                    average={getAvg('efficiencyRatio', 60)}
-                    p25={benchmarks?.p25?.efficiencyRatio}
-                    p75={benchmarks?.p75?.efficiencyRatio}
-                    inverse={true}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Efficiency Ratio"
+                        value={parseFloat(financials.efficiencyRatio)}
+                        min={30}
+                        max={90}
+                        average={getAvg('efficiencyRatio', 60)}
+                        p25={benchmarks?.p25?.efficiencyRatio}
+                        p75={benchmarks?.p75?.efficiencyRatio}
+                        inverse={true}
+                    />
+                    <TrendSparkline data={financials.history} metric="efficiencyRatio" inverse={true} />
+                </div>
 
                 {/* 2. Net Interest Margin (Higher is Better) */}
-                <GaugeChart
-                    label="Net Interest Margin"
-                    value={parseFloat(financials.netInterestMargin)}
-                    min={0}
-                    max={6}
-                    average={getAvg('netInterestMargin', 3.5)}
-                    p25={benchmarks?.p25?.netInterestMargin}
-                    p75={benchmarks?.p75?.netInterestMargin}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Net Interest Margin"
+                        value={parseFloat(financials.netInterestMargin)}
+                        min={0}
+                        max={6}
+                        average={getAvg('netInterestMargin', 3.5)}
+                        p25={benchmarks?.p25?.netInterestMargin}
+                        p75={benchmarks?.p75?.netInterestMargin}
+                    />
+                    <TrendSparkline data={financials.history} metric="netInterestMargin" />
+                </div>
 
                 {/* 3. Cost of Funds (Lower is Better) */}
-                <GaugeChart
-                    label="Cost of Funds"
-                    value={parseFloat(financials.costOfFunds)}
-                    min={0}
-                    max={5}
-                    average={getAvg('costOfFunds', 2.5)}
-                    p25={benchmarks?.p25?.costOfFunds}
-                    p75={benchmarks?.p75?.costOfFunds}
-                    inverse={true}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Cost of Funds"
+                        value={parseFloat(financials.costOfFunds)}
+                        min={0}
+                        max={5}
+                        average={getAvg('costOfFunds', 2.5)}
+                        p25={benchmarks?.p25?.costOfFunds}
+                        p75={benchmarks?.p75?.costOfFunds}
+                        inverse={true}
+                    />
+                    <TrendSparkline data={financials.history} metric="costOfFunds" inverse={true} />
+                </div>
 
                 {/* 3. Non-Interest Income % (Higher is Better) */}
-                <GaugeChart
-                    label="Non-Interest Income"
-                    value={parseFloat(financials.nonInterestIncomePercent)}
-                    min={0}
-                    max={40}
-                    average={getAvg('nonInterestIncomePercent', 20)}
-                    p25={benchmarks?.p25?.nonInterestIncomePercent}
-                    p75={benchmarks?.p75?.nonInterestIncomePercent}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Non-Interest Income"
+                        value={parseFloat(financials.nonInterestIncomePercent)}
+                        min={0}
+                        max={40}
+                        average={getAvg('nonInterestIncomePercent', 20)}
+                        p25={benchmarks?.p25?.nonInterestIncomePercent}
+                        p75={benchmarks?.p75?.nonInterestIncomePercent}
+                    />
+                    <TrendSparkline data={financials.history} metric="nonInterestIncomePercent" />
+                </div>
 
                 {/* 4. Yield on Loans (Higher is Better) */}
-                <GaugeChart
-                    label="Yield on Loans"
-                    value={parseFloat(financials.yieldOnLoans)}
-                    min={2}
-                    max={10}
-                    average={getAvg('yieldOnLoans', 6)}
-                    p25={benchmarks?.p25?.yieldOnLoans}
-                    p75={benchmarks?.p75?.yieldOnLoans}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Yield on Loans"
+                        value={parseFloat(financials.yieldOnLoans)}
+                        min={2}
+                        max={10}
+                        average={getAvg('yieldOnLoans', 6)}
+                        p25={benchmarks?.p25?.yieldOnLoans}
+                        p75={benchmarks?.p75?.yieldOnLoans}
+                    />
+                    <TrendSparkline data={financials.history} metric="yieldOnLoans" />
+                </div>
 
                 {/* 5. Assets per Employee (Higher is Better) */}
-                <GaugeChart
-                    label="Assets / Employee ($M)"
-                    value={(parseFloat(financials.assetsPerEmployee) / 1000000).toFixed(1)}
-                    min={0}
-                    max={25}
-                    average={getAvgAssets()}
-                    p25={benchmarks?.p25?.assetsPerEmployee ? (parseFloat(benchmarks.p25.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
-                    p75={benchmarks?.p75?.assetsPerEmployee ? (parseFloat(benchmarks.p75.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
-                    suffix="M"
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Assets / Employee ($M)"
+                        value={(parseFloat(financials.assetsPerEmployee) / 1000000).toFixed(1)}
+                        min={0}
+                        max={25}
+                        average={getAvgAssets()}
+                        p25={benchmarks?.p25?.assetsPerEmployee ? (parseFloat(benchmarks.p25.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
+                        p75={benchmarks?.p75?.assetsPerEmployee ? (parseFloat(benchmarks.p75.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
+                        suffix="M"
+                    />
+                    <TrendSparkline data={financials.history} metric="assetsPerEmployee" />
+                </div>
 
                 {/* 6. Return on Equity (Higher is Better) */}
-                <GaugeChart
-                    label="Return on Equity"
-                    value={parseFloat(financials.returnOnEquity)}
-                    min={0}
-                    max={25}
-                    average={getAvg('returnOnEquity', 12)}
-                    p25={benchmarks?.p25?.returnOnEquity}
-                    p75={benchmarks?.p75?.returnOnEquity}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Return on Equity"
+                        value={parseFloat(financials.returnOnEquity)}
+                        min={0}
+                        max={25}
+                        average={getAvg('returnOnEquity', 12)}
+                        p25={benchmarks?.p25?.returnOnEquity}
+                        p75={benchmarks?.p75?.returnOnEquity}
+                    />
+                    <TrendSparkline data={financials.history} metric="returnOnEquity" />
+                </div>
 
                 {/* 7. Return on Assets (Higher is Better) */}
-                <GaugeChart
-                    label="Return on Assets"
-                    value={parseFloat(financials.returnOnAssets)}
-                    min={0}
-                    max={2.5}
-                    average={getAvg('returnOnAssets', 1.1)}
-                    p25={benchmarks?.p25?.returnOnAssets}
-                    p75={benchmarks?.p75?.returnOnAssets}
-                />
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="Return on Assets"
+                        value={parseFloat(financials.returnOnAssets)}
+                        min={0}
+                        max={2.5}
+                        average={getAvg('returnOnAssets', 1.1)}
+                        p25={benchmarks?.p25?.returnOnAssets}
+                        p75={benchmarks?.p75?.returnOnAssets}
+                    />
+                    <TrendSparkline data={financials.history} metric="returnOnAssets" />
+                </div>
 
                 {/* 8. NPL Ratio (Lower is Better) */}
-                <GaugeChart
-                    label="NPL Ratio"
-                    value={parseFloat(financials.nonPerformingLoansRatio)}
-                    min={0}
-                    max={5}
-                    average={getAvg('nonPerformingLoansRatio', 0.75)}
-                    p25={benchmarks?.p25?.nonPerformingLoansRatio}
-                    p75={benchmarks?.p75?.nonPerformingLoansRatio}
-                    inverse={true}
-                />
-
+                <div className="flex flex-col items-center gap-2">
+                    <GaugeChart
+                        label="NPL Ratio"
+                        value={parseFloat(financials.nonPerformingLoansRatio)}
+                        min={0}
+                        max={5}
+                        average={getAvg('nonPerformingLoansRatio', 0.75)}
+                        p25={benchmarks?.p25?.nonPerformingLoansRatio}
+                        p75={benchmarks?.p75?.nonPerformingLoansRatio}
+                        inverse={true}
+                    />
+                    <TrendSparkline data={financials.history} metric="nonPerformingLoansRatio" inverse={true} />
+                </div>
             </div>
         </div>
     );
