@@ -1,12 +1,12 @@
 import React from 'react';
 import USMap from './USMap';
 
-const PeerGroupModal = ({ isOpen, onClose, title, banks }) => {
+const PeerGroupModal = ({ isOpen, onClose, title, banks, subjectState }) => {
     if (!isOpen) return null;
 
     // Calculate peer state counts for the map
     const peerStateCounts = banks ? banks.reduce((acc, peer) => {
-        const st = peer.state;
+        const st = peer.stalp; // Use 2-letter code (STALP) instead of full name (state)
         acc[st] = (acc[st] || 0) + 1;
         return acc;
     }, {}) : {};
@@ -45,7 +45,7 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks }) => {
                     {/* Geographic Distribution Map (Appendix) */}
                     <div className="mb-8 flex flex-col items-center border-b border-gray-100 pb-8">
                         <USMap
-                            subjectState={null}
+                            subjectState={subjectState}
                             peerStates={peerStateCounts}
                         />
                         <p className="text-xs text-gray-400 mt-2 italic">

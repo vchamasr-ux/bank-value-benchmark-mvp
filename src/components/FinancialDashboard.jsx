@@ -48,6 +48,7 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                 onClose={() => setIsPeerModalOpen(false)}
                 title={`Peer Group: ${benchmarks?.groupName}`}
                 banks={benchmarks?.peerBanks || []}
+                subjectState={financials?.raw?.STALP}
             />
 
             {/* Geographic Distribution Map */}
