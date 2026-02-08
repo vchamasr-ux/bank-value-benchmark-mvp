@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
-import USMap from './USMap';
-import TrendSparkline from './TrendSparkline';
 
 const FinancialDashboard = ({ financials, benchmarks }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
@@ -53,14 +51,7 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
             />
 
             {/* Geographic Distribution Map */}
-            {benchmarks && benchmarks.peerStateCounts && (
-                <div className="flex justify-center pb-4 border-b border-gray-100">
-                    <USMap
-                        subjectState={financials.raw.STALP}
-                        peerStates={benchmarks.peerStateCounts}
-                    />
-                </div>
-            )}
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {/* 1. Efficiency Ratio (Lower is Better) */}
@@ -74,8 +65,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         p25={benchmarks?.p25?.efficiencyRatio}
                         p75={benchmarks?.p75?.efficiencyRatio}
                         inverse={true}
+                        trend={financials.history}
+                        metric="efficiencyRatio"
                     />
-                    <TrendSparkline data={financials.history} metric="efficiencyRatio" inverse={true} />
                 </div>
 
                 {/* 2. Net Interest Margin (Higher is Better) */}
@@ -88,8 +80,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         average={getAvg('netInterestMargin', 3.5)}
                         p25={benchmarks?.p25?.netInterestMargin}
                         p75={benchmarks?.p75?.netInterestMargin}
+                        trend={financials.history}
+                        metric="netInterestMargin"
                     />
-                    <TrendSparkline data={financials.history} metric="netInterestMargin" />
                 </div>
 
                 {/* 3. Cost of Funds (Lower is Better) */}
@@ -103,8 +96,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         p25={benchmarks?.p25?.costOfFunds}
                         p75={benchmarks?.p75?.costOfFunds}
                         inverse={true}
+                        trend={financials.history}
+                        metric="costOfFunds"
                     />
-                    <TrendSparkline data={financials.history} metric="costOfFunds" inverse={true} />
                 </div>
 
                 {/* 3. Non-Interest Income % (Higher is Better) */}
@@ -117,8 +111,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         average={getAvg('nonInterestIncomePercent', 20)}
                         p25={benchmarks?.p25?.nonInterestIncomePercent}
                         p75={benchmarks?.p75?.nonInterestIncomePercent}
+                        trend={financials.history}
+                        metric="nonInterestIncomePercent"
                     />
-                    <TrendSparkline data={financials.history} metric="nonInterestIncomePercent" />
                 </div>
 
                 {/* 4. Yield on Loans (Higher is Better) */}
@@ -131,8 +126,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         average={getAvg('yieldOnLoans', 6)}
                         p25={benchmarks?.p25?.yieldOnLoans}
                         p75={benchmarks?.p75?.yieldOnLoans}
+                        trend={financials.history}
+                        metric="yieldOnLoans"
                     />
-                    <TrendSparkline data={financials.history} metric="yieldOnLoans" />
                 </div>
 
                 {/* 5. Assets per Employee (Higher is Better) */}
@@ -146,8 +142,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         p25={benchmarks?.p25?.assetsPerEmployee ? (parseFloat(benchmarks.p25.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
                         p75={benchmarks?.p75?.assetsPerEmployee ? (parseFloat(benchmarks.p75.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
                         suffix="M"
+                        trend={financials.history}
+                        metric="assetsPerEmployee"
                     />
-                    <TrendSparkline data={financials.history} metric="assetsPerEmployee" />
                 </div>
 
                 {/* 6. Return on Equity (Higher is Better) */}
@@ -160,8 +157,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         average={getAvg('returnOnEquity', 12)}
                         p25={benchmarks?.p25?.returnOnEquity}
                         p75={benchmarks?.p75?.returnOnEquity}
+                        trend={financials.history}
+                        metric="returnOnEquity"
                     />
-                    <TrendSparkline data={financials.history} metric="returnOnEquity" />
                 </div>
 
                 {/* 7. Return on Assets (Higher is Better) */}
@@ -174,8 +172,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         average={getAvg('returnOnAssets', 1.1)}
                         p25={benchmarks?.p25?.returnOnAssets}
                         p75={benchmarks?.p75?.returnOnAssets}
+                        trend={financials.history}
+                        metric="returnOnAssets"
                     />
-                    <TrendSparkline data={financials.history} metric="returnOnAssets" />
                 </div>
 
                 {/* 8. NPL Ratio (Lower is Better) */}
@@ -189,8 +188,9 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         p25={benchmarks?.p25?.nonPerformingLoansRatio}
                         p75={benchmarks?.p75?.nonPerformingLoansRatio}
                         inverse={true}
+                        trend={financials.history}
+                        metric="nonPerformingLoansRatio"
                     />
-                    <TrendSparkline data={financials.history} metric="nonPerformingLoansRatio" inverse={true} />
                 </div>
             </div>
         </div>

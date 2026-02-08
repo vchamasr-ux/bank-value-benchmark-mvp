@@ -1,7 +1,15 @@
 import React from 'react';
+import USMap from './USMap';
 
 const PeerGroupModal = ({ isOpen, onClose, title, banks }) => {
     if (!isOpen) return null;
+
+    // Calculate peer state counts for the map
+    const peerStateCounts = banks ? banks.reduce((acc, peer) => {
+        const st = peer.state;
+        acc[st] = (acc[st] || 0) + 1;
+        return acc;
+    }, {}) : {};
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -12,7 +20,7 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks }) => {
             ></div>
 
             {/* Modal Content */}
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <div>
@@ -31,8 +39,20 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks }) => {
                     </button>
                 </div>
 
-                {/* Scrollable List */}
-                <div className="overflow-y-auto p-6">
+                {/* Scrollable Content */}
+                <div className="overflow-y-auto p-6 flex-1">
+
+                    {/* Geographic Distribution Map (Appendix) */}
+                    <div className="mb-8 flex flex-col items-center border-b border-gray-100 pb-8">
+                        <USMap
+                            subjectState={null}
+                            peerStates={peerStateCounts}
+                        />
+                        <p className="text-xs text-gray-400 mt-2 italic">
+                            Geographic distribution of peer group banks.
+                        </p>
+                    </div>
+
                     <div className="overflow-hidden border border-gray-200 rounded-lg">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -67,9 +87,6 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks }) => {
                             </tbody>
                         </table>
                     </div>
-                    <p className="mt-4 text-xs text-gray-400 text-center">
-                        *Assets displayed in Billions (B). Data source: FDIC.
-                    </p>
                 </div>
 
                 {/* Footer */}

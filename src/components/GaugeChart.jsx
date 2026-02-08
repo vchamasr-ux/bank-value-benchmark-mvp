@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import TrendIndicator from './TrendIndicator';
 
 // Helper for range calculations to support Testing
 export const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, inverse = false }) => {
@@ -74,7 +75,7 @@ export const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, 
 };
 
 
-const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%" }) => {
+const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric }) => {
     // Calculate ranges and the visual bounds used for them
     const { ranges, visualMin, visualMax, p25Angle, p75Angle } = calculateGaugeRanges({ value, min, max, average, p25, p75, inverse });
 
@@ -113,13 +114,14 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                         ))}
                     </Pie>
                     <Tooltip
+                        wrapperStyle={{ zIndex: 100 }} // Ensure tooltip is on top
                         formatter={() => ''}
                         separator=""
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                    <div className="bg-white p-2 border border-gray-200 shadow-lg rounded text-xs">
+                                    <div className="bg-white p-2 border border-blue-100 shadow-xl rounded text-xs z-50">
                                         <span className="font-bold" style={{ color: data.color }}>{data.name}</span>
                                         {p25 && p75 && (
                                             <div className="text-gray-500 mt-1">
@@ -156,20 +158,26 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                     ></div>
                 )}
 
-                {/* Needle */}
+                {/* Needle - Added pointer-events-none to fix hover issue */}
                 <div
-                    className="absolute bottom-0 left-1/2 w-1 h-20 origin-bottom bg-gray-800 transition-transform duration-1000 ease-out"
+                    className="absolute bottom-0 left-1/2 w-1 h-20 origin-bottom bg-gray-800 transition-transform duration-1000 ease-out pointer-events-none"
                     style={{
                         transform: `translateX(-50%) rotate(${rotation}deg)`
                     }}
                 ></div>
-                <div className="absolute bottom-0 left-1/2 w-4 h-4 -ml-2 -mb-2 rounded-full bg-gray-800"></div>
+                <div className="absolute bottom-0 left-1/2 w-4 h-4 -ml-2 -mb-2 rounded-full bg-gray-800 pointer-events-none"></div>
             </div>
 
             <div className="text-center mt-2 w-full">
                 <h3 className="text-sm font-medium text-gray-500 uppercase">{label}</h3>
-                <div className="text-2xl font-bold text-gray-800">
-                    {typeof value === 'number' ? value.toFixed(2) : value}{suffix}
+                <div className="flex justify-center items-center">
+                    <div className="text-2xl font-bold text-gray-800">
+                        {typeof value === 'number' ? value.toFixed(2) : value}{suffix}
+                    </div>
+                    {/* Render Subtle Trend Indicator if history is available */}
+                    {trend && metric && (
+                        <TrendIndicator history={trend} metric={metric} inverse={inverse} />
+                    )}
                 </div>
 
                 {(average !== undefined && average !== null) && (
