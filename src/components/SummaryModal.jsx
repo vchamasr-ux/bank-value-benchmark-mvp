@@ -85,23 +85,69 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
 
     if (!isOpen) return null;
 
-    // Helper to render simple markdown bold and paragraphs
+    // Helper to render simple markdown formatting
     const renderSummary = (text) => {
         return text.split('\n\n').map((paragraph, idx) => {
-            // Process bold **text**
-            const parts = paragraph.split(/(\*\*.*?\*\*)/g);
-            return (
-                <p key={idx} className="mb-4">
-                    {parts.map((part, i) => {
+            const trimPara = paragraph.trim();
+
+            // Handle headers
+            if (trimPara.startsWith('### ')) {
+                return <h4 key={idx} className="text-lg font-bold text-blue-800 mt-6 mb-3">{trimPara.substring(4).replace(/\*\*/g, '')}</h4>;
+            }
+            if (trimPara.startsWith('## ')) {
+                return <h3 key={idx} className="text-xl font-bold text-blue-900 mt-8 mb-4 border-b border-gray-100 pb-2">{trimPara.substring(3).replace(/\*\*/g, '')}</h3>;
+            }
+            if (trimPara.startsWith('# ')) {
+                return <h2 key={idx} className="text-2xl font-bold text-blue-900 mt-8 mb-6 border-b-2 border-blue-100 pb-2">{trimPara.substring(2).replace(/\*\*/g, '')}</h2>;
+            }
+
+            // Sometimes headers have ** like **## Title** or it's formatted weirdly
+            const boldHeaderMatch = trimPara.match(/^\*\*(#+)\s(.*?)\*\*$/);
+            if (boldHeaderMatch) {
+                const level = boldHeaderMatch[1].length;
+                const content = boldHeaderMatch[2];
+                if (level === 1) return <h2 key={idx} className="text-2xl font-bold text-blue-900 mt-8 mb-6 border-b-2 border-blue-100 pb-2">{content}</h2>;
+                if (level === 2) return <h3 key={idx} className="text-xl font-bold text-blue-900 mt-8 mb-4 border-b border-gray-100 pb-2">{content}</h3>;
+                return <h4 key={idx} className="text-lg font-bold text-blue-800 mt-6 mb-3">{content}</h4>;
+            }
+
+            // Check if it's purely a bold header without #
+            if (trimPara.match(/^\*\*[^*]+\*\*$/) && trimPara.length < 100) {
+                return <h4 key={idx} className="text-lg font-bold text-blue-800 mt-6 mb-3">{trimPara.slice(2, -2)}</h4>;
+            }
+
+            // Process bold **text** and list items
+            const processBlock = (blockText) => {
+                // If the block has line breaks for list items
+                return blockText.split('\n').map((line, lineIdx) => {
+                    const isListItem = line.trim().startsWith('* ') || line.trim().startsWith('- ');
+                    const cleanLine = isListItem ? line.trim().substring(2) : line;
+
+                    const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
+                    const renderedLine = parts.map((part, i) => {
                         if (part.startsWith('**') && part.endsWith('**')) {
                             return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
                         }
-                        // Process list items with * 
-                        if (part.trim().startsWith('* ')) {
-                            return <span key={i} className="block ml-4 mb-2">• {part.trim().substring(2)}</span>;
-                        }
                         return part;
-                    })}
+                    });
+
+                    if (isListItem) {
+                        return (
+                            <div key={lineIdx} className="flex items-start ml-4 mb-2">
+                                <span className="text-blue-500 mr-2 mt-0.5">•</span>
+                                <span>{renderedLine}</span>
+                            </div>
+                        );
+                    }
+
+                    // Normal line inside paragraph
+                    return <React.Fragment key={lineIdx}>{renderedLine}{lineIdx < blockText.split('\n').length - 1 ? <br /> : null}</React.Fragment>;
+                });
+            };
+
+            return (
+                <p key={idx} className="mb-4">
+                    {processBlock(trimPara)}
                 </p>
             );
         });
@@ -159,7 +205,7 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                             <p className="mt-2 text-red-700 ml-9">{error}</p>
                         </div>
                     ) : (
-                        <div className="text-gray-700 leading-relaxed text-base max-w-3xl mx-auto">
+                        <div className="text-gray-700 leading-relaxed text-base max-w-3xl mx-auto text-left">
                             {summary ? renderSummary(summary) : <p className="text-gray-500 italic text-center mt-10">Analysis is empty.</p>}
                         </div>
                     )}
