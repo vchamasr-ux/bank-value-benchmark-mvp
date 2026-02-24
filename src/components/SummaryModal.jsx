@@ -15,7 +15,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks }) => {
         setIsLoading(true);
         setError(null);
         try {
-            const apiKey = 'AIzaSyDVtv0DrIpcFB5pxiCFdVWIOWiaeNnd_x0';
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
             // Format the data
