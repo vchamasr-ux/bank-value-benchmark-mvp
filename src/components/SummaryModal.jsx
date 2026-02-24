@@ -4,6 +4,18 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks }) => {
     const [summary, setSummary] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleCopy = async () => {
+        if (!summary) return;
+        try {
+            await navigator.clipboard.writeText(summary);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
 
     useEffect(() => {
         if (isOpen && !summary && !isLoading && !error) {
@@ -155,19 +167,6 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                 </p>
             );
         });
-    };
-
-    const [isCopied, setIsCopied] = useState(false);
-
-    const handleCopy = async () => {
-        if (!summary) return;
-        try {
-            await navigator.clipboard.writeText(summary);
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-        }
     };
 
     return (
