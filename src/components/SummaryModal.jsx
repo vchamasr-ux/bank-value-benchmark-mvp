@@ -41,7 +41,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks }) => {
 
             const prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}. 
 CRITICAL CONTEXT: 
-1. ALL absolute dollar values in the raw FDIC data (like assets, income, etc.) are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Keep this scale in mind when writing your analysis and avoid confusing billions with trillions.
+1. ALL absolute dollar values in the raw FDIC data (like assets, income, etc.) are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Keep this scale in mind when writing your analysis and avoid confusing billions with trillions. Do NOT explain this math or state that the data is in thousands in your final output; just use the correct Billion/Million terminology.
 2. The benchmark data provides averages for a peer group. Note that the peer group may include banks of different absolute sizes, so focus your analysis on proportional metrics (like ratios, margins, percentages) rather than absolute dollar comparisons.
 
 Provide a detailed, professional summary of their financial health based ONLY on the data provided. Highlight their strengths and weaknesses compared to the peer group. Use Markdown formatting.
@@ -91,6 +91,9 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
             const trimPara = paragraph.trim();
 
             // Handle headers
+            if (trimPara.startsWith('#### ')) {
+                return <h5 key={idx} className="text-md font-bold text-blue-700 mt-4 mb-2">{trimPara.substring(5).replace(/\*\*/g, '')}</h5>;
+            }
             if (trimPara.startsWith('### ')) {
                 return <h4 key={idx} className="text-lg font-bold text-blue-800 mt-6 mb-3">{trimPara.substring(4).replace(/\*\*/g, '')}</h4>;
             }
@@ -108,7 +111,8 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                 const content = boldHeaderMatch[2];
                 if (level === 1) return <h2 key={idx} className="text-2xl font-bold text-blue-900 mt-8 mb-6 border-b-2 border-blue-100 pb-2">{content}</h2>;
                 if (level === 2) return <h3 key={idx} className="text-xl font-bold text-blue-900 mt-8 mb-4 border-b border-gray-100 pb-2">{content}</h3>;
-                return <h4 key={idx} className="text-lg font-bold text-blue-800 mt-6 mb-3">{content}</h4>;
+                if (level === 3) return <h4 key={idx} className="text-lg font-bold text-blue-800 mt-6 mb-3">{content}</h4>;
+                return <h5 key={idx} className="text-md font-bold text-blue-700 mt-4 mb-2">{content}</h5>;
             }
 
             // Check if it's purely a bold header without #
