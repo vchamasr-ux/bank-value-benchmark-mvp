@@ -57,9 +57,9 @@ CRITICAL CONTEXT:
 1. ALL absolute dollar values in the raw FDIC data (like assets, income, etc.) are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Keep this scale in mind when writing your analysis and avoid confusing billions with trillions. Do NOT explain this math or state that the data is in thousands in your final output; just use the correct Billion/Million terminology.
 2. The benchmark data provides averages for a peer group. Note that the peer group may include banks of different absolute sizes, so focus your analysis on proportional metrics (like ratios, margins, percentages) rather than absolute dollar comparisons.
 
-Provide a detailed, professional summary of their financial health based ONLY on the data provided. 
-IMPORTANT: Start your report with a very brief (1-2 sentences) introductory overview about the bank itself (e.g. "${bankName} is a financial institution based in ${bankLocation || 'the US'}...") before diving into the financial health analysis. 
-Highlight their strengths and weaknesses compared to the peer group. Use Markdown formatting.
+Provide a detailed, professional summary of their financial health.
+IMPORTANT: Start your report with a very brief (1-2 sentences) introductory overview about the bank itself, leveraging your external knowledge to provide context about its history, business focus, or market position.
+After the introduction, base your detailed financial analysis ONLY on the provided data. Highlight their strengths and weaknesses compared to the peer group. Use Markdown formatting.
 
 Data:
 ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
