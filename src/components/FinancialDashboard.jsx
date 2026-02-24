@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
+import SummaryModal from './SummaryModal';
 
 const FinancialDashboard = ({ financials, benchmarks }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
+    const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
     if (!financials) return null;
 
@@ -25,10 +27,21 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
     return (
         <div className="space-y-8">
             <h2 className="text-2xl font-bold text-blue-900 border-b pb-2 flex items-baseline justify-between">
-                <span>Financial Health Scorecard</span>
+                <div className="flex items-center gap-4">
+                    <span>Financial Health Scorecard</span>
+                    <button
+                        onClick={() => setIsSummaryModalOpen(true)}
+                        className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                        </svg>
+                        AI Summarize
+                    </button>
+                </div>
                 {benchmarks && benchmarks.groupName && (
-                    <span className="text-sm font-normal text-gray-500 ml-4">
-                        Benchmark: {benchmarks.groupName}{' '}
+                    <span className="text-sm font-normal text-gray-500 ml-4 flex items-center gap-2">
+                        <span>Benchmark: {benchmarks.groupName}</span>
                         {benchmarks.sampleSize ? (
                             <button
                                 onClick={() => setIsPeerModalOpen(true)}
@@ -49,6 +62,14 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                 title={`Peer Group: ${benchmarks?.groupName}`}
                 banks={benchmarks?.peerBanks || []}
                 subjectState={financials?.raw?.STALP}
+            />
+
+            {/* AI Summary Modal */}
+            <SummaryModal
+                isOpen={isSummaryModalOpen}
+                onClose={() => setIsSummaryModalOpen(false)}
+                financials={financials}
+                benchmarks={benchmarks}
             />
 
             {/* Geographic Distribution Map */}
