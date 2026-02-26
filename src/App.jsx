@@ -177,6 +177,11 @@ function App() {
           currentQuarter="Q4 2025"
         />
       )}
+      {/* Footer */}
+      <footer style={{ textAlign: 'center', marginTop: '3rem', paddingBottom: '1.5rem', color: '#9ca3af', fontSize: '0.75rem', userSelect: 'none' }}>
+        © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}
+        <span title="Value Benchmark MVP is a proprietary tool. Unauthorized reproduction or distribution is prohibited.">™</span>
+      </footer>
     </div>
   );
 }
