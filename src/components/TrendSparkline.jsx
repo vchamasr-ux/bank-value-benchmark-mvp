@@ -4,12 +4,27 @@ import { LineChart, Line, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 const TrendSparkline = ({ data, metric, inverse }) => {
     if (!data || data.length < 2) return null;
 
-    // Data is passed in DESC order (Newest First). Reverse for Chart (Oldest First).
-    // Take only the last 4 points (most recent year)
-    const chartData = [...data].slice(0, 4).reverse().map(d => ({
-        name: d.reportDate,
-        value: parseFloat(d[metric]) || 0
-    }));
+    // Detect if we should use Annual YoY History (for 3Y Growth KPIs)
+    // The data[0] represents the latest record.
+    const isAnnual = data[0] && data[0].raw && data[0].raw.annualGrowthHistory;
+    let chartData = [];
+    let trendLabel = "4-Q Trend";
+
+    if (isAnnual && data[0].raw.annualGrowthHistory[metric]) {
+        const annualPoints = data[0].raw.annualGrowthHistory[metric]; // [newest, middle, oldest]
+        trendLabel = "3-Y Annual Trend (YoY)";
+        chartData = [...annualPoints].reverse().map((val, idx) => ({
+            name: `Year ${idx + 1}`,
+            value: parseFloat(val) || 0
+        }));
+    } else {
+        trendLabel = "4-Q Trend";
+        // Data is passed in DESC order (Newest First). Reverse for Chart (Oldest First).
+        chartData = [...data].slice(0, 4).reverse().map(d => ({
+            name: d.reportDate,
+            value: parseFloat(d[metric]) || 0
+        }));
+    }
 
     // Determine Trend Color
     const first = chartData[0]?.value || 0;
@@ -48,7 +63,7 @@ const TrendSparkline = ({ data, metric, inverse }) => {
                     </LineChart>
                 </ResponsiveContainer>
             </div>
-            <span className="text-[10px] text-gray-400">4-Q Trend</span>
+            <span className="text-[10px] text-gray-400">{trendLabel}</span>
         </div>
     );
 };

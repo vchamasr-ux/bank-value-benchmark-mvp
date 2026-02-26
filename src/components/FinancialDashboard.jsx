@@ -75,6 +75,55 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
             {/* Geographic Distribution Map */}
 
 
+            {/* Growth Performance (New) */}
+            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
+                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5V2a1 1 0 112 0v5a1 1 0 01-1 1h-5z" clipRule="evenodd" />
+                        <path d="M2.293 12.293a1 1 0 011.414 0L11 4.586 15.586 9H13a1 1 0 110-2h5v5a1 1 0 11-2 0V9.414l-5.293 5.293a1 1 0 01-1.414 0L6 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L5.293 10 9 13.707l5.586-5.586L13 9.414V11a1 1 0 11-2 0v-5a1 1 0 011-1h5a1 1 0 110 2h-2.586l4.293 4.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0L6 11.414l-3.707 3.707a1 1 0 01-1.414-1.414l4.414-4.414L2.293 12.293z" />
+                    </svg>
+                    3-Year Growth Performance (CAGR)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
+                    <GaugeChart
+                        label="Asset Growth (3Y)"
+                        value={parseFloat(financials.assetGrowth3Y) || 0}
+                        min={-10}
+                        max={30}
+                        average={benchmarks ? parseFloat(benchmarks.assetGrowth3Y) : 8.5}
+                        p25={benchmarks ? benchmarks.p25.assetGrowth3Y : null}
+                        p75={benchmarks ? benchmarks.p75.assetGrowth3Y : null}
+                        suffix="%"
+                        trend={financials.history}
+                        metric="assetGrowth3Y"
+                    />
+                    <GaugeChart
+                        label="Loan Growth (3Y)"
+                        value={parseFloat(financials.loanGrowth3Y) || 0}
+                        min={-10}
+                        max={30}
+                        average={benchmarks ? parseFloat(benchmarks.loanGrowth3Y) : 7.2}
+                        p25={benchmarks ? benchmarks.p25.loanGrowth3Y : null}
+                        p75={benchmarks ? benchmarks.p75.loanGrowth3Y : null}
+                        suffix="%"
+                        trend={financials.history}
+                        metric="loanGrowth3Y"
+                    />
+                    <GaugeChart
+                        label="Deposit Growth (3Y)"
+                        value={parseFloat(financials.depositGrowth3Y) || 0}
+                        min={-10}
+                        max={30}
+                        average={benchmarks ? parseFloat(benchmarks.depositGrowth3Y) : 6.8}
+                        p25={benchmarks ? benchmarks.p25.depositGrowth3Y : null}
+                        p75={benchmarks ? benchmarks.p75.depositGrowth3Y : null}
+                        suffix="%"
+                        trend={financials.history}
+                        metric="depositGrowth3Y"
+                    />
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {/* 1. Efficiency Ratio (Lower is Better) */}
                 <div className="flex flex-col items-center gap-2">

@@ -2,15 +2,31 @@ import React, { useState, useEffect } from 'react';
 import BankSearch from './components/BankSearch';
 import FinancialDashboard from './components/FinancialDashboard';
 import OperationalDashboard from './components/OperationalDashboard';
+import MarketMoversPanel from './components/MarketMoversPanel';
 import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
 import { calculateKPIs } from './utils/kpiCalculator';
+
+// Feature flag: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
+const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') === 'true';
 
 function App() {
   const [selectedBank, setSelectedBank] = useState(null);
   const [financials, setFinancials] = useState(null);
-  const [benchmarks, setBenchmarks] = useState(null); // Dynamic benchmarks
+  const [benchmarks, setBenchmarks] = useState(null);
   const [loadingFinancials, setLoadingFinancials] = useState(false);
   const [errorFinancials, setErrorFinancials] = useState(null);
+  const [showMovers, setShowMovers] = useState(false); // Market Movers overlay
+
+  // Sync selected bank to localStorage so the sidecar window can read it
+  useEffect(() => {
+    if (selectedBank) {
+      localStorage.setItem('sidecar_focus_cert', String(selectedBank.CERT));
+      localStorage.setItem('sidecar_focus_name', selectedBank.NAME);
+    } else {
+      localStorage.removeItem('sidecar_focus_cert');
+      localStorage.removeItem('sidecar_focus_name');
+    }
+  }, [selectedBank]);
 
   useEffect(() => {
     if (selectedBank) {
@@ -42,6 +58,9 @@ function App() {
 
               setBenchmarks({
                 ...calculateKPIs(benchmarkData),
+                assetGrowth3Y: benchmarkData.assetGrowth3Y,
+                loanGrowth3Y: benchmarkData.loanGrowth3Y,
+                depositGrowth3Y: benchmarkData.depositGrowth3Y,
                 groupName: benchmarkData.groupName,
                 sampleSize: benchmarkData.sampleSize,
                 peerBanks: benchmarkData.peerBanks,
@@ -84,10 +103,17 @@ function App() {
         ) : (
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedBank.NAME}</h2>
-            <p className="text-gray-600 mb-2">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
+            <div className="flex flex-col items-center gap-1 mb-2">
+              <p className="text-gray-600">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
+              {financials?.reportDate && (
+                <span className="text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-500 rounded uppercase tracking-wider">
+                  Latest Report: {financials.reportDate}
+                </span>
+              )}
+            </div>
 
             {financials && financials.raw && (
-              <div className="mb-6 inline-block bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+              <div className="mb-4 inline-block bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
                 <span className="text-gray-500 font-medium mr-2">Total Assets:</span>
                 <span className="text-xl font-bold text-blue-900">
                   {(() => {
@@ -98,6 +124,21 @@ function App() {
                     return `$${asset.toLocaleString()}`;
                   })()}
                 </span>
+              </div>
+            )}
+
+            {/* Competitive Brief entry point — feature-flagged */}
+            {FEAT_MARKET_MOVERS && financials && benchmarks && (
+              <div className="mb-4">
+                <button
+                  id="competitive-brief-btn"
+                  onClick={() => setShowMovers(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm shadow transition-colors"
+                >
+                  <span>📊</span> Competitive Brief
+                  <span className="text-blue-200 text-xs font-mono">{benchmarks.groupName || 'Peer Group'}</span>
+                  <span className="ml-1">→</span>
+                </button>
               </div>
             )}
 
@@ -123,6 +164,19 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Market Movers overlay — feature-flagged, mounts above everything */}
+      {FEAT_MARKET_MOVERS && showMovers && selectedBank && benchmarks && (
+        <MarketMoversPanel
+          onClose={() => setShowMovers(false)}
+          focusBankCert={String(selectedBank.CERT)}
+          perspectiveName={selectedBank.NAME}
+          segmentKey={benchmarks.groupName || 'DYNAMIC'}
+          segmentLabel={benchmarks.groupName || 'Peer Group'}
+          priorQuarter="Q3 2025"
+          currentQuarter="Q4 2025"
+        />
+      )}
     </div>
   );
 }

@@ -36,10 +36,10 @@ export const searchBank = async (name) => {
 export const getBankFinancials = async (certId) => {
     if (!certId) return null;
 
-    // Fetch latest report.
-    const fields = 'REPDTE,ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP';
+    // Fetch historical reports (16 quarters for 4 years of context)
+    const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP';
 
-    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=5&sort_by=REPDTE&sort_order=DESC&format=json`;
+    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=16&sort_by=REPDTE&sort_order=DESC&format=json`;
 
     try {
         const response = await fetch(url);
@@ -64,6 +64,19 @@ import { calculateKPIs } from '../utils/kpiCalculator.js';
 import { getProximityScore } from '../utils/stateMapping.js';
 
 /**
+ * Determine the asset class group and filter string for peers.
+ * @param {number} assetSize - Bank assets in thousands
+ */
+export const getAssetGroupConfig = (assetSize) => {
+    if (assetSize < 100000) return { filter: 'ASSET:[0 TO 100000]', name: 'Assets < $100M' };
+    if (assetSize < 1000000) return { filter: 'ASSET:[100000 TO 1000000]', name: 'Assets $100M - $1B' };
+    if (assetSize < 10000000) return { filter: 'ASSET:[1000000 TO 10000000]', name: 'Assets $1B - $10B' };
+    if (assetSize < 50000000) return { filter: 'ASSET:[10000000 TO 50000000]', name: 'Assets $10B - $50B' };
+    if (assetSize < 250000000) return { filter: 'ASSET:[50000000 TO 250000000]', name: 'Assets $50B - $250B' };
+    return { filter: 'ASSET:[250000000 TO *]', name: 'Assets > $250B' };
+};
+
+/**
  * Fetch aggregate benchmark data for the bank's Asset Peer Group via Sampling.
  * @param {number} assetSize - The bank's total assets (in thousands).
  * @param {string} subjectState - The 2-letter state code of the subject bank (e.g. 'VA').
@@ -72,38 +85,9 @@ import { getProximityScore } from '../utils/stateMapping.js';
 export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
     if (!assetSize) return null;
 
-    // Define Asset Classes (in Thousands)
-    // Class 1: < $100M (100,000)
-    // Class 2: $100M - $1B (1,000,000)
-    // Class 3: $1B - $10B (10,000,000)
-    // Class 4: $10B - $50B (50,000,000)
-    // Class 5: $50B - $250B (250,000,000)
-    // Class 6: > $250B
+    const { filter: assetFilter, name: groupName } = getAssetGroupConfig(assetSize);
 
-    let assetFilter = '';
-    let groupName = '';
-
-    if (assetSize < 100000) {
-        assetFilter = 'ASSET:[0 TO 100000]';
-        groupName = 'Assets < $100M';
-    } else if (assetSize < 1000000) {
-        assetFilter = 'ASSET:[100000 TO 1000000]';
-        groupName = 'Assets $100M - $1B';
-    } else if (assetSize < 10000000) {
-        assetFilter = 'ASSET:[1000000 TO 10000000]';
-        groupName = 'Assets $1B - $10B';
-    } else if (assetSize < 50000000) {
-        assetFilter = 'ASSET:[10000000 TO 50000000]';
-        groupName = 'Assets $10B - $50B';
-    } else if (assetSize < 250000000) {
-        assetFilter = 'ASSET:[50000000 TO 250000000]';
-        groupName = 'Assets $50B - $250B';
-    } else {
-        assetFilter = 'ASSET:[250000000 TO *]';
-        groupName = 'Assets > $250B';
-    }
-
-    const fields = 'ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
+    const fields = 'ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
     // Fetch a larger sample (N=500) to find enough neighbors
     const limit = 500;
 
@@ -146,22 +130,52 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
             // Slice top 20
             const peers = candidates.slice(0, 20);
 
-            // Revert: Calculate Aggregate of the sample
-            const total = peers.reduce((acc, d) => {
+            // Fetch 3rd-year historical data for these 20 peers to calculate growth benchmarks
+            const peerCerts = peers.map(p => p.CERT).join(' OR ');
+            const histUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
+            let histMap = {};
+            try {
+                const histResponse = await fetch(histUrl);
+                if (histResponse.ok) {
+                    const histJson = await histResponse.json();
+                    histMap = (histJson.data || []).reduce((acc, item) => {
+                        acc[item.data.CERT] = item.data;
+                        return acc;
+                    }, {});
+                }
+            } catch (e) {
+                console.warn("Failed to fetch historical benchmarks, growth quartiles will be 0", e);
+            }
+
+            // Aggregate to handle potential data types, but we'll use Means for the KPIs
+            const totalRaw = peers.reduce((acc, d) => {
+                const hist = histMap[d.CERT];
+                // Only include in aggregate if we have baseline history to avoid inflation
+                const hasHist = !!hist;
                 return {
                     ASSET: acc.ASSET + (parseFloat(d.ASSET) || 0),
+                    HIST_ASSET: acc.HIST_ASSET + (hasHist ? (parseFloat(hist.ASSET) || 0) : 0),
                     NUMEMP: acc.NUMEMP + (parseFloat(d.NUMEMP) || 0),
                     INTINC: acc.INTINC + (parseFloat(d.INTINC) || 0),
                     INTEXP: acc.INTEXP + (parseFloat(d.INTEXP) || parseFloat(d.EINTEXP) || 0),
                     NONII: acc.NONII + (parseFloat(d.NONII) || 0),
                     NONIX: acc.NONIX + (parseFloat(d.NONIX) || 0),
                     LNLSNET: acc.LNLSNET + (parseFloat(d.LNLSNET) || 0),
+                    HIST_LNLSNET: acc.HIST_LNLSNET + (hasHist ? (parseFloat(hist.LNLSNET) || 0) : 0),
+                    DEP: acc.DEP + (parseFloat(d.DEP) || 0),
+                    HIST_DEP: acc.HIST_DEP + (hasHist ? (parseFloat(hist.DEP) || 0) : 0),
                     NETINC: acc.NETINC + (parseFloat(d.NETINC) || 0),
                     EQ: acc.EQ + (parseFloat(d.EQ) || 0),
                     NCLNLS: acc.NCLNLS + (parseFloat(d.NCLNLS) || 0),
                     count: acc.count + 1
                 };
-            }, { ASSET: 0, NUMEMP: 0, INTINC: 0, INTEXP: 0, NONII: 0, NONIX: 0, LNLSNET: 0, NETINC: 0, EQ: 0, NCLNLS: 0, count: 0 });
+            }, { ASSET: 0, HIST_ASSET: 0, NUMEMP: 0, INTINC: 0, INTEXP: 0, NONII: 0, NONIX: 0, LNLSNET: 0, HIST_LNLSNET: 0, DEP: 0, HIST_DEP: 0, NETINC: 0, EQ: 0, NCLNLS: 0, count: 0 });
+
+            // Initial aggregate growth for totals (weighted)
+            const calcCAGR = (curr, prev) => {
+                if (prev <= 0 || curr <= 0) return 0;
+                return (Math.pow(curr / prev, 1 / 3) - 1) * 100;
+            };
 
             // Extract peer bank details for the modal AND calculate distributions
             const peerKPIs = [];
@@ -169,6 +183,19 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                 // Calculate KPIs for this specific bank to build distribution
                 const kpis = calculateKPIs(d);
                 if (kpis) {
+                    // Calculate growth KPIs if history exists
+                    const hist = histMap[d.CERT];
+                    if (hist) {
+                        const calcCAGR = (curr, prev) => {
+                            const c = parseFloat(curr) || 0;
+                            const p = parseFloat(prev) || 0;
+                            if (p <= 0 || c <= 0) return 0;
+                            return (Math.pow(c / p, 1 / 3) - 1) * 100;
+                        };
+                        kpis.assetGrowth3Y = calcCAGR(d.ASSET, hist.ASSET).toFixed(2);
+                        kpis.loanGrowth3Y = calcCAGR(d.LNLSNET, hist.LNLSNET).toFixed(2);
+                        kpis.depositGrowth3Y = calcCAGR(d.DEP, hist.DEP).toFixed(2);
+                    }
                     peerKPIs.push(kpis);
                 }
 
@@ -193,12 +220,23 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
             };
 
             // Metrics to calculate P25/P75 for
-            const metrics = ['efficiencyRatio', 'netInterestMargin', 'costOfFunds', 'nonInterestIncomePercent', 'yieldOnLoans', 'assetsPerEmployee', 'returnOnEquity', 'returnOnAssets', 'nonPerformingLoansRatio'];
+            const metrics = [
+                'efficiencyRatio', 'netInterestMargin', 'costOfFunds',
+                'nonInterestIncomePercent', 'yieldOnLoans', 'assetsPerEmployee',
+                'returnOnEquity', 'returnOnAssets', 'nonPerformingLoansRatio',
+                'assetGrowth3Y', 'loanGrowth3Y', 'depositGrowth3Y'
+            ];
             const distributions = {};
+            const means = {};
 
             metrics.forEach(metric => {
                 // Parse values back to float because calculateKPIs returns strings
-                const values = peerKPIs.map(k => parseFloat(k[metric])).filter(v => !isNaN(v));
+                const values = peerKPIs.map(k => parseFloat(k[metric])).filter(v => !isNaN(v) && v !== null);
+
+                // Calculate Mean
+                const sum = values.reduce((a, b) => a + b, 0);
+                means[metric] = values.length > 0 ? (sum / values.length).toFixed(2) : "0.00";
+
                 distributions[metric] = {
                     p25: getPercentile(values, 25).toFixed(2),
                     p75: getPercentile(values, 75).toFixed(2)
@@ -206,9 +244,10 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
             });
 
             return {
-                ...total,
+                ...totalRaw,
+                ...means, // Directly provide Means as the primary benchmark values
                 groupName,
-                sampleSize: total.count,
+                sampleSize: totalRaw.count,
                 peerBanks,
                 p25: {
                     efficiencyRatio: distributions.efficiencyRatio.p25,
@@ -219,7 +258,10 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     assetsPerEmployee: distributions.assetsPerEmployee.p25,
                     returnOnEquity: distributions.returnOnEquity.p25,
                     returnOnAssets: distributions.returnOnAssets.p25,
-                    nonPerformingLoansRatio: distributions.nonPerformingLoansRatio.p25
+                    nonPerformingLoansRatio: distributions.nonPerformingLoansRatio.p25,
+                    assetGrowth3Y: distributions.assetGrowth3Y.p25,
+                    loanGrowth3Y: distributions.loanGrowth3Y.p25,
+                    depositGrowth3Y: distributions.depositGrowth3Y.p25
                 },
                 p75: {
                     efficiencyRatio: distributions.efficiencyRatio.p75,
@@ -230,7 +272,10 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     assetsPerEmployee: distributions.assetsPerEmployee.p75,
                     returnOnEquity: distributions.returnOnEquity.p75,
                     returnOnAssets: distributions.returnOnAssets.p75,
-                    nonPerformingLoansRatio: distributions.nonPerformingLoansRatio.p75
+                    nonPerformingLoansRatio: distributions.nonPerformingLoansRatio.p75,
+                    assetGrowth3Y: distributions.assetGrowth3Y.p75,
+                    loanGrowth3Y: distributions.loanGrowth3Y.p75,
+                    depositGrowth3Y: distributions.depositGrowth3Y.p75
                 }
             };
         }

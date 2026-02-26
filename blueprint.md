@@ -1,93 +1,153 @@
-The Blueprint: "Value Benchmark MVP"
-Architecture: Single Page Application (SPA).
+# Bank Value Benchmark — Architecture Blueprint
 
-Frontend: React (Vite) + Tailwind CSS (for rapid styling).
+_Last updated: February 2026 — reflects final built state._
 
-Visualization: Recharts (for the Gauges).
+---
 
-Data Source A (Financials): FDIC BankFind API (Real-time public data).
+## Application Overview
 
-Data Source B (Operational): A local "Seed Data" JSON file (The expert research benchmarks we defined) + User Inputs.
+**Architecture:** Single Page Application (SPA) with a standalone sidecar entry point.
 
-State Management: React Context (to manage the "Locked/Unlocked" state).
+**Frontend:** React 19 + Vite 7 + TailwindCSS 4.x
 
-Phase 1: The Foundation & Real Data Pipeline
-Goal: Get real financial data flowing from the FDIC API into a raw display.
+**Visualization:** Recharts (`PieChart` for gauge, `LineChart` for sparklines)
 
-Step 1: Search & Identification We need to find the specific bank first. The user types a name, we get a "Cert ID" (Certification Number).
+**Data Source A (Financials):** FDIC BankFind API — real-time public data, no API key required.
 
-Step 2: Financial Data Extraction Using the Cert ID, we fetch the specific Call Report data (Net Income, Assets, etc.) to calculate our 5 Financial KPIs.
+**Data Source B (Operational):** `src/data/operationalBenchmarks.json` — static seed benchmarks + user inputs.
 
-Step 3: The Dashboard Skeleton Display these raw numbers to verify accuracy before making them pretty.
+**Data Source C (AI Layer):** Gemini API (`gemini-2.5-flash`) — requires `VITE_GEMINI_API_KEY` in `.env.local`.
 
-Phase 2: Visualization & The "Hook"
-Goal: Turn raw numbers into the "Give-to-Get" experience.
+**State Management:** Component-local React state only (`useState`, `useEffect`). No Redux or Context.
 
-Step 4: The Gauge Component Build a reusable Speedometer component using Recharts.
+---
 
-Step 5: The "Locked" UI Build the blurred section for Operational KPIs and the Input Form.
+## Two Entry Points
 
-Step 6: The "Unlock" Logic Wire the form submission to reveal the Operational Gauges, comparing User Input vs. the Seed Data.
+| Entry | URL | Purpose |
+|---|---|---|
+| `index.html` | `http://localhost:5173/` | Main benchmark app |
+| `side_car/index.html` | `http://localhost:5173/side_car/index.html` | Market Movers sidecar |
 
-The Prompts
-Copy and paste these prompts one by one into the Antigravity agent. Wait for the agent to complete the task and confirm it works in the preview browser before moving to the next prompt.
+Both are built by a single `vite build` command using the multi-entry Rollup config in `vite.config.js`.
 
-Prompt 1: Project Setup & Bank Search (FDIC API)
-Markdown
-I want to build a "Bank Value Benchmark" app using React, Vite, and Tailwind CSS. 
-Let's start by building the "Bank Search" feature using real data.
+---
 
-1.  **Scaffold the App:** Set up a clean React app with Tailwind CSS.
-2.  **Create a Service:** Create a file `src/services/fdicService.js`. Implement a function `searchBank(name)` that calls the public FDIC API (`https://banks.data.fdic.gov/api/institutions`) to search for a bank by name.
-3.  **Create the UI:** In `App.jsx`, create a simple input field for "Bank Name" and a "Search" button.
-4.  **Display Results:** When I search, display a list of matching banks (Name, City, State, and their `CERT` number).
-5.  **Test:** Ensure I can type "First Community" and see a list of real banks returned from the API.
-Prompt 2: Fetching & Calculating Financial KPIs
-Markdown
-Now that we have the Bank `CERT` number, let's fetch the financial data.
+## Phase-by-Phase Journey
 
-1.  **Update Service:** In `fdicService.js`, add a function `getBankFinancials(certId)` that fetches the latest financial data for that specific bank.
-2.  **Calculate KPIs:** The API returns raw values. Create a utility `kpiCalculator.js` to calculate these 5 metrics from the raw data:
-    * **Efficiency Ratio** (Non-interest Exp / (Net Interest Income + Non-interest Inc))
-    * **Cost of Funds** (Interest Exp / Average Assets)
-    * **Non-Interest Income %** (Non-interest Inc / Total Income)
-    * **Yield on Loans** (Interest Income on Loans / Total Loans)
-    * **Assets per Employee** (Total Assets / Num Employees)
-3.  **Update UI:** When I click on a bank from the search list, fetch this data and display these 5 calculated KPIs as raw numbers in a "Financial Health" card.
-Prompt 3: Visualizing with Recharts (The Gauges)
-Markdown
-The raw numbers are working. Now let's visualize them.
+### Phase 1: Real Data Pipeline
+Get the bank `CERT` ID → fetch 16 quarters of Call Report data → run through `kpiCalculator.js`.
 
-1.  **Install Recharts:** Add the library to the project.
-2.  **Create Component:** Create a `GaugeChart.jsx` component. It should take `value`, `min`, `max`, and `average` as props.
-3.  **Visual Style:** It should look like a semi-circle speedometer. Use distinct colors: Red (Poor), Yellow (Average), Green (Good).
-4.  **Integrate:** Replace the raw numbers in `App.jsx` with 5 instances of this `GaugeChart`.
-5.  **Benchmarks:** For now, pass hardcoded "Tier 4 Average" values (e.g., Efficiency Ratio: 60%) into the `average` prop so I can see the needle compare the specific bank's data against the industry average.
-Prompt 4: The "Locked" Operational Section
-Markdown
-Now we implement the "Give-to-Get" logic.
+**Key files built:**
+- `src/services/fdicService.js` — `searchBank()`, `getBankFinancials()`
+- `src/utils/kpiCalculator.js` — `calculateKPIs()`, `formatQuarter()`
+- `src/components/BankSearch.jsx`
 
-1.  **Create Data Structure:** Create a file `src/data/operationalBenchmarks.json`. Populate it with our research data for the 5 Operational KPIs (Digital Adoption, DAO %, Vendor Spend, Avg Age, NPS).
-2.  **Create the "Locked" View:** Below the Financial Gauges, add a new section "Operational Efficiency."
-3.  **State Management:** If the user hasn't provided data yet, this section should be blurred or covered with an overlay that says "Unlock your full Scorecard."
-4.  **Input Form:** Inside the overlay, provide a form with 5 inputs corresponding to the 5 Operational KPIs.
-5.  **Test:** Verify that the inputs work, but the gauges underneath are hidden/blurred.
-Prompt 5: Wiring the "Unlock" & Final Integration
-Markdown
-Let's wire it all together.
+### Phase 2: Visualization
+Turn raw KPIs into gauges with peer-aware coloring.
 
-1.  **Handle Submission:** When the user fills out the 5 inputs and clicks "Unlock":
-    * Save their inputs to the component state.
-    * Remove the overlay/blur.
-2.  **Display Operational Gauges:** Render 5 new `GaugeChart` components in the now-visible section.
-3.  **Compare:** Map the user's input to the `value` prop and use the data from `operationalBenchmarks.json` for the `average` prop.
-4.  **Final Polish:** Add a "Header" with the selected Bank's name and a "Reset" button to search for a new bank.
-5.  **Test:** Run through the full flow: Search Bank -> See Financials -> Enter Private Data -> See Full Benchmark.
-A Note on Testing
-Between each prompt, use the "Preview" browser in Antigravity to verify the logic.
+**Key files built:**
+- `src/components/GaugeChart.jsx` — semi-circle gauge with P25/P75 sector zones
+- `src/components/TrendIndicator.jsx` — QoQ trend arrow
+- `src/components/TrendSparkline.jsx` — hover mini chart
+- `src/components/FinancialDashboard.jsx` — 9 KPI gauges + 3 growth gauges
 
-Test 1: Does "Bank of America" return a search result? (Prompt 1)
+### Phase 3: Dynamic Peer Benchmarks
+Automatically find 20 peer banks in the same asset class and near the same geography.
 
-Test 2: Do the financial numbers look realistic (e.g., Efficiency Ratio around 60%, not 6000%)? (Prompt 2)
+**Key files built:**
+- `src/services/fdicService.js` — added `getPeerGroupBenchmark()` and `getAssetGroupConfig()`
+- `src/utils/stateMapping.js` — US state adjacency map + `getProximityScore()`
+- `src/components/PeerGroupModal.jsx` — peer bank list
+- `src/components/USMap.jsx` — tile-grid geographic map
 
-Test 3: Does the Gauge needle point to the right spot? (Prompt 3)
+### Phase 4: Operational "Give-to-Get"
+Unlock operational gauges by submitting your own bank's data.
+
+**Key files built:**
+- `src/data/operationalBenchmarks.json`
+- `src/components/OperationalDashboard.jsx`
+
+### Phase 5: AI Summarize
+One-click Gemini narrative of financial health vs. peer group.
+
+**Key files built:**
+- `src/components/SummaryModal.jsx`
+
+### Phase 6: Market Movers Sidecar
+Competitive intelligence tool — spots which peers are moving fastest QoQ.
+
+**Key files built:**
+- `side_car/index.html` + `side_car/SidecarApp.jsx`
+- `side_car/market_movers.jsx`
+- `side_car/fdicAdapter.js` — bridge wrapping main app services (no code duplication)
+
+---
+
+## Code Sharing Pattern (Sidecar ↔ Main App)
+
+The sidecar does **not** have its own copy of FDIC fetch or KPI calculation logic. It imports directly:
+
+```js
+// side_car/fdicAdapter.js
+import { getBankFinancials, getAssetGroupConfig } from '../src/services/fdicService';
+import { calculateKPIs } from '../src/utils/kpiCalculator';
+import { getProximityScore } from '../src/utils/stateMapping';
+```
+
+`getAssetGroupConfig()` is the key shared function — it returns `{ filter, name }` for a given asset size. Both the main app's `getPeerGroupBenchmark()` and the sidecar's `listPeerBanks()` call this function, ensuring the peer group definitions are defined in one place.
+
+---
+
+## Peer Group Algorithm
+
+1. Classify bank by asset size → one of 6 tiers (`< $100M` through `> $250B`).
+2. Fetch up to N=500 active FDIC banks in that tier.
+3. Deduplicate by CERT (keep first / most recent).
+4. Proximity-sort by state distance (same=0, adjacent=1, neighbor-of-neighbor=2, other=3).
+5. Slice top 20 as the peer group.
+6. Fetch Dec 31 2022 historical data for those 20 — used for 3-year CAGR.
+7. Compute **arithmetic mean** of each KPI across the 20 (used as the gauge's `average` marker).
+8. Compute **P25 / P75** distributions for all 12 KPIs (used for quartile sector coloring).
+
+> **Why arithmetic mean?** A weighted aggregate would be dominated by the largest bank in the peer group. A simple mean ensures the benchmark value falls naturally between P25 and P75, making gauge positioning intuitive.
+
+---
+
+## Gauge Color Logic
+
+| Mode | Condition | Colors (Left → Right) |
+|---|---|---|
+| Normal (higher=better) | `inverse=false` | 🔴 Red → 🟡 Yellow → 🟢 Green |
+| Inverse (lower=better) | `inverse=true` | 🟢 Green → 🟡 Yellow → 🔴 Red |
+
+**With P25/P75:** Sectors map directly to quartile boundaries (Bottom Q / Middle 50% / Top Q).  
+**Without P25/P75:** Equal 3-sector split centered on the average.
+
+---
+
+## Error Handling Philosophy
+
+- **Fail loudly:** Missing data throws visible errors rather than returning silent zeros.
+- **Surface to UI:** Errors appear as styled alerts in the UI, not just console logs.
+- **No fallback chains:** If `VITE_GEMINI_API_KEY` is missing, the app throws — it does not silently skip AI features.
+
+---
+
+## Build & Run
+
+```bash
+# Development (hot reload)
+npm run dev
+
+# Production build (both entries)
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint
+npm run lint
+```
+
+No test command — all test infrastructure was removed in the Feb 2026 cleanup. Build verification (`vite build`) and manual browser testing serve as the quality gate.

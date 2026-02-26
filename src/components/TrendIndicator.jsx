@@ -44,7 +44,6 @@ const TrendIndicator = ({ history, metric, inverse }) => {
             {/* Hover Sparkline Tooltip */}
             {isHovered && (
                 <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white p-2 rounded shadow-xl border border-gray-100 z-50 w-32">
-                    <div className="text-[10px] text-gray-500 text-center mb-1">4-Q Trend</div>
                     <TrendSparkline data={history} metric={metric} inverse={inverse} />
                 </div>
             )}
