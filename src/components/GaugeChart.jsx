@@ -183,12 +183,6 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                 {(average !== undefined && average !== null) && (
                     <div className="text-xs text-gray-400 mt-1 flex flex-col items-center w-full">
                         <span className="font-semibold">Avg: {format(average)}</span>
-                        {p25 && p75 && (
-                            <div className="flex gap-2 mt-0.5 text-[10px] text-gray-500">
-                                <span>P25: {format(p25)}</span>
-                                <span>P75: {format(p75)}</span>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>

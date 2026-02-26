@@ -19,7 +19,7 @@ export const sidecarDataProvider = {
      * IMPLEMENTATION A: Independent Dynamic Fetch
      * Replicates the main app's logic to find the same peer set.
      */
-    async listPeerBanks({ segmentKey, quarter, focusCert }) {
+    async listPeerBanks({ focusCert }) {
         assert(focusCert, "A focus focusCert is required for dynamic peer search.");
 
         // 1. Fetch Focus Bank's context (Assets and State)
@@ -120,39 +120,43 @@ export const sidecarDataProvider = {
 
     /**
      * generateGeminiText
-     * Wrapper for whatever Gemini service you have or will add.
+     * Secure proxy to Gemini via serverless endpoint.
      */
-    async generateGeminiText({ prompt }) {
+    async generateGeminiText({ prompt, type = 'market_movers' }) {
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            assert(apiKey, "VITE_GEMINI_API_KEY not found in environment.");
+            const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const linkedinSub = storedUser.sub;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            if (!linkedinSub) {
+                throw new Error("Authentication required to generate AI insights.");
+            }
 
-            const response = await fetch(url, {
+            const response = await fetch('/api/insights', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-linkedin-sub': linkedinSub
                 },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: prompt
-                        }]
-                    }]
+                    type,
+                    // For flexible prompts from the adapter, we send them as a 'prompt' 
+                    // though our backend currently uses hardcoded templates for security.
+                    // Let's adjust backend insights.js to also accept a raw prompt if needed,
+                    // but better to keep it templated.
+                    // For sidecar/market movers, we'll assume the 'market_movers' type handles it.
+                    tapeStr: prompt // Map direct prompt to tapeStr for the market_movers template
                 })
             });
 
             if (!response.ok) {
-                const errData = await response.json();
-                if (response.status === 429 || (errData.error && errData.error.code === 429)) {
-                    throw new Error("Gemini API daily quota exceeded. Please try again later.");
+                if (response.status === 429) {
+                    throw new Error("Daily AI quota reached (2/2). Reset at midnight UTC.");
                 }
-                throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+                throw new Error("Failed to generate AI insights.");
             }
 
             const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "No summary generated.";
+            return data.text || "No summary generated.";
         } catch (error) {
             console.error("Gemini API Error (Sidecar):", error);
             throw error;

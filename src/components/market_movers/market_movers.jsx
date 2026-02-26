@@ -23,18 +23,18 @@ import React, { useEffect, useMemo, useState } from "react";
 
 // --- KPI config: align keys to your existing KPI extraction ---
 const KPI_SPECS = [
-    { key: "asset_growth_3y", label: "3Y Asset Growth (CAGR)", better: "higher", type: "rate" },
-    { key: "loan_growth_3y", label: "3Y Loan Growth (CAGR)", better: "higher", type: "rate" },
-    { key: "deposit_growth_3y", label: "3Y Deposit Growth (CAGR)", better: "higher", type: "rate" },
-    { key: "eff_ratio", label: "Efficiency Ratio", better: "lower", type: "rate" },
-    { key: "nim", label: "Net Interest Margin (NIM)", better: "higher", type: "rate" },
-    { key: "cost_of_funds", label: "Cost of Funds", better: "lower", type: "rate" },
-    { key: "non_int_income_pct", label: "Non-Interest Income %", better: "higher", type: "rate" },
-    { key: "loan_yield", label: "Yield on Loans", better: "higher", type: "rate" },
-    { key: "assets_per_employee", label: "Assets per Employee", better: "higher", type: "scalar" },
-    { key: "roe", label: "Return on Equity (ROE)", better: "higher", type: "rate" },
-    { key: "roa", label: "Return on Assets (ROA)", better: "higher", type: "rate" },
-    { key: "npl_ratio", label: "NPL Ratio", better: "lower", type: "rate" },
+    { key: "asset_growth_3y", label: "3Y Asset Growth (CAGR)", better: "higher", type: "rate", metric_class: "derived" },
+    { key: "loan_growth_3y", label: "3Y Loan Growth (CAGR)", better: "higher", type: "rate", metric_class: "derived" },
+    { key: "deposit_growth_3y", label: "3Y Deposit Growth (CAGR)", better: "higher", type: "rate", metric_class: "derived" },
+    { key: "eff_ratio", label: "Efficiency Ratio", better: "lower", type: "rate", metric_class: "core" },
+    { key: "nim", label: "Net Interest Margin (NIM)", better: "higher", type: "rate", metric_class: "core" },
+    { key: "cost_of_funds", label: "Cost of Funds", better: "lower", type: "rate", metric_class: "core" },
+    { key: "non_int_income_pct", label: "Non-Interest Income %", better: "higher", type: "rate", metric_class: "core" },
+    { key: "loan_yield", label: "Yield on Loans", better: "higher", type: "rate", metric_class: "core" },
+    { key: "assets_per_employee", label: "Assets per Employee", better: "higher", type: "scalar", metric_class: "denominator-sensitive" },
+    { key: "roe", label: "Return on Equity (ROE)", better: "higher", type: "rate", metric_class: "core" },
+    { key: "roa", label: "Return on Assets (ROA)", better: "higher", type: "rate", metric_class: "core" },
+    { key: "npl_ratio", label: "NPL Ratio", better: "lower", type: "rate", metric_class: "core" },
 ];
 
 // ----------------- tiny helpers -----------------
@@ -167,8 +167,8 @@ function computeMovers({ peers, kpisByQuarterByCert, priorQuarter, currentQuarte
 
             // signedZ so that + means "good movement"
             const signedZ = spec.better === "higher" ? z : -z;
-
             const vsPeersEffect = signedZ > 0 ? "better_than_median" : "worse_than_median";
+            const strength = absZ >= 2 ? "High" : (absZ >= 1 ? "Medium" : "Low");
 
             return {
                 spec,
@@ -179,6 +179,7 @@ function computeMovers({ peers, kpisByQuarterByCert, priorQuarter, currentQuarte
                 signedZ,
                 vsPeersEffect,
                 effect: eff,
+                strength,
             };
         }).sort((a, b) => b.absZ - a.absZ);
 
@@ -223,7 +224,7 @@ function buildConciseTape({ segmentLabel, peerCount, priorQuarter, currentQuarte
         lines.push(` ${rank}. ${m.bankName} | dir=${m.direction} | surprise=${m.surprise.toFixed(2)}`);
         for (const d of m.driversTop3) {
             lines.push(
-                `    - ${d.spec.label}: ${fmtDelta(d.spec, d.delta)} | delta_pct=${d.deltaPct.toFixed(2)} | z=${fmtSigned(d.z)} | ${d.effect} | vs_peers_effect=${d.vsPeersEffect}`
+                `    - ${d.spec.label}: ${fmtDelta(d.spec, d.delta)} | delta_pct=${d.deltaPct.toFixed(2)} | z=${fmtSigned(d.z)} | ${d.effect} | vs_peers_effect=${d.vsPeersEffect} | strength=${d.strength} | metric_class=${d.spec.metric_class}`
             );
         }
         lines.push("");
@@ -234,7 +235,7 @@ function buildConciseTape({ segmentLabel, peerCount, priorQuarter, currentQuarte
         lines.push(` ${focusRank}. ${focusRow.bankName} | dir=${focusRow.direction} | surprise=${focusRow.surprise.toFixed(2)}`);
         for (const d of focusRow.driversTop3) {
             lines.push(
-                `    - ${d.spec.label}: ${fmtDelta(d.spec, d.delta)} | delta_pct=${d.deltaPct.toFixed(2)} | z=${fmtSigned(d.z)} | ${d.effect} | vs_peers_effect=${d.vsPeersEffect}`
+                `    - ${d.spec.label}: ${fmtDelta(d.spec, d.delta)} | delta_pct=${d.deltaPct.toFixed(2)} | z=${fmtSigned(d.z)} | ${d.effect} | vs_peers_effect=${d.vsPeersEffect} | strength=${d.strength} | metric_class=${d.spec.metric_class}`
             );
         }
         lines.push("");
@@ -350,57 +351,63 @@ Inferred posture: ${focusBankSnapshot.objective}
 You are a competitive-intelligence analyst writing for senior bankers at ${perspectiveBankName}. Use ONLY the data in the tape below. Do not invent numbers or add facts not present in the tape.
 
 --- DEFINITIONS ---
-- "Δ" = QoQ change (current quarter minus prior quarter).
+- "Δ" = QoQ change (current quarter minus prior quarter). Preserve units EXACTLY as shown in the tape (e.g. "bp", "M").
 - delta_pct = percentile rank of a bank's delta within the peer group (0..1). It is NOT a percent change.
-- z = robust z-score: (bank delta − peer median delta) / peer IQR. How unusual the move is relative to peers. |z| > 2 is notable, |z| > 4 is extreme.
-- "improving / deteriorating" already accounts for each metric's preferred direction (higher or lower is better).
+- z = robust z-score: (bank delta − peer median delta) / peer IQR.
+- strength = explicit qualitative scale (High/Medium/Low) based on the z-score. Use this for magnitude, do NOT describe z-scores using adjectives on your own.
+- "improving / deteriorating" = objective direction relative to the metric's "better" side.
 - "vs_peers_effect" (better_than_median / worse_than_median) shows whether the bank moved in a more favorable direction than the median peer.
+- metric_class = the type of metric (derived, denominator-sensitive, core).
 
---- TWO TYPES OF FRAGILE METRICS (treat differently) ---
-TYPE A — CAGR / Derived (3Y Asset / Loan / Deposit Growth):
+--- STRATEGIC PHRASING (Softened Intent) ---
+Do NOT assert intent confidently (e.g., "prioritizing growth", "strategic pivot"). 
+Instead, use pattern-based language: 
+"The pattern is consistent with margin-first behavior, either strategic or driven by mix/funding conditions."
+"Performance suggests a defensive posture in funding costs."
+
+--- TWO TYPES OF CONTEXT / FRAGILE METRICS (treat differently) ---
+If a metric is marked as "metric_class=derived":
   Multi-year rolling figures. A single quarter's CAGR shift may reflect a base-year change, not a genuine trend break.
-  → Flag once as: "(CAGR-based; verify next quarter before concluding trend break)"
+  → Treat as context only. If it is a top driver, append ONLY: "(CAGR-based; verify next quarter before concluding trend break)"
 
-TYPE B — Denominator-Sensitive (Assets per Employee):
+If a metric is marked as "metric_class=denominator-sensitive":
   Moves when headcount changes independently of assets. Dramatic swings may be a headcount event, not an operational shift.
-  → Flag once as: "(headcount effect possible; verify next quarter)"
+  → Treat as context only. If it is a top driver, append ONLY: "(headcount effect possible; verify next quarter)"
 
-IMPORTANT: Do NOT apply TYPE A language to TYPE B metrics or vice versa.
+IMPORTANT: Do NOT apply "derived" language to "denominator-sensitive" metrics or vice versa.
 
 --- CONFIDENCE LABEL (required, deterministic) ---
-Assign each bank exactly one Confidence: High / Medium / Low based ONLY on the tape signals.
+Assign exactly one Confidence: High / Medium / Low based ONLY on the tape signals.
 To determine Confidence, first identify the TOP DRIVER = the driver with the highest absolute |z| score.
-  High   = 2 or more drivers with |z| >= 2 AND all pointing the same direction (all worse_than_median OR all better_than_median) AND the top driver is NOT a TYPE A or TYPE B fragile metric
-  Medium = mixed driver directions, OR only 1 driver with |z| >= 2, OR signals partially offset each other
-  Low    = the TOP DRIVER (highest |z|) is a TYPE A or TYPE B fragile metric — i.e., the thing that makes this bank "surprising" is fragile
-Note: A fragile metric appearing as a secondary or tertiary driver does NOT automatically make Confidence Low.
+  High   = 2 or more drivers with strength="High" AND all pointing the same direction (all worse_than_median OR all better_than_median) AND the top driver is a "core" metric.
+  Medium = mixed driver directions, OR only 1 driver with strength="High", OR signals partially offset each other.
+  Low    = the TOP DRIVER (highest |z|) is a "derived" or "denominator-sensitive" metric — i.e., the thing that makes this bank "surprising" is fragile.
 
 --- OUTPUT FORMAT (one block per bank, exactly as shown) ---
 
 [BANK NAME] — Theme: [theme label] ([Threat / Opportunity / Monitor]) | Confidence: [High / Medium / Low]
 What changed (QoQ):
-  • [One-sentence analytical observation in plain English. Use ordinal peer language: "worst in the peer set", "top 2 of 20", "bottom quartile of moves" — NOT "delta_pct=0.05" or "bottom 5%".]
-  • [Second driver — one-sentence observation with ordinal peer language]
-  • [Third driver — one-sentence observation with ordinal peer language]
+  • [One-sentence analytical observation in plain English. Use ordinal peer language and PRESERVE UNITS EXACTLY: "worst in the peer set, dropping by -X bp"]
+  • [Second driver — one-sentence observation with ordinal peer language and exact tape units]
+  • [Third driver — one-sentence observation with ordinal peer language and exact tape units]
 
-So what: [2–3 sentences — what does this signal competitively? What competitive posture is this bank likely to adopt? Do NOT name specific products (wealth, treasury, etc.) unless the tape explicitly signals them. Use generic language: "expect competitive actions across pricing and coverage focus."]
+So what: [2–3 sentences — what does this signal competitively? What competitive posture is this bank likely to adopt? Do NOT name specific products unless the tape explicitly signals them.]
 
 What ${perspectiveBankName} should do:
-  • Defend: [client/wallet-facing action — protect ${perspectiveBankName}'s existing relationships from this competitor. Pre-empt outreach, lock in multi-product relationships, accelerate renewals. NEVER say "review our own X" or "evaluate our pricing" — that is internal housekeeping, not a competitive move]
-  • Attack: [market-facing action — take share where this competitor is weakest. Inferences must be directionally consistent with the tape: if a bank's NPL improved, do NOT imply it is taking on riskier loans. If NIM expanded, do NOT imply it is uncompetitive on rates. Only use what the signal actually supports]
-  • Monitor: [this competitor's market behavior next quarter — pricing signals, origination volumes, coverage moves. NOT an internal ${perspectiveBankName} review]
+  • Defend: [client/wallet-facing action — protect ${perspectiveBankName}'s existing relationships from this competitor. Pre-empt outreach, lock in multi-product relationships. NEVER say "review our own X" or "evaluate our pricing" — that is internal housekeeping, not a competitive move.]
+  • Attack: [market-facing action — take share where this competitor is weakest. Inferences must be directionally consistent with the tape. Only use what the signal actually supports.]
+  • Monitor: [this competitor's market behavior next quarter — pricing signals, origination volumes. NOT an internal ${perspectiveBankName} review.]
 
-Watch next quarter: [Conditional IF/THEN signal — what to look for and what it would mean. Do NOT name specific products speculatively. Example: "Watch whether originations recover — if not, expect defensive repricing in shared segments."]
+Watch next quarter: [Conditional IF/THEN signal — what to look for and what it would mean. Do NOT name specific products speculatively.]
 
 --- CRITICAL RULES ---
-1. "What changed" bullets must be analytical observations in plain English. Do NOT echo Δ values, delta_pct, z-scores, or "deteriorating/worse_than_median" verbatim.
-2. Use ordinal peer language ("worst in peer set", "led the peer group", "bottom quartile") — not percentile fractions.
-3. Do NOT speculate on specific product lines (wealth management, treasury, mortgage, etc.) unless the tape explicitly contains a supporting signal. Describe competitive posture generically.
-4. Defend, Attack, and Monitor must be client-facing or market-facing. No internal reviews, audits, or process changes.
-5. Attack = going after clients, deals, wallet share. Not talent, not benchmarking.
-6. TYPE A caveats get "(CAGR-based; verify next quarter)" — TYPE B gets "(headcount effect possible; verify next quarter)". Never mix.
-7. Caveats appear naturally and only ONCE per bank.
-8. Tone: crisp and banker-native. No filler phrases. No heavy adjectives ("severe", "devastating") unless 3+ drivers all confirm the same direction at |z| >= 2.
+1. "What changed" bullets must be analytical observations in plain English. Do NOT echo delta_pct or "deteriorating/worse_than_median" verbatim.
+2. PRESERVE UNITS EXACTLY as they appear in the tape's Δ field (either bp, M, or raw units). Do not insert %.
+3. Rely on the "strength" value (High/Medium/Low) to dictate the tone of the move. Do not overreact to raw z-scores.
+4. "Defend", "Attack", and "Monitor" are strictly enforced. Output exactly those 3 bullets.
+5. Defend, Attack, and Monitor must be client-facing or market-facing. NO internal reviews, audits, or process changes ("internal housekeeping").
+6. Speculation on specific product lines (wealth management, treasury, mortgage) is FORBIDDEN unless the tape explicitly contains a supporting signal.
+7. Caveats for derived/denominator-sensitive metrics appear naturally and only ONCE per bank.
 
 --- MARKET MOVERS TAPE ---
 ${tape}

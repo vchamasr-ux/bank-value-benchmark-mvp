@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './auth/AuthContext';
+import LoginModal from './auth/LoginModal';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const SummaryModal = ({ isOpen, onClose, financials, benchmarks }) => {
+const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = true }) => {
     const [summary, setSummary] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [retryCountdown, setRetryCountdown] = useState(null);
+    const { user } = useAuth();
 
     const handleCopy = async () => {
         if (!summary) return;
@@ -18,81 +24,165 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks }) => {
     };
 
     useEffect(() => {
-        if (isOpen && !summary && !isLoading && !error) {
+        if (isOpen && !summary && !isLoading && !error && (user || !authRequired)) {
+            generateSummary();
+        } else if (isOpen && !user && !isLoginModalOpen && authRequired) {
+            setIsLoginModalOpen(true);
+        }
+    }, [isOpen, user, authRequired]);
+
+    useEffect(() => {
+        let timer;
+        if (retryCountdown !== null && retryCountdown > 0) {
+            timer = setInterval(() => {
+                setRetryCountdown((prev) => prev - 1);
+            }, 1000);
+        } else if (retryCountdown === 0) {
+            setRetryCountdown(null);
+            setError(null);
             generateSummary();
         }
-    }, [isOpen]);
+        return () => clearInterval(timer);
+    }, [retryCountdown]);
+
+    const handleLoginSuccess = () => {
+        setIsLoginModalOpen(false);
+        generateSummary();
+    };
 
     const generateSummary = async () => {
+        if (!user) {
+            setIsLoginModalOpen(true);
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const isDev = import.meta.env.DEV;
+            const devApiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-            // Format the data
-            const promptData = {
-                financials: financials,
-                benchmarks: benchmarks
-            };
+            let textResult = "";
 
-            const getCircularReplacer = () => {
-                const seen = new WeakSet();
-                return (key, value) => {
-                    if (typeof value === "object" && value !== null) {
-                        if (seen.has(value)) {
-                            return "[Circular]";
+            if (isDev && devApiKey) {
+                console.log("DEV MODE: Calling Gemini API directly from frontend...");
+                const genAI = new GoogleGenerativeAI(devApiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const bankName = financials?.name || financials?.raw?.NAME || 'the bank';
+                const bankLocation = financials?.raw?.CITY && financials?.raw?.STALP ? `${financials.raw.CITY}, ${financials.raw.STALP}` : '';
+                const promptData = { financials, benchmarks };
+
+                const getCircularReplacer = () => {
+                    const seen = new WeakSet();
+                    return (key, value) => {
+                        if (typeof value === "object" && value !== null) {
+                            if (seen.has(value)) {
+                                return "[Circular]";
+                            }
+                            seen.add(value);
                         }
-                        seen.add(value);
-                    }
-                    return value;
+                        return value;
+                    };
                 };
-            };
 
-            const bankName = financials?.name || financials?.raw?.NAME || 'the bank';
-            const bankLocation = financials?.raw?.CITY && financials?.raw?.STALP ? `${financials.raw.CITY}, ${financials.raw.STALP}` : '';
-
-            const prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}${bankLocation ? ` based in ${bankLocation}` : ''}. 
+                const prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}${bankLocation ? ` based in ${bankLocation}` : ''}. 
 CRITICAL CONTEXT: 
-1. ALL absolute dollar values in the raw FDIC data (like assets, income, etc.) are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Keep this scale in mind when writing your analysis and avoid confusing billions with trillions. Do NOT explain this math or state that the data is in thousands in your final output; just use the correct Billion/Million terminology.
-2. The benchmark data provides averages for a peer group. Note that the peer group may include banks of different absolute sizes, so focus your analysis on proportional metrics (like ratios, margins, percentages) rather than absolute dollar comparisons.
+1. ALL absolute dollar values in the raw FDIC data are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Use Billion/Million terminology correctly.
+2. The benchmark data provides averages for a peer group. Focus on proportional metrics (ratios, margins, percentages).
 
 Provide a detailed, professional summary of their financial health.
-IMPORTANT: Start your report with a very brief (1-2 sentences) introductory overview about the bank itself, leveraging your external knowledge to provide context about its history, business focus, or market position.
-After the introduction, base your detailed financial analysis ONLY on the provided data. Highlight their strengths and weaknesses compared to the peer group. Use Markdown formatting.
+IMPORTANT: Start with a very brief (1-2 sentences) introductory overview about the bank itself based on your knowledge.
+Highlight strengths and weaknesses compared to the peer group. Use Markdown formatting.
 
 Data:
 ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: prompt
-                        }]
-                    }]
-                })
-            });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                textResult = response.text();
+            } else {
+                const url = `/api/insights`;
 
-            if (!response.ok) {
-                const errData = await response.json();
-                if (response.status === 429 || (errData.error && errData.error.code === 429)) {
-                    throw new Error("Gemini API daily quota exceeded. Please try again later or provide a different API key.");
+                const getCircularReplacer = () => {
+                    const seen = new WeakSet();
+                    return (key, value) => {
+                        if (typeof value === "object" && value !== null) {
+                            if (seen.has(value)) {
+                                return "[Circular]";
+                            }
+                            seen.add(value);
+                        }
+                        return value;
+                    };
+                };
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-linkedin-sub': user?.sub || 'anonymous',
+                        'x-linkedin-name': user?.name || ''
+                    },
+                    body: JSON.stringify({
+                        financials,
+                        benchmarks
+                    }, getCircularReplacer())
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.error || response.statusText;
+
+                    if (response.status === 429) {
+                        // Check if this is a daily quota or a rate limit
+                        if (errorMsg.toLowerCase().includes('daily quota')) {
+                            throw new Error("DAILY_QUOTA: Daily AI quota reached (2/2). Try again tomorrow.");
+                        }
+                        // Otherwise it's likely a Gemini rate limit (retryable)
+                        throw new Error(`RATE_LIMIT: ${errorMsg}`);
+                    }
+                    throw new Error(errorMsg || "Failed to generate summary");
                 }
-                throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                textResult = data.text || "No summary generated.";
             }
 
-            const data = await response.json();
-            const textSummary = data.candidates?.[0]?.content?.parts?.[0]?.text || "No summary generated.";
-
-            setSummary(textSummary);
+            setSummary(textResult);
         } catch (err) {
-            console.error("Gemini API Error:", err);
-            setError(err.message || 'Failed to generate summary');
+            console.error("AI Insights Error:", err);
+
+            // Handle specific formatted errors
+            if (err.message.startsWith('RATE_LIMIT:')) {
+                const innerMsg = err.message.replace('RATE_LIMIT:', '').trim();
+                const match = innerMsg.match(/retry in (\d+\.?\d*)s/);
+                if (match && match[1]) {
+                    const seconds = Math.ceil(parseFloat(match[1]));
+                    setRetryCountdown(seconds);
+                    setError(null);
+                } else {
+                    // Fallback to 1 minute if no specific time given
+                    setRetryCountdown(60);
+                    setError(null);
+                }
+            } else if (err.message.startsWith('DAILY_QUOTA:')) {
+                setError(err.message.replace('DAILY_QUOTA:', '').trim());
+                setRetryCountdown(null); // No auto-retry for daily limit
+            }
+            // Handle raw Gemini SDK errors (when authRequired = false locally)
+            else if (err.message && err.message.includes('429') && err.message.includes('quota')) {
+                const match = err.message.match(/retry in (\d+\.?\d*)s/);
+                if (match && match[1]) {
+                    const seconds = Math.ceil(parseFloat(match[1]));
+                    setRetryCountdown(seconds);
+                    setError(null);
+                } else {
+                    setRetryCountdown(60);
+                    setError(null);
+                }
+            } else {
+                setError(err.message || 'Failed to generate summary');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -203,7 +293,21 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                 </div>
 
                 <div className="overflow-y-auto p-8 flex-1 bg-white">
-                    {isLoading ? (
+                    {retryCountdown !== null ? (
+                        <div className="flex flex-col items-center justify-center h-48 space-y-6">
+                            <div className="relative">
+                                <div className="text-4xl font-mono text-blue-900 font-bold">{retryCountdown}</div>
+                                <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 w-24 h-24">
+                                    <circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-blue-100" />
+                                    <circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray="276" strokeDashoffset={276 - (retryCountdown / 60) * 276} className="text-blue-500 transition-all duration-1000 ease-linear" />
+                                </svg>
+                            </div>
+                            <div className="text-center mt-4">
+                                <h4 className="text-lg font-bold text-gray-900 mb-1">Catching our breath</h4>
+                                <p className="text-gray-500 text-sm">Gemini free-tier rate limit reached. Auto-resuming shortly.</p>
+                            </div>
+                        </div>
+                    ) : isLoading ? (
                         <div className="flex flex-col items-center justify-center h-48 space-y-6">
                             <div className="relative">
                                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 border-t-transparent shadow-lg"></div>
@@ -278,6 +382,15 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                     </div>
                 </div>
             </div>
+
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => {
+                    setIsLoginModalOpen(false);
+                    onClose(); // Also close summary modal since we can't generate without auth
+                }}
+                onLoginSuccess={handleLoginSuccess}
+            />
         </div>
     );
 };

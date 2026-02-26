@@ -37,7 +37,7 @@ export const getBankFinancials = async (certId) => {
     if (!certId) return null;
 
     // Fetch historical reports (16 quarters for 4 years of context)
-    const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP';
+    const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP,NAME,CITY,STNAME';
 
     const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=16&sort_by=REPDTE&sort_order=DESC&format=json`;
 
@@ -172,10 +172,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
             }, { ASSET: 0, HIST_ASSET: 0, NUMEMP: 0, INTINC: 0, INTEXP: 0, NONII: 0, NONIX: 0, LNLSNET: 0, HIST_LNLSNET: 0, DEP: 0, HIST_DEP: 0, NETINC: 0, EQ: 0, NCLNLS: 0, count: 0 });
 
             // Initial aggregate growth for totals (weighted)
-            const calcCAGR = (curr, prev) => {
-                if (prev <= 0 || curr <= 0) return 0;
-                return (Math.pow(curr / prev, 1 / 3) - 1) * 100;
-            };
+            // (Removed unused calcCAGR helper from this scope)
 
             // Extract peer bank details for the modal AND calculate distributions
             const peerKPIs = [];

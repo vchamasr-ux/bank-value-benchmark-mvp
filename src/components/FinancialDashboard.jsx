@@ -3,7 +3,7 @@ import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
 
-const FinancialDashboard = ({ financials, benchmarks }) => {
+const FinancialDashboard = ({ financials, benchmarks, onShowMovers, showMoversButton, authRequired = true }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
@@ -15,7 +15,7 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
         costOfFunds: 2.5,
         nonInterestIncomePercent: 20,
         yieldOnLoans: 6,
-        assetsPerEmployee: 10000000 // Raw dollars for calculation logic? No, kpiCalculator returns strings/fixed.
+        assetsPerEmployee: 10000000
     };
 
     // Note: kpiCalculator returns strings. ParseFloat needed.
@@ -26,12 +26,14 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
 
     return (
         <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-blue-900 border-b pb-2 flex items-baseline justify-between">
-                <div className="flex items-center gap-4">
-                    <span>Financial Health Scorecard</span>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <h2 className="text-2xl font-black text-blue-900 tracking-tight">
+                        Financial Health Scorecard
+                    </h2>
                     <button
                         onClick={() => setIsSummaryModalOpen(true)}
-                        className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-300" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
@@ -39,21 +41,23 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         AI Summarize
                     </button>
                 </div>
+
                 {benchmarks && benchmarks.groupName && (
-                    <span className="text-sm font-normal text-gray-500 ml-4 flex items-center gap-2">
-                        <span>Benchmark: {benchmarks.groupName}</span>
-                        {benchmarks.sampleSize ? (
+                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Benchmark:</span>
+                        <span className="text-sm font-bold text-slate-600">{benchmarks.groupName}</span>
+                        {benchmarks.sampleSize && (
                             <button
                                 onClick={() => setIsPeerModalOpen(true)}
-                                className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium ml-1 bg-blue-50 px-2 py-0.5 rounded transition-colors"
+                                className="text-blue-600 hover:text-blue-800 font-bold ml-1 bg-blue-100/50 px-2 py-0.5 rounded text-xs transition-colors"
                                 title="View Peer Group List"
                             >
-                                (N={benchmarks.sampleSize})
+                                N={benchmarks.sampleSize}
                             </button>
-                        ) : ''}
-                    </span>
+                        )}
+                    </div>
                 )}
-            </h2>
+            </div>
 
             {/* Peer Group Details Modal */}
             <PeerGroupModal
@@ -70,6 +74,7 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                 onClose={() => setIsSummaryModalOpen(false)}
                 financials={financials}
                 benchmarks={benchmarks}
+                authRequired={authRequired}
             />
 
             {/* Geographic Distribution Map */}
@@ -124,9 +129,15 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-                {/* 1. Efficiency Ratio (Lower is Better) */}
-                <div className="flex flex-col items-center gap-2">
+            {/* Operational Efficiency & Margin */}
+            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
+                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                    </svg>
+                    Operational Efficiency & Margin
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
                     <GaugeChart
                         label="Efficiency Ratio"
                         value={parseFloat(financials.efficiencyRatio)}
@@ -139,10 +150,6 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         trend={financials.history}
                         metric="efficiencyRatio"
                     />
-                </div>
-
-                {/* 2. Net Interest Margin (Higher is Better) */}
-                <div className="flex flex-col items-center gap-2">
                     <GaugeChart
                         label="Net Interest Margin"
                         value={parseFloat(financials.netInterestMargin)}
@@ -154,10 +161,6 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         trend={financials.history}
                         metric="netInterestMargin"
                     />
-                </div>
-
-                {/* 3. Cost of Funds (Lower is Better) */}
-                <div className="flex flex-col items-center gap-2">
                     <GaugeChart
                         label="Cost of Funds"
                         value={parseFloat(financials.costOfFunds)}
@@ -171,9 +174,17 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         metric="costOfFunds"
                     />
                 </div>
+            </div>
 
-                {/* 3. Non-Interest Income % (Higher is Better) */}
-                <div className="flex flex-col items-center gap-2">
+            {/* Revenue Generation & Productivity */}
+            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
+                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                    Revenue Generation & Productivity
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
                     <GaugeChart
                         label="Non-Interest Income"
                         value={parseFloat(financials.nonInterestIncomePercent)}
@@ -185,10 +196,6 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         trend={financials.history}
                         metric="nonInterestIncomePercent"
                     />
-                </div>
-
-                {/* 4. Yield on Loans (Higher is Better) */}
-                <div className="flex flex-col items-center gap-2">
                     <GaugeChart
                         label="Yield on Loans"
                         value={parseFloat(financials.yieldOnLoans)}
@@ -200,10 +207,6 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         trend={financials.history}
                         metric="yieldOnLoans"
                     />
-                </div>
-
-                {/* 5. Assets per Employee (Higher is Better) */}
-                <div className="flex flex-col items-center gap-2">
                     <GaugeChart
                         label="Assets / Employee ($M)"
                         value={(parseFloat(financials.assetsPerEmployee) / 1000000).toFixed(1)}
@@ -217,9 +220,17 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         metric="assetsPerEmployee"
                     />
                 </div>
+            </div>
 
-                {/* 6. Return on Equity (Higher is Better) */}
-                <div className="flex flex-col items-center gap-2">
+            {/* Returns & Asset Quality */}
+            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100">
+                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Returns & Asset Quality
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
                     <GaugeChart
                         label="Return on Equity"
                         value={parseFloat(financials.returnOnEquity)}
@@ -231,10 +242,6 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         trend={financials.history}
                         metric="returnOnEquity"
                     />
-                </div>
-
-                {/* 7. Return on Assets (Higher is Better) */}
-                <div className="flex flex-col items-center gap-2">
                     <GaugeChart
                         label="Return on Assets"
                         value={parseFloat(financials.returnOnAssets)}
@@ -246,10 +253,6 @@ const FinancialDashboard = ({ financials, benchmarks }) => {
                         trend={financials.history}
                         metric="returnOnAssets"
                     />
-                </div>
-
-                {/* 8. NPL Ratio (Lower is Better) */}
-                <div className="flex flex-col items-center gap-2">
                     <GaugeChart
                         label="NPL Ratio"
                         value={parseFloat(financials.nonPerformingLoansRatio)}
