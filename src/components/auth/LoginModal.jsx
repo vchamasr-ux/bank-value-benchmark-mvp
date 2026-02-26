@@ -105,24 +105,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                             )}
                         </button>
 
-                        {/* Development Bypass Button */}
-                        <div className="pt-2">
-                            <button
-                                onClick={() => {
-                                    const testUser = {
-                                        sub: 'test_dev_user',
-                                        name: 'Dev Tester',
-                                        email: 'dev@test.local',
-                                        profileUrl: 'https://www.linkedin.com/in/test'
-                                    };
-                                    login(testUser);
-                                    onLoginSuccess();
-                                }}
-                                className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold rounded-lg text-[9px] transition-colors uppercase tracking-widest border border-slate-200"
-                            >
-                                [Dev Only] Skip Login & Test as Guest
-                            </button>
-                        </div>
 
                         <p className="text-center text-[10px] text-slate-400">
                             Your data is secured and will not be shared. 2 AI reports per day limit applies.
