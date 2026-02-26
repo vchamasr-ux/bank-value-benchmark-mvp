@@ -78,6 +78,7 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, segment
     const [isCopied, setIsCopied] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [retryCountdown, setRetryCountdown] = useState(null);
+    const [retryCount, setRetryCount] = useState(0);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -86,20 +87,25 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, segment
         } else if (isOpen && !user && !isLoginModalOpen && authRequired) {
             setIsLoginModalOpen(true);
         }
-    }, [isOpen, user, authRequired]);
+    }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen]);
 
     useEffect(() => {
-        let timer;
+        let interval;
         if (retryCountdown !== null && retryCountdown > 0) {
-            timer = setInterval(() => {
-                setRetryCountdown((prev) => prev - 1);
+            interval = setInterval(() => {
+                setRetryCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        setRetryCountdown(null);
+                        setRetryCount(prevCount => prevCount + 1);
+                        generateMoversIntelligence();
+                        return null;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
-        } else if (retryCountdown === 0) {
-            setRetryCountdown(null);
-            setError(null);
-            generateMoversIntelligence();
         }
-        return () => clearInterval(timer);
+        return () => clearInterval(interval);
     }, [retryCountdown]);
 
     const handleLoginSuccess = () => {
@@ -139,145 +145,125 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, segment
             setLoadStep('Analyzing competitive anomalies...');
             const deltasByCert = {};
             for (const b of completePeers) {
-                deltasByCert[b.cert] = {};
-                for (const spec of KPI_SPECS) {
-                    deltasByCert[b.cert][spec.key] = kpiPerCertPerQuarter[b.cert][currentQuarter][spec.key] - kpiPerCertPerQuarter[b.cert][priorQuarter][spec.key];
-                }
+                const q1 = kpiPerCertPerQuarter[b.cert][priorQuarter];
+                const q2 = kpiPerCertPerQuarter[b.cert][currentQuarter];
+                deltasByCert[b.cert] = KPI_SPECS.reduce((acc, spec) => {
+                    acc[spec.key] = (q2[spec.key] || 0) - (q1[spec.key] || 0);
+                    return acc;
+                }, {});
             }
 
-            const distByMetric = {};
-            const statsByMetric = {};
-            for (const spec of KPI_SPECS) {
+            const metricStats = {};
+            KPI_SPECS.forEach(spec => {
                 const vals = completePeers.map(b => deltasByCert[b.cert][spec.key]);
-                const sv = sorted(vals);
-                distByMetric[spec.key] = sv;
-                statsByMetric[spec.key] = { p50: quantile(sv, 0.5), iqr: Math.max(quantile(sv, 0.75) - quantile(sv, 0.25), 0.0001) };
-            }
+                const mean = vals.reduce((sum, v) => sum + v, 0) / vals.length;
+                const variance = vals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / vals.length;
+                metricStats[spec.key] = { mean, stdDev: Math.sqrt(variance) || 1 };
+            });
 
-            const rows = completePeers.map(bank => {
-                const drivers = KPI_SPECS.map(spec => {
-                    const delta = deltasByCert[bank.cert][spec.key];
-                    const { p50, iqr } = statsByMetric[spec.key];
-                    const z = (delta - p50) / iqr;
-                    const absZ = Math.abs(Math.max(Math.min(z, 3), -3));
-                    const strength = absZ >= 2 ? "High" : (absZ >= 1 ? "Medium" : "Low");
-                    return { spec, delta, deltaPct: percentileRank(distByMetric[spec.key], delta), z, absZ, signedZ: spec.better === "higher" ? z : -z, effect: (spec.better === "higher" ? (delta > 0 ? "improving" : "deteriorating") : (delta < 0 ? "improving" : "deteriorating")), vsPeersEffect: (spec.better === "higher" ? (z > 0 ? "better_than_median" : "worse_than_median") : (-z > 0 ? "better_than_median" : "worse_than_median")), strength };
-                }).sort((a, b) => b.absZ - a.absZ);
+            const rankedMovers = completePeers.map(b => {
+                const deltas = deltasByCert[b.cert];
+                const zScores = {};
+                let surprise = 0;
+                let validKpis = 0;
 
-                return { cert: bank.cert, bankName: bank.name, direction: (drivers.reduce((acc, d) => acc + d.signedZ, 0) >= 0 ? "positive" : "negative"), surprise: drivers.reduce((acc, d) => acc + d.absZ, 0), driversTop3: drivers.slice(0, 3) };
+                KPI_SPECS.forEach(spec => {
+                    const val = deltas[spec.key];
+                    const { mean, stdDev } = metricStats[spec.key];
+                    let z = (val - mean) / stdDev;
+                    if (spec.better === 'lower') z = -z;
+                    zScores[spec.key] = z;
+
+                    // Exclude non-core metric classes from surprise score aggregation
+                    if (spec.metric_class === 'core') {
+                        surprise += Math.abs(z);
+                        validKpis++;
+                    }
+                });
+
+                const cappedSurprise = Math.min(surprise / (validKpis || 1), 5);
+
+                const topDrivers = KPI_SPECS
+                    .map(spec => ({
+                        spec,
+                        z: zScores[spec.key],
+                        signedZ: spec.better === 'lower' ? -zScores[spec.key] : zScores[spec.key],
+                        absZ: Math.abs(zScores[spec.key]),
+                        delta: deltas[spec.key]
+                    }))
+                    .sort((a, b) => b.absZ - a.absZ)
+                    .slice(0, 3);
+
+                return {
+                    cert: b.cert,
+                    bankName: b.name,
+                    deltas,
+                    zScores,
+                    surprise: cappedSurprise,
+                    topDrivers
+                };
             }).sort((a, b) => b.surprise - a.surprise);
 
-            const rankByCert = new Map(rows.map((r, i) => [r.cert, i + 1]));
-            const focusRow = rows.find(r => r.cert === focusBankCert);
-            const focusRank = focusRow ? rankByCert.get(focusRow.cert) : null;
+            const threatsList = rankedMovers.slice(0, 3);
+            const playbooksList = [...rankedMovers].sort((a, b) => a.surprise - b.surprise).slice(0, 3);
+            const focusRank = rankedMovers.findIndex(m => m.cert === focusBankCert) + 1;
 
-            // 3. Build Tape
-            const tapeLines = [`Market Movers — ${segmentLabel} — ${currentQuarter} vs ${priorQuarter}`, `Peers: N=${completePeers.length}`, ""];
-            rows.slice(0, 5).forEach((m, i) => {
-                tapeLines.push(` ${i + 1}. ${m.bankName} | dir=${m.direction} | surprise=${m.surprise.toFixed(2)}`);
-                m.driversTop3.forEach(d => {
-                    const stats = statsByMetric[d.spec.key];
-                    tapeLines.push(`    - ${d.spec.label}: ${fmtDelta(d.spec, d.delta)} | peer_median=${fmtDelta(d.spec, stats.p50)} | delta_pct=${d.deltaPct.toFixed(2)} | z=${fmtSigned(d.z)} | ${d.effect} | vs_peers_effect=${d.vsPeersEffect} | strength=${d.strength} | metric_class=${d.spec.metric_class}`);
-                });
-                tapeLines.push("");
-            });
-            if (focusRow) {
-                tapeLines.push(`Focus bank: ${focusRow.bankName} (rank ${focusRank})`);
-                tapeLines.push(` ${focusRank}. ${focusRow.bankName} | dir=${focusRow.direction} | surprise=${focusRow.surprise.toFixed(2)}`);
-                focusRow.driversTop3.forEach(d => {
-                    const stats = statsByMetric[d.spec.key];
-                    tapeLines.push(`    - ${d.spec.label}: ${fmtDelta(d.spec, d.delta)} | peer_median=${fmtDelta(d.spec, stats.p50)} | delta_pct=${d.deltaPct.toFixed(2)} | z=${fmtSigned(d.z)} | ${d.effect} | vs_peers_effect=${d.vsPeersEffect} | strength=${d.strength} | metric_class=${d.spec.metric_class}`);
-                });
-            }
-            const tapeStr = tapeLines.join("\n");
-
-            // 4. Focus Snapshot
+            let tapeStr = "";
             let snapshotBlock = "";
-            const focusKpis = kpiPerCertPerQuarter[focusBankCert]?.[currentQuarter];
-            if (focusKpis) {
-                const qByKey = {};
-                const snapRows = [];
-                for (const snap of SNAPSHOT_KPIS) {
-                    const focusVal = focusKpis[snap.key];
-                    if (!Number.isFinite(focusVal)) continue;
-                    const sv = sorted(completePeers.map(p => kpiPerCertPerQuarter[p.cert][currentQuarter][snap.key]).filter(Number.isFinite));
-                    const p25 = quantile(sv, 0.25), p50 = quantile(sv, 0.5), p75 = quantile(sv, 0.75);
-                    const qL = (snap.better === "higher") ? (focusVal >= p75 ? "top quartile" : (focusVal <= p25 ? "bottom quartile" : "middle two quartiles")) : (focusVal <= p25 ? "top quartile" : (focusVal >= p75 ? "bottom quartile" : "middle two quartiles"));
-                    qByKey[snap.key] = qL;
-                    snapRows.push(`  - ${snap.label}: ${snap.fmt(focusVal)} (peer median: ${snap.fmt(p50)}) → ${qL}`);
-                }
-                const flags = [];
-                if (qByKey.nim === "top quartile") flags.push("defend NIM leadership");
-                if (qByKey.cost_of_funds === "bottom quartile") flags.push("arrest funding cost escalation");
-                if (qByKey.eff_ratio === "bottom quartile") flags.push("improve cost discipline before scaling");
-                if (!flags.length) flags.push("balanced offense and defense");
 
-                snapshotBlock = `\n--- PERSPECTIVE BANK SNAPSHOT (${perspectiveBankName}) ---\n${snapRows.join("\n")}\nInferred posture: ${flags.join("; ")}\n`;
+            if (threatsList.length > 0) {
+                tapeStr += "TOP QOQ MOVERS (THREATS):\n";
+                threatsList.forEach((m, idx) => {
+                    tapeStr += `${idx + 1}. ${m.bankName} (Surprise: ${m.surprise.toFixed(2)})\n`;
+                    m.topDrivers.forEach(d => {
+                        let strength = "Low";
+                        if (d.absZ >= 1.5) strength = "High";
+                        else if (d.absZ >= 0.8) strength = "Medium";
+                        const isContextOnly = d.spec.metric_class !== 'core';
+                        const contextFlag = isContextOnly ? " [CONTEXT_ONLY: Require verification next quarter]" : "";
+
+                        // Inject strict units based on type
+                        const unitStr = d.spec.type === 'rate' ? 'bp' : 'units';
+                        // Convert delta to exact requested units (bp formatting here matches UI scale roughly)
+                        const exactDeltaVal = d.spec.type === 'rate' ? Math.round(d.delta * 10000) : d.delta;
+
+                        tapeStr += `  - Driver: ${d.spec.label} | Z-Score: ${fmtSigned(d.z)} | Strength: ${strength} | Delta: ${fmtSigned(exactDeltaVal, 0)} ${unitStr}${contextFlag}\n`;
+                    });
+                });
             }
 
-            // 5. API Call via Serverless (with local DEV fallback)
-            setLoadStep('Generating intelligence brief...');
+            snapshotBlock = `\nPERSPECTIVE SNAPSHOT (Your Bank):\nBank: ${perspectiveBankName}\nQuarter: ${currentQuarter}\nRelative Volatility Rank: ${focusRank > 0 ? focusRank : 'N/A'} of ${completePeers.length}\n`;
+
+            setLoadStep('Synthesizing brief via Gemini...');
+            let textResult = "";
 
             const isDev = import.meta.env.DEV;
             const devApiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-            let textResult = "";
-
-            if (isDev && devApiKey) {
-                console.log("DEV MODE: Calling Gemini API directly from frontend for Market Movers...");
+            if (isDev && devApiKey && !authRequired) {
+                console.log("DEV MODE: Calling Gemini API directly...");
                 const genAI = new GoogleGenerativeAI(devApiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
                 const prompt = `
-You are a competitive-intelligence analyst writing for senior bankers at ${perspectiveBankName}. Use ONLY the data in the tape below. Do not invent numbers or add facts not present in the tape.
+You are an elite competitive intelligence analyst specializing in banking.
+Analyze the following Market Movers tape, which tracks significant Quarter-over-Quarter (QoQ) shifts in peer bank financials for ${currentQuarter}. 
+Write a concise, hard-hitting competitive brief strictly from the perspective of ${perspectiveBankName}.
 
---- DEFINITIONS ---
-- "Δ" = QoQ change (current quarter minus prior quarter).
-- delta_pct = percentile rank of a bank's delta within the peer group (0..1). It is NOT a percent change.
-- z = robust z-score: (bank delta − peer median delta) / peer IQR. 
-- strength = High / Medium / Low. Always use this 'strength' label to describe the magnitude of change, rather than interpreting raw z-scores.
-- "improving / deteriorating" = objective direction relative to the metric's "better" side.
-- "vs_peers_effect" = shows whether the bank moved in a more favorable direction than the median peer.
+[CRITICAL INSTRUCTION FOR TAPE INTERPRETATION: You MUST preserve the exact numerical units explicitly provided in the tape string (e.g., if it says "+14 bp", output "+14 bp"). Do NOT convert bases or append your own unit guesses.]
 
---- STRATEGIC PHRASING (Softened Intent) ---
-Do NOT assert intent confidently (e.g., "prioritizing growth", "strategic pivot"). 
-Instead, use pattern-based language: 
-"The pattern is consistent with margin-first behavior, either strategic or driven by mix/funding conditions."
-"Performance suggests a defensive posture in funding costs."
+[CRITICAL INSTRUCTION FOR CONTEXT_ONLY METRICS: If a driver is tagged [CONTEXT_ONLY], your "Confidence" score for that bank must be downgraded to "Medium" or "Low", and you must explicitly mention that the metric needs verification in upcoming quarters.]
 
---- METRIC RULES & CAVEATS ---
-1. EXACT UNITS: You MUST preserve the exact units shown in the tape for every metric (e.g., bp, %, ratio). Do not convert units.
-2. CONTEXT-ONLY METRICS: If a metric is flagged as metric_class="derived" (e.g., 3Y Growth CAGR) or metric_class="denominator-sensitive" (e.g., Assets per Employee):
-   - You may include it as a driver, but you MUST treat it primarily as context for other moves.
-   - If it is the top driver, you MUST add specific caveat language (e.g., "CAGR-based; verify next quarter before concluding trend break" or "headcount effect possible; verify next quarter").
-3. NOISY METRICS: Non-Interest Income % or Efficiency Ratio. At subsidiary level, these can be distorted by internal allocations. If a swing is catastrophic/unprecedented (strength=High), flag as "(possible data/reporting artifact)".
-
---- CONFIDENCE RUBRIC (Deterministic) ---
-Assign exactly one Confidence: High / Medium / Low.
-Identify the TOP DRIVER (highest strength).
-- High   = Magnitude high (strength=High) AND at least 2 metrics agree on direction AND no fragile/noisy/derived metrics involved as the primary anchor.
-- Medium = Magnitude high (strength=High) but only 1 metric supports the move OR signals are partially mixed.
-- Low    = Magnitude high but driven by derived/denominator-sensitive metrics OR extreme single-metric outlier OR possible reporting/data artifact.
-
---- OUTPUT FORMAT (Exactly as shown) ---
-
-[BANK NAME] — Theme: [theme label] ([Threat / Opportunity / Monitor]) | Confidence: [High / Medium / Low]
-What changed (QoQ):
-  • [Insight 1: One-sentence analytical observation using ordinal language ("worst in the peer set", "top quartile")]
-    Evidence: [Numbers: "Metric Label: {bank_delta} QoQ, peer median {peer_median} (delta_pct={value}) | strength={strength}"]
-  • [Insight 2: Analytical observation]
-    Evidence: [Numbers line preserving exact units]
-  • [Insight 3: Analytical observation]
-    Evidence: [Numbers line preserving exact units]
-
-So what: [2–3 sentences. Link the pattern to likely market behavior.]
-
+Output exactly 1-2 paragraphs for each top mover, structured as:
+[BANK NAME] — Theme: [1 sentence synthesis] (Threat/Opportunity/Monitor) | Confidence: [High/Medium/Low]
+What changed (QoQ): [Bullet points translating Z-scores into plain English, e.g., "Sharp deterioration in efficiency" OR "Outpacing peers in loan growth". Rely on 'Strength' indicator (High/Med/Low).]
+So what: [What this means strategically for them vs the peer group.]
 What ${perspectiveBankName} should do:
-  • Defend: [What external relationships to protect / what not to do.]
-  • Attack: [Where to take expected market share / what wedge to use.]
-  • Monitor: [What specific external signals/behavior to watch next quarter.]
+- Defend: [1 concrete defensive action]
+- Attack: [1 concrete offensive action]
+- Monitor: [1 metric to watch next quarter]
 
-  [CRITICAL PLAYBOOK RULES: FORBID internal housekeeping / inward-facing initiatives (e.g., "improve our efficiency", "streamline operations"). FORBID product-line speculation UNLESS explicitly supported by tape data (e.g., do not say "they are pushing wealth management").]
+[CRITICAL PLAYBOOK RULES: FORBID internal housekeeping / inward-facing initiatives (e.g., "improve our efficiency", "streamline operations"). FORBID product-line speculation UNLESS explicitly supported by tape data (e.g., do not say "they are pushing wealth management").]
 
 Watch next quarter: [Conditional IF/THEN signal based on trend confirmation.]
 
@@ -324,21 +310,27 @@ ${snapshotBlock}
             }
 
             setSummary(textResult);
+            setRetryCount(0); // Reset retry tracker on success
 
         } catch (err) {
             console.error("Movers Error:", err);
 
             // Handle specific formatted errors from backend
             if (err.message.startsWith('RATE_LIMIT:')) {
-                const innerMsg = err.message.replace('RATE_LIMIT:', '').trim();
-                const match = innerMsg.match(/retry in (\d+\.?\d*)s/);
-                if (match && match[1]) {
-                    const seconds = Math.ceil(parseFloat(match[1]));
-                    setRetryCountdown(seconds);
-                    setError(null);
+                if (retryCount >= 1) {
+                    setError("Daily AI quota reached. Please try again tomorrow.");
+                    setRetryCountdown(null);
                 } else {
-                    setRetryCountdown(60);
-                    setError(null);
+                    const innerMsg = err.message.replace('RATE_LIMIT:', '').trim();
+                    const match = innerMsg.match(/retry in (\d+\.?\d*)s/);
+                    if (match && match[1]) {
+                        const seconds = Math.ceil(parseFloat(match[1]));
+                        setRetryCountdown(seconds);
+                        setError(null);
+                    } else {
+                        setRetryCountdown(60);
+                        setError(null);
+                    }
                 }
             } else if (err.message.startsWith('DAILY_QUOTA:')) {
                 setError(err.message.replace('DAILY_QUOTA:', '').trim());
@@ -346,14 +338,19 @@ ${snapshotBlock}
             }
             // Handle raw Gemini SDK errors (when authRequired = false locally)
             else if (err.message && err.message.includes('429') && err.message.includes('quota')) {
-                const match = err.message.match(/retry in (\d+\.?\d*)s/);
-                if (match && match[1]) {
-                    const seconds = Math.ceil(parseFloat(match[1]));
-                    setRetryCountdown(seconds);
-                    setError(null);
+                if (retryCount >= 1) {
+                    setError("Daily AI quota reached. Please try again tomorrow.");
+                    setRetryCountdown(null);
                 } else {
-                    setRetryCountdown(60);
-                    setError(null);
+                    const match = err.message.match(/retry in (\d+\.?\d*)s/);
+                    if (match && match[1]) {
+                        const seconds = Math.ceil(parseFloat(match[1]));
+                        setRetryCountdown(seconds);
+                        setError(null);
+                    } else {
+                        setRetryCountdown(60);
+                        setError(null);
+                    }
                 }
             } else {
                 setError(err.message || 'Failed to generate brief');

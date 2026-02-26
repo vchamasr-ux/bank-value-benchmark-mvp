@@ -10,6 +10,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
     const [isCopied, setIsCopied] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [retryCountdown, setRetryCountdown] = useState(null);
+    const [retryCount, setRetryCount] = useState(0);
     const { user } = useAuth();
 
     const handleCopy = async () => {
@@ -29,20 +30,25 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
         } else if (isOpen && !user && !isLoginModalOpen && authRequired) {
             setIsLoginModalOpen(true);
         }
-    }, [isOpen, user, authRequired]);
+    }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen]);
 
     useEffect(() => {
-        let timer;
+        let interval;
         if (retryCountdown !== null && retryCountdown > 0) {
-            timer = setInterval(() => {
-                setRetryCountdown((prev) => prev - 1);
+            interval = setInterval(() => {
+                setRetryCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        setRetryCountdown(null);
+                        setRetryCount(prevCount => prevCount + 1);
+                        generateSummary();
+                        return null;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
-        } else if (retryCountdown === 0) {
-            setRetryCountdown(null);
-            setError(null);
-            generateSummary();
         }
-        return () => clearInterval(timer);
+        return () => clearInterval(interval);
     }, [retryCountdown]);
 
     const handleLoginSuccess = () => {
@@ -51,7 +57,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
     };
 
     const generateSummary = async () => {
-        if (!user) {
+        if (!user && authRequired) {
             setIsLoginModalOpen(true);
             return;
         }
@@ -64,7 +70,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
 
             let textResult = "";
 
-            if (isDev && devApiKey) {
+            if (isDev && devApiKey && !authRequired) {
                 console.log("DEV MODE: Calling Gemini API directly from frontend...");
                 const genAI = new GoogleGenerativeAI(devApiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -149,21 +155,27 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
             }
 
             setSummary(textResult);
+            setRetryCount(0); // Reset retry tracker on success
         } catch (err) {
             console.error("AI Insights Error:", err);
 
             // Handle specific formatted errors
             if (err.message.startsWith('RATE_LIMIT:')) {
-                const innerMsg = err.message.replace('RATE_LIMIT:', '').trim();
-                const match = innerMsg.match(/retry in (\d+\.?\d*)s/);
-                if (match && match[1]) {
-                    const seconds = Math.ceil(parseFloat(match[1]));
-                    setRetryCountdown(seconds);
-                    setError(null);
+                if (retryCount >= 1) {
+                    setError("Daily AI quota reached. Please try again tomorrow.");
+                    setRetryCountdown(null);
                 } else {
-                    // Fallback to 1 minute if no specific time given
-                    setRetryCountdown(60);
-                    setError(null);
+                    const innerMsg = err.message.replace('RATE_LIMIT:', '').trim();
+                    const match = innerMsg.match(/retry in (\d+\.?\d*)s/);
+                    if (match && match[1]) {
+                        const seconds = Math.ceil(parseFloat(match[1]));
+                        setRetryCountdown(seconds);
+                        setError(null);
+                    } else {
+                        // Fallback to 1 minute if no specific time given
+                        setRetryCountdown(60);
+                        setError(null);
+                    }
                 }
             } else if (err.message.startsWith('DAILY_QUOTA:')) {
                 setError(err.message.replace('DAILY_QUOTA:', '').trim());
@@ -171,14 +183,19 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
             }
             // Handle raw Gemini SDK errors (when authRequired = false locally)
             else if (err.message && err.message.includes('429') && err.message.includes('quota')) {
-                const match = err.message.match(/retry in (\d+\.?\d*)s/);
-                if (match && match[1]) {
-                    const seconds = Math.ceil(parseFloat(match[1]));
-                    setRetryCountdown(seconds);
-                    setError(null);
+                if (retryCount >= 1) {
+                    setError("Daily AI quota reached. Please try again tomorrow.");
+                    setRetryCountdown(null);
                 } else {
-                    setRetryCountdown(60);
-                    setError(null);
+                    const match = err.message.match(/retry in (\d+\.?\d*)s/);
+                    if (match && match[1]) {
+                        const seconds = Math.ceil(parseFloat(match[1]));
+                        setRetryCountdown(seconds);
+                        setError(null);
+                    } else {
+                        setRetryCountdown(60);
+                        setError(null);
+                    }
                 }
             } else {
                 setError(err.message || 'Failed to generate summary');
