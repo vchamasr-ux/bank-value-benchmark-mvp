@@ -4,6 +4,7 @@ import FinancialDashboard from './components/FinancialDashboard';
 import OperationalDashboard from './components/OperationalDashboard';
 import MoversSummaryModal from './components/MoversSummaryModal';
 import MoversView from './components/MoversView';
+import UserProfileMenu from './components/UserProfileMenu';
 import { sidecarDataProvider } from './components/market_movers/fdicAdapter';
 import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
 import { calculateKPIs } from './utils/kpiCalculator';
@@ -99,28 +100,35 @@ function App() {
               BANK<span className="text-blue-600">VALUE</span>
             </h1>
 
-            <nav className="flex items-center gap-1">
-              <button
-                onClick={() => setView('benchmark')}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === 'benchmark'
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-              >
-                Banks
-              </button>
-              <button
-                onClick={() => setView('movers')}
-                disabled={!selectedBank}
-                title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
-                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'movers'
-                  ? 'bg-blue-50 text-blue-700'
-                  : !selectedBank
-                    ? 'text-slate-300 opacity-40 cursor-not-allowed'
+            <nav className="flex items-center gap-1 sm:gap-4">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setView('benchmark')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === 'benchmark'
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-              >
-                <span>Market Movers</span>
-                <span className="hidden sm:inline text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
-              </button>
+                >
+                  Banks
+                </button>
+                <button
+                  onClick={() => setView('movers')}
+                  disabled={!selectedBank}
+                  title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'movers'
+                    ? 'bg-blue-50 text-blue-700'
+                    : !selectedBank
+                      ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                >
+                  <span>Market Movers</span>
+                  <span className="hidden sm:inline text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
+                </button>
+              </div>
+
+              {/* Authenticated User Menu */}
+              <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
+                <UserProfileMenu />
+              </div>
             </nav>
           </div>
 
