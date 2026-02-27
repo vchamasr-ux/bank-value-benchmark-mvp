@@ -10,7 +10,7 @@ import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService
 import * as fdicService from './services/fdicService';
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
-const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') === 'true';
+const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
 const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false'; // Default to true, allow explicit disable
 
 function App() {
