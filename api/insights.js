@@ -61,6 +61,7 @@ export default async function handler(req, res) {
     // 2. AI Generation
     try {
         let result;
+        let prompt = "";
 
         if (type === 'market_movers') {
             prompt = `

@@ -8,6 +8,7 @@ import UserProfileMenu from './components/UserProfileMenu';
 import { calculateKPIs } from './utils/kpiCalculator';
 import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
 import * as fdicService from './services/fdicService';
+import StrategicPlannerTab from './components/StrategicPlannerTab';
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
@@ -123,6 +124,19 @@ function App() {
                 >
                   <span>Market Movers</span>
                   <span className="hidden sm:inline text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
+                </button>
+                <button
+                  onClick={() => setView('planner')}
+                  disabled={!selectedBank}
+                  title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'planner'
+                    ? 'bg-blue-50 text-blue-700'
+                    : !selectedBank
+                      ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                >
+                  <span>What Would It Take?</span>
+                  <span className="hidden sm:inline text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
                 </button>
               </div>
 
@@ -253,7 +267,7 @@ function App() {
                   {loadingFinancials && <div className="text-blue-600 animate-pulse my-10">Loading Financial Data...</div>}
                   {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-4 rounded">{errorFinancials}</div>}
 
-                  {financials && !loadingFinancials && (
+                  {financials && !loadingFinancials && view === 'benchmark' && (
                     <FinancialDashboard
                       financials={financials}
                       benchmarks={benchmarks}
@@ -263,8 +277,15 @@ function App() {
                     />
                   )}
 
-                  {selectedBank && (
+                  {selectedBank && view === 'benchmark' && (
                     <OperationalDashboard key={selectedBank.CERT} />
+                  )}
+
+                  {financials && !loadingFinancials && view === 'planner' && (
+                    <StrategicPlannerTab
+                      financials={financials}
+                      benchmarks={benchmarks}
+                    />
                   )}
                 </div>
               </div>
