@@ -233,7 +233,6 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
             snapshotBlock = `\nPERSPECTIVE SNAPSHOT (Your Bank):\nBank: ${perspectiveBankName}\nQuarter: ${currentQuarter}\nRelative Volatility Rank: ${focusRank > 0 ? focusRank : 'N/A'} of ${completePeers.length}\n`;
 
             setLoadStep('Synthesizing brief via Gemini...');
-            let textResult = "";
 
             const response = await fetch('/api/insights', {
                 method: 'POST',
@@ -265,9 +264,9 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                 throw new Error(errorMsg || "Failed to generate intelligence brief.");
             }
             const resData = await response.json();
-            textResult = resData.text || "No analysis generated.";
+            const analysisData = resData.data || null;
 
-            setSummary(textResult);
+            setSummary(analysisData);
             setRetryCount(0); // Reset retry tracker on success
 
         } catch (err) {
@@ -319,117 +318,145 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
     };
 
     const handleCopy = async () => {
-        if (!summary) return;
-        await navigator.clipboard.writeText(summary);
+        if (!summary || !summary.banks) return;
+
+        // Convert the JSON payload back to a readable text/markdown format for copying
+        let copyText = "";
+        summary.banks.forEach(bank => {
+            copyText += `**${bank.bank_name}**\nTheme: ${bank.theme} (${bank.threat_level}) | Confidence: ${bank.confidence}\n\n`;
+
+            if (bank.what_changed && bank.what_changed.length > 0) {
+                copyText += `What changed (QoQ):\n`;
+                bank.what_changed.forEach(change => {
+                    copyText += `  • ${change.insight}\n    Evidence: ${change.evidence}\n`;
+                });
+                copyText += `\n`;
+            }
+
+            if (bank.so_what) {
+                copyText += `So what: ${bank.so_what}\n\n`;
+            }
+
+            if (bank.actions) {
+                copyText += `What ${perspectiveBankName} should do:\n`;
+                if (bank.actions.defend) copyText += `  • Defend: ${bank.actions.defend}\n`;
+                if (bank.actions.attack) copyText += `  • Attack: ${bank.actions.attack}\n`;
+                if (bank.actions.monitor) copyText += `  • Monitor: ${bank.actions.monitor}\n`;
+                copyText += `\n`;
+            }
+
+            if (bank.watch_next_quarter) {
+                copyText += `Watch next quarter: ${bank.watch_next_quarter}\n\n`;
+            }
+            copyText += `---\n\n`;
+        });
+
+        await navigator.clipboard.writeText(copyText.trim());
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     };
 
     if (!isOpen) return null;
 
-    const renderSummary = (text) => {
-        return text.split('\n\n').map((paragraph, idx) => {
-            let trimPara = paragraph.trim();
-            if (!trimPara) return null;
+    const renderSummary = (data) => {
+        if (!data || !data.banks || !Array.isArray(data.banks)) {
+            return <p className="text-gray-500 italic text-center mt-10">Invalid or empty brief data.</p>;
+        }
 
-            // Handle horizontal rules or separators
-            if (trimPara.match(/^---/)) {
-                return <hr key={`hr-${idx}`} className="my-8 border-gray-200" />;
-            }
+        return data.banks.map((bank, idx) => {
+            let confColor = "bg-gray-100 text-gray-800";
+            if (bank.confidence === "High") confColor = "bg-green-100 text-green-800 border border-green-200";
+            if (bank.confidence === "Medium") confColor = "bg-yellow-100 text-yellow-800 border border-yellow-200";
+            if (bank.confidence === "Low") confColor = "bg-red-50 text-red-700 border border-red-200";
 
-            // Handle Bank Title Blocks: CAPITAL ONE NATIONAL ASSN — Theme: Retreat from... | Confidence: Medium
-            const titleMatch = trimPara.match(/^([^—]+)\s—\sTheme:\s([^|]+)(?:\s\|\sConfidence:\s(.+))?/);
-            if (titleMatch) {
-                const bankName = titleMatch[1].trim();
-                const theme = titleMatch[2].trim();
-                const confidence = titleMatch[3]?.trim();
-
-                let confColor = "bg-gray-100 text-gray-800";
-                if (confidence === "High") confColor = "bg-green-100 text-green-800 border border-green-200";
-                if (confidence === "Medium") confColor = "bg-yellow-100 text-yellow-800 border border-yellow-200";
-                if (confidence === "Low") confColor = "bg-red-50 text-red-700 border border-red-200";
-
-                return (
-                    <div key={`title-${idx}`} className="mt-8 mb-4 border-l-4 border-blue-800 pl-4 py-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-blue-50/30 rounded-r-lg pr-4">
+            return (
+                <div key={`bank-${idx}`}>
+                    {/* Header Block */}
+                    <div className="mt-8 mb-4 border-l-4 border-blue-800 pl-4 py-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-blue-50/30 rounded-r-lg pr-4">
                         <div>
-                            <h3 className="text-xl font-black text-gray-900 tracking-tight">{bankName}</h3>
-                            <p className="text-blue-800 font-semibold text-sm mt-0.5">Theme: {theme}</p>
+                            <h3 className="text-xl font-black text-gray-900 tracking-tight">{bank.bank_name}</h3>
+                            <p className="text-blue-800 font-semibold text-sm mt-0.5">
+                                Theme: {bank.theme}
+                                {bank.threat_level && ` (${bank.threat_level})`}
+                            </p>
                         </div>
-                        {confidence && (
+                        {bank.confidence && (
                             <div className={`px-2.5 py-1 rounded-md text-xs font-bold shadow-sm whitespace-nowrap ${confColor}`}>
-                                {confidence} Confidence
+                                {bank.confidence} Confidence
                             </div>
                         )}
                     </div>
-                );
-            }
 
-            // Handle Section Headers with content combined (What changed, So what, etc.)
-            const sectionMatch = trimPara.match(/^(What changed \(QoQ\):|So what:|What .* should do:|Watch next quarter:)/);
-            if (sectionMatch) {
-                const lines = trimPara.split('\n');
-                const headerLine = lines[0];
-                const contentLines = lines.slice(1);
-
-                // If it's just the header with no content, return just the header (content comes next paragraph)
-                if (contentLines.length === 0) {
-                    return <h4 key={`hdr-${idx}`} className="font-bold text-gray-900 text-base mb-2 mt-6 uppercase tracking-wider text-xs border-b border-gray-100 pb-1">{headerLine}</h4>;
-                }
-
-                return (
-                    <div key={`sec-${idx}`} className="mb-6">
-                        <h4 className="font-bold text-blue-900 border-b border-gray-100 pb-1 mb-3 uppercase tracking-wider text-[11px]">{headerLine}</h4>
-                        <div className="text-gray-700 space-y-2">
-                            {contentLines.map((line, lIdx) => {
-                                const lineTrim = line.trim();
-                                const isListItem = lineTrim.startsWith('•') || lineTrim.startsWith('-');
-                                const content = isListItem ? lineTrim.substring(1).trim() : lineTrim;
-
-                                // Evidence blocks
-                                if (content.startsWith('Evidence:')) {
-                                    return (
-                                        <div key={`ev-${lIdx}`} className="ml-8 text-[13px] text-gray-600 font-mono bg-slate-50 p-2.5 border border-slate-200 rounded-md my-1 shadow-inner">
-                                            {content.replace('Evidence:', '↳')}
+                    {/* What Changed */}
+                    {bank.what_changed && bank.what_changed.length > 0 && (
+                        <div className="mb-6">
+                            <h4 className="font-bold text-blue-900 border-b border-gray-100 pb-1 mb-3 uppercase tracking-wider text-[11px]">What changed (QoQ):</h4>
+                            <div className="text-gray-700 space-y-2">
+                                {bank.what_changed.map((change, cIdx) => (
+                                    <div key={`change-${idx}-${cIdx}`}>
+                                        <div className="flex items-start ml-2 mt-2">
+                                            <span className="text-blue-500 mr-2 font-bold text-lg leading-none mt-0.5">•</span>
+                                            <span className="text-sm leading-relaxed">{change.insight}</span>
                                         </div>
-                                    );
-                                }
-
-                                // Defend / Attack / Monitor bullet styling
-                                const playbookMatch = content.match(/^(Defend:|Attack:|Monitor:)(.*)/);
-                                if (playbookMatch) {
-                                    const type = playbookMatch[1];
-                                    const text = playbookMatch[2].trim();
-
-                                    let badgeColor = "bg-gray-100 text-gray-800";
-                                    if (type === "Defend:") badgeColor = "bg-blue-100 text-blue-800";
-                                    if (type === "Attack:") badgeColor = "bg-emerald-100 text-emerald-800";
-                                    if (type === "Monitor:") badgeColor = "bg-purple-100 text-purple-800";
-
-                                    return (
-                                        <div key={`pb-${lIdx}`} className="flex items-start ml-2 mt-3">
-                                            <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider mr-2 ${badgeColor}`}>{type.replace(':', '')}</span>
-                                            <span className="text-sm pt-0.5 leading-relaxed">{text}</span>
-                                        </div>
-                                    );
-                                }
-
-                                return isListItem ? (
-                                    <div key={`li-${lIdx}`} className="flex items-start ml-2 mt-2">
-                                        <span className="text-blue-500 mr-2 font-bold text-lg leading-none mt-0.5">•</span>
-                                        <span className="text-sm leading-relaxed">{content}</span>
+                                        {change.evidence && (
+                                            <div className="ml-8 text-[13px] text-gray-600 font-mono bg-slate-50 p-2.5 border border-slate-200 rounded-md my-1 shadow-inner">
+                                                ↳ {change.evidence}
+                                            </div>
+                                        )}
                                     </div>
-                                ) : <p key={`p-${lIdx}`} className="text-sm leading-relaxed mt-1">{content}</p>;
-                            })}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                );
-            }
+                    )}
 
-            // Fallback for standard text (like "So what" paragraphs if they don't get joined)
-            return (
-                <p key={`fb-${idx}`} className="mb-4 text-sm text-gray-700 leading-relaxed">
-                    {trimPara}
-                </p>
+                    {/* So What */}
+                    {bank.so_what && (
+                        <div className="mb-6">
+                            <h4 className="font-bold text-blue-900 border-b border-gray-100 pb-1 mb-3 uppercase tracking-wider text-[11px]">So what:</h4>
+                            <p className="text-sm text-gray-700 leading-relaxed mb-4">{bank.so_what}</p>
+                        </div>
+                    )}
+
+                    {/* Actions */}
+                    {bank.actions && (
+                        <div className="mb-6">
+                            <h4 className="font-bold text-blue-900 border-b border-gray-100 pb-1 mb-3 uppercase tracking-wider text-[11px]">What {perspectiveBankName} should do:</h4>
+                            <div className="text-gray-700 space-y-2">
+                                {bank.actions.defend && (
+                                    <div className="flex items-start ml-2 mt-3">
+                                        <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider mr-2 bg-blue-100 text-blue-800`}>DEFEND</span>
+                                        <span className="text-sm pt-0.5 leading-relaxed">{bank.actions.defend}</span>
+                                    </div>
+                                )}
+                                {bank.actions.attack && (
+                                    <div className="flex items-start ml-2 mt-3">
+                                        <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider mr-2 bg-emerald-100 text-emerald-800`}>ATTACK</span>
+                                        <span className="text-sm pt-0.5 leading-relaxed">{bank.actions.attack}</span>
+                                    </div>
+                                )}
+                                {bank.actions.monitor && (
+                                    <div className="flex items-start ml-2 mt-3">
+                                        <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider mr-2 bg-purple-100 text-purple-800`}>MONITOR</span>
+                                        <span className="text-sm pt-0.5 leading-relaxed">{bank.actions.monitor}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Watch Next Quarter */}
+                    {bank.watch_next_quarter && (
+                        <div className="mb-6">
+                            <h4 className="font-bold text-blue-900 border-b border-gray-100 pb-1 mb-3 uppercase tracking-wider text-[11px]">Watch next quarter:</h4>
+                            <p className="text-sm text-gray-700 leading-relaxed mb-4">{bank.watch_next_quarter}</p>
+                        </div>
+                    )}
+
+                    {/* Separator between banks, unless it's the last one */}
+                    {idx < data.banks.length - 1 && (
+                        <hr className="my-8 border-gray-200" />
+                    )}
+                </div>
             );
         });
     };

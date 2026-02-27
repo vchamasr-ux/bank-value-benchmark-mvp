@@ -1,5 +1,5 @@
 import { kv } from "@vercel/kv";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
     // 2. AI Generation
     try {
-        let prompt = "";
+        let result;
 
         if (type === 'market_movers') {
             prompt = `
@@ -70,54 +70,82 @@ You are a competitive-intelligence analyst writing for senior bankers at ${persp
 - "Δ" = QoQ change (current quarter minus prior quarter).
 - delta_pct = percentile rank of a bank's delta within the peer group (0..1). It is NOT a percent change.
 - z = robust z-score: (bank delta − peer median delta) / peer IQR. 
-- strength = High / Medium / Low. Always use this 'strength' label to describe the magnitude of change, rather than interpreting raw z-scores.
-- "improving / deteriorating" = objective direction relative to the metric's "better" side.
+- strength = High / Medium / Low. Always use this 'strength' label to describe the magnitude of change.
 - "vs_peers_effect" = shows whether the bank moved in a more favorable direction than the median peer.
 
 --- STRATEGIC PHRASING (Softened Intent) ---
 Do NOT assert intent confidently (e.g., "prioritizing growth", "strategic pivot"). 
-Instead, use pattern-based language: 
-"The pattern is consistent with margin-first behavior, either strategic or driven by mix/funding conditions."
-"Performance suggests a defensive posture in funding costs."
+Instead, use pattern-based language: "The pattern is consistent with margin-first behavior."
 
 --- METRIC RULES & CAVEATS ---
 1. EXACT UNITS: You MUST preserve the exact units shown in the tape for every metric (e.g., bp, %, ratio). Do not convert units.
-2. CONTEXT-ONLY METRICS: If a metric is flagged as metric_class="derived" (e.g., 3Y Growth CAGR) or metric_class="denominator-sensitive" (e.g., Assets per Employee):
-   - You may include it as a driver, but you MUST treat it primarily as context for other moves.
-   - If it is the top driver, you MUST add specific caveat language (e.g., "CAGR-based; verify next quarter before concluding trend break" or "headcount effect possible; verify next quarter").
-3. NOISY METRICS: Non-Interest Income % or Efficiency Ratio. At subsidiary level, these can be distorted by internal allocations. If a swing is catastrophic/unprecedented (strength=High), flag as "(possible data/reporting artifact)".
+2. CONTEXT-ONLY METRICS: If a metric is flagged as metric_class="derived" or "denominator-sensitive", you MUST treat it primarily as context. Add specific caveat language (e.g., "CAGR-based; verify next quarter").
+3. NOISY METRICS: Non-Interest Income % or Efficiency Ratio. If a swing is catastrophic, flag as "(possible data/reporting artifact)".
 4. SUPERLATIVE LANGUAGE: ONLY use phrases like "worst in the peer set" or "best in the peer group" if delta_pct <= 0.06 or >= 0.94. Otherwise, use relative language like "bottom quartile" or "lagged median peers".
 5. NO ARTIFACT EXCUSES FOR CORE KPIs: Do NOT label changes as "possible artifacts" unless they belong to metric_class="derived" or "denominator-sensitive", OR if a core metric is noted as "NOISY" in rule 3 above.
 
 --- CONFIDENCE RUBRIC (Deterministic) ---
-Use the strictly calculated Computed Confidence provided in the tape for each bank. Do not guess the confidence.  
+Use the strictly calculated Computed Confidence provided in the tape for each bank. Do not guess the confidence.
 
---- OUTPUT FORMAT (Exactly as shown) ---
-
-[BANK NAME] — Theme: [theme label] ([Threat / Opportunity / Monitor]) | Confidence: [High / Medium / Low from tape]
-What changed (QoQ):
-  • [Insight 1: One-sentence analytical observation using ordinal language ("worst in the peer set", "top quartile")]
-    Evidence: [Numbers: "Metric Label: {bank_delta} QoQ, peer median {peer_median} (delta_pct={value}) | strength={strength}"]
-  • [Insight 2: Analytical observation]
-    Evidence: [Numbers line preserving exact units]
-  • [Insight 3: Analytical observation]
-    Evidence: [Numbers line preserving exact units]
-
-So what: [2–3 sentences. Link the pattern to likely market behavior.]
-
-What ${perspectiveBankName} should do:
-  • Defend: [What external relationships to protect / what not to do.]
-  • Attack: [Where to take expected market share / what wedge to use.]
-  • Monitor: [What specific external signals/behavior to watch next quarter.]
-
-  [CRITICAL PLAYBOOK RULES: FORBID internal housekeeping / inward-facing initiatives (e.g., "improve our efficiency", "streamline operations"). FORBID product-line speculation UNLESS explicitly supported by tape data (e.g., do not say "they are pushing wealth management").]
-
-Watch next quarter: [Conditional IF/THEN signal based on trend confirmation.]
+--- PLAYBOOK RULES ---
+FORBID internal housekeeping / inward-facing initiatives. FORBID product-line speculation UNLESS explicitly supported by tape data.
 
 --- MARKET MOVERS TAPE ---
 ${tapeStr}
 ${snapshotBlock}
 `.trim();
+
+            const schema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    banks: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                bank_name: { type: SchemaType.STRING, description: "Name of the competitor bank" },
+                                theme: { type: SchemaType.STRING, description: "Theme label for the pattern observed" },
+                                threat_level: { type: SchemaType.STRING, description: "The strategic urgency", enum: ["Threat", "Opportunity", "Monitor"] },
+                                confidence: { type: SchemaType.STRING, description: "High / Medium / Low from tape", enum: ["High", "Medium", "Low"] },
+                                what_changed: {
+                                    type: SchemaType.ARRAY,
+                                    description: "List of 3 primary driver insights.",
+                                    items: {
+                                        type: SchemaType.OBJECT,
+                                        properties: {
+                                            insight: { type: SchemaType.STRING, description: "Analytical observation." },
+                                            evidence: { type: SchemaType.STRING, description: "Exact numbers from the tape: Metric Label: X, peer median Y | strength=Z" }
+                                        },
+                                        required: ["insight", "evidence"]
+                                    }
+                                },
+                                so_what: { type: SchemaType.STRING, description: "2–3 sentences linking the pattern to likely market behavior." },
+                                actions: {
+                                    type: SchemaType.OBJECT,
+                                    properties: {
+                                        defend: { type: SchemaType.STRING, description: "What external relationships to protect" },
+                                        attack: { type: SchemaType.STRING, description: "Where to take expected market share" },
+                                        monitor: { type: SchemaType.STRING, description: "What specific external signals/behavior to watch next quarter" }
+                                    },
+                                    required: ["defend", "attack", "monitor"]
+                                },
+                                watch_next_quarter: { type: SchemaType.STRING, description: "Conditional IF/THEN signal based on trend confirmation." }
+                            },
+                            required: ["bank_name", "theme", "threat_level", "confidence", "what_changed", "so_what", "actions", "watch_next_quarter"]
+                        }
+                    }
+                },
+                required: ["banks"]
+            };
+
+            result = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema,
+                }
+            });
+
         } else {
             // Default: financial_summary
             const bankName = financials?.name || financials?.raw?.NAME || 'the bank';
@@ -135,11 +163,21 @@ Highlight strengths and weaknesses compared to the peer group. Use Markdown form
 
 Data:
 ${JSON.stringify(promptData, null, 2)}`;
+            result = await model.generateContent(prompt);
         }
 
-        const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
+
+        if (type === 'market_movers') {
+            try {
+                const parsed = JSON.parse(text);
+                return res.status(200).json({ data: parsed });
+            } catch (e) {
+                console.error("Failed to parse JSON schema from Gemini:", e);
+                return res.status(500).json({ error: "Failed to generate structured data." });
+            }
+        }
 
         return res.status(200).json({ text });
     } catch (error) {
