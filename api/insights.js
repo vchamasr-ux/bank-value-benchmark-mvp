@@ -79,7 +79,7 @@ Do NOT assert intent confidently (e.g., "prioritizing growth", "strategic pivot"
 Instead, use pattern-based language: "The pattern is consistent with margin-first behavior."
 
 --- METRIC RULES & CAVEATS ---
-1. EXACT UNITS: You MUST preserve the exact units shown in the tape for every metric (e.g., bp, %, ratio). Do not convert units. If an 'Est. Annualized Impact' is provided, you MUST include it in the evidence bullet exactly as stated.
+1. EXACT UNITS: You MUST preserve the exact units shown in the tape for every metric (e.g., bp, %, ratio). Do not convert units. If the tape includes an '| Est. Annualized Impact: ...' clause, YOU MUST append it exactly as written at the end of the evidence string. No exceptions.
 2. CONTEXT-ONLY METRICS: If a metric is flagged as metric_class="derived" or "denominator-sensitive", you MUST treat it primarily as context. Add specific caveat language (e.g., "CAGR-based; verify next quarter").
 3. NOISY METRICS: Non-Interest Income % or Efficiency Ratio. If a swing is catastrophic, flag as "(possible data/reporting artifact)".
 4. SUPERLATIVE LANGUAGE: ONLY use phrases like "worst in the peer set" or "best in the peer group" if delta_pct <= 0.06 or >= 0.94. Otherwise, use relative language like "bottom quartile" or "lagged median peers".

@@ -231,8 +231,16 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                             // FDIC amounts are in thousands ($000s). We convert to Millions.
                             const baseMillions = q2[d.spec.base_key] / 1000;
                             const dollarImpactMillions = d.delta * baseMillions;
-                            // Annualize the delta for rate metrics, NPL is a stock so don't annualize it
-                            const annualizedImpact = d.spec.key === 'npl_ratio' ? dollarImpactMillions : dollarImpactMillions * 4;
+
+                            // If base is a flow variable (Revenue), it represents a single quarter, so annualize it (*4).
+                            // If base is a stock variable (Assets, Loans, Deposits, Equity), d.delta is an annualized rate change, so don't multiply by 4.
+                            const isFlowBase = d.spec.base_key === 'raw_revenue';
+                            // Special case: NPL ratio is a stock balance, not an annualized income flow.
+                            let annualizedImpact = dollarImpactMillions;
+                            if (isFlowBase && d.spec.key !== 'npl_ratio') {
+                                annualizedImpact = dollarImpactMillions * 4;
+                            }
+
                             impactStr = ` | Est. Annualized Impact: ${annualizedImpact >= 0 ? '+' : '-'}$${Math.abs(annualizedImpact).toFixed(1)}M`;
                         }
 
