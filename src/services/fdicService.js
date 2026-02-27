@@ -366,7 +366,7 @@ export const getBankKpis = async ({ cert, quarter }) => {
             assets_per_employee: parseFloat(rawKpis.assetsPerEmployee),
             roe: parseFloat(rawKpis.returnOnEquity) / 100,
             roa: parseFloat(rawKpis.returnOnAssets) / 100,
-            npl_ratio: parseFloat(rawKpis.nonPerformingLoansRatio) / 100
+            npl_ratio: parseFloat(rawKpis.nptlRatio) / 100
         };
 
     } catch (e) {
