@@ -1,0 +1,1 @@
+{"meta":{"total":1,"parameters":{"filters":"CERT:3510 AND REPDTE:20251231","fields":"REPDTE,ASSET,NAME","limit":"1"},"index":{"name":"risview_20260218175940","createTimestamp":"2026-02-18T17:59:42Z"}},"data":[{"data":{"REPDTE":"20251231","ASSET":2636823000,"NAME":"BANK OF AMERICA NA","ID":"3510_20251231"},"score":0}],"totals":{"count":1}}

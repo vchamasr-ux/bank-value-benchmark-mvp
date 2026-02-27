@@ -215,7 +215,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                             <div className="flex gap-3">
                                 <span className="bg-slate-100 text-xs p-2 rounded-lg">⚡</span>
                                 <p className="text-xs text-slate-500 leading-relaxed">
-                                    <strong className="text-slate-700">Surprise:</strong> Cumulative absolute volatility across 12 KPIs. Higher surprise means a bank has fundamentally shifted its profile.
+                                    <strong className="text-slate-700">Surprise:</strong> Cumulative absolute volatility across {KPI_SPECS.length} KPIs. Higher surprise means a bank has fundamentally shifted its profile.
                                 </p>
                             </div>
                         </div>
