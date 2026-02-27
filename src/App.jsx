@@ -150,8 +150,8 @@ function App() {
             focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
             segmentKey={benchmarks?.groupName || 'ASSET:[50000000 TO 250000000]'}
             segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
-            priorQuarter="Q3 2024"
-            currentQuarter="Q4 2024"
+            priorQuarter="Q3 2025"
+            currentQuarter="Q4 2025"
             onDrillDown={async (cert) => {
               // Maintain radar context of the SOURCE bank
               if (selectedBank) {
@@ -282,8 +282,8 @@ function App() {
           focusBankCert={String(selectedBank.CERT)}
           segmentKey={benchmarks?.groupName || 'DYNAMIC'}
           segmentLabel={benchmarks?.groupName || 'Peer Group'}
-          priorQuarter="Q3 2024"
-          currentQuarter="Q4 2024"
+          priorQuarter="Q3 2025"
+          currentQuarter="Q4 2025"
           authRequired={FEAT_AUTH_REQUIRED}
         />
       )}
