@@ -79,7 +79,7 @@ Do NOT assert intent confidently (e.g., "prioritizing growth", "strategic pivot"
 Instead, use pattern-based language: "The pattern is consistent with margin-first behavior."
 
 --- METRIC RULES & CAVEATS ---
-1. EXACT UNITS: You MUST preserve the exact units shown in the tape for every metric (e.g., bp, %, ratio). Do not convert units.
+1. EXACT UNITS: You MUST preserve the exact units shown in the tape for every metric (e.g., bp, %, ratio). Do not convert units. If an 'Est. Annualized Impact' is provided, you MUST include it in the evidence bullet exactly as stated.
 2. CONTEXT-ONLY METRICS: If a metric is flagged as metric_class="derived" or "denominator-sensitive", you MUST treat it primarily as context. Add specific caveat language (e.g., "CAGR-based; verify next quarter").
 3. NOISY METRICS: Non-Interest Income % or Efficiency Ratio. If a swing is catastrophic, flag as "(possible data/reporting artifact)".
 4. SUPERLATIVE LANGUAGE: ONLY use phrases like "worst in the peer set" or "best in the peer group" if delta_pct <= 0.06 or >= 0.94. Otherwise, use relative language like "bottom quartile" or "lagged median peers".
@@ -99,6 +99,15 @@ ${snapshotBlock}
             const schema = {
                 type: SchemaType.OBJECT,
                 properties: {
+                    ecosystem_synthesis: {
+                        type: SchemaType.OBJECT,
+                        description: "A single executive synthesis connecting the dots across all banks analyzed.",
+                        properties: {
+                            executive_summary: { type: SchemaType.STRING, description: "A 2-3 sentence executive synthesis that connects the dots across all the individual bank briefs, identifying overarching industry trends." },
+                            macro_opportunity: { type: SchemaType.STRING, description: "The single biggest macro-opportunity for the perspective bank." }
+                        },
+                        required: ["executive_summary", "macro_opportunity"]
+                    },
                     banks: {
                         type: SchemaType.ARRAY,
                         items: {
@@ -136,7 +145,7 @@ ${snapshotBlock}
                         }
                     }
                 },
-                required: ["banks"]
+                required: ["ecosystem_synthesis", "banks"]
             };
 
             result = await model.generateContent({
