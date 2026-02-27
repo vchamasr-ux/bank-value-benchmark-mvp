@@ -51,10 +51,13 @@ Benchmark/
 │   │   ├── auth/
 │   │   │   ├── AuthContext.jsx  # Auth provider + OAuth handling
 │   │   │   └── LoginModal.jsx   # LinkedIn sign-in UI
+│   │   ├── market_movers/
+│   │   │   └── market_movers.jsx # Core analysis engine
 │   │   ├── BankSearch.jsx
 │   │   ├── FinancialDashboard.jsx
 │   │   ├── OperationalDashboard.jsx
 │   │   ├── GaugeChart.jsx
+│   │   ├── MoversSummaryModal.jsx # Competitive intel UI
 │   │   ├── PeerGroupModal.jsx
 │   │   ├── SummaryModal.jsx     # AI Summarize modal (Gated by Auth)
 │   │   └── USMap.jsx
@@ -86,10 +89,10 @@ Benchmark/
 
 ## 5. Functional Modules
 
-### 5.1 Market Movers / Competitive Brief
+### 5.1 Market Movers / Competitive Brief (`MoversSummaryModal.jsx`)
 - Fetches QoQ deltas for the peer group.
 - Computes **Robust Z-Scores** to identify "surprising" performance changes.
-- **Drill-down**: Clicking a bank's name in the movers list triggers a refocus of the main dashboard to that bank.
+- **Drill-down**: Clicking a bank's name in the movers modal triggers a refocus of the main dashboard to that bank.
 
 ### 5.2 AI Summary (`SummaryModal.jsx`)
 - Requires user to be logged in via LinkedIn.

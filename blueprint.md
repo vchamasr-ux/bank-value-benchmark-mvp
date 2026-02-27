@@ -62,10 +62,10 @@ Automatically find 20 peer banks in the same asset class and near the same geogr
 Unlock operational gauges by submitting your own bank's data.
 
 ### Phase 5: AI Summarize & Market Movers
-One-click Gemini narrative and competitive radar.
+One-click Gemini narrative (Summary Modal) and competitive radar (Market Movers Modal). Both utilize `gemini-2.5-flash` to synthesize complex FDIC tape data into actionable strategic insights based on peer groupings.
 
 ### Phase 6: Authentication & Quota Control
-Implemented LinkedIn Login to gate AI features and managed a 2x/day quota using Vercel KV.
+Implemented LinkedIn Login to gate AI features and managed a daily quota using Vercel KV.
 
 ---
 

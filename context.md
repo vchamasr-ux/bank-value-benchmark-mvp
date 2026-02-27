@@ -114,7 +114,7 @@ A competitive intelligence layer built on top of the benchmark data.
 
 ### Entry Point
 - **"📊 Competitive Brief →" button** appears on the bank dashboard after financials + benchmarks load.
-- Opens as a **dark mode view** directly in the main app or sidecar.
+- Opens as a **modal overlay** (`MoversSummaryModal.jsx`) centering the focus on the intelligence brief.
 
 ### What it does
 - Fetches the same peer group as the main dashboard.
@@ -172,3 +172,4 @@ Peers: N=19
 - No Threats vs Playbooks tab split (deferred)
 - Operational dashboard uses static industry benchmarks (not FDIC live data)
 - No quarter selector (Q3→Q4 2025 is hardcoded)
+- Explore adding Option 3 (playbook mining / historical analog quarters) directly to the intelligence modal.

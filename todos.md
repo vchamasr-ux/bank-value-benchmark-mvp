@@ -76,6 +76,13 @@ _Last updated: February 2026 — reflects completed state of all phases._
 ---
 
 ## Open / Future Work
+## Open / Future Work
 - [ ] Add in-memory (or `localStorage`) caching for FDIC peer KPI fetches to reduce API load.
 - [ ] Consider adding a quarterly date selector to use more recent FDIC baseline for 3Y growth.
-- [ ] Explore adding Option 3 (playbook mining / historical analog quarters) to the sidecar.
+- [ ] Explore adding Option 3 (playbook mining / historical analog quarters) directly to the intelligence modal.
+
+---
+
+## Phase 8: Post-Launch Revisions ✅ _(February 2026)_
+- [x] Integrate Market Movers competitive radar as a modal overlay instead of a distinct split screen view.
+- [x] Fix tooltip rendering logic in `GaugeChart.jsx` so "Top Quartile" displays mathematically correct contextual descriptions for both standard and inverted ("lower is better") metrics like Cost of Funds.
