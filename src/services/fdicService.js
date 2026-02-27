@@ -244,6 +244,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                 ...totalRaw,
                 ...means, // Directly provide Means as the primary benchmark values
                 groupName,
+                assetFilter, // Expose the actual asset filter string
                 sampleSize: totalRaw.count,
                 peerBanks,
                 p25: {
@@ -287,12 +288,11 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
  * Adapter for MoversSummaryModal to fetch a list of peer banks.
  */
 export const listPeerBanks = async ({ segmentKey, focusCert }) => {
-    // If it's a dynamic peer group or specific asset filter, we fetch the candidates
     const fields = 'NAME,CITY,STNAME,STALP,CERT';
-    let url = `https://api.fdic.gov/banks/financials/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+    let url = `https://banks.data.fdic.gov/api/institutions/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
 
     if (segmentKey && segmentKey.includes('ASSET:')) {
-        url = `https://api.fdic.gov/banks/financials/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+        url = `https://banks.data.fdic.gov/api/institutions/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
     }
 
     try {

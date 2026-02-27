@@ -65,6 +65,7 @@ function App() {
                 loanGrowth3Y: benchmarkData.loanGrowth3Y,
                 depositGrowth3Y: benchmarkData.depositGrowth3Y,
                 groupName: benchmarkData.groupName,
+                assetFilter: benchmarkData.assetFilter,
                 sampleSize: benchmarkData.sampleSize,
                 peerBanks: benchmarkData.peerBanks,
                 peerStateCounts,
@@ -148,7 +149,7 @@ function App() {
             dataProvider={fdicService}
             perspectiveBankName={selectedBank?.NAME || 'Market'}
             focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
-            segmentKey={benchmarks?.groupName || 'ASSET:[50000000 TO 250000000]'}
+            segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
             segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
             priorQuarter="Q3 2025"
             currentQuarter="Q4 2025"
@@ -280,7 +281,7 @@ function App() {
           dataProvider={fdicService}
           perspectiveBankName={selectedBank.NAME}
           focusBankCert={String(selectedBank.CERT)}
-          segmentKey={benchmarks?.groupName || 'DYNAMIC'}
+          segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
           segmentLabel={benchmarks?.groupName || 'Peer Group'}
           priorQuarter="Q3 2025"
           currentQuarter="Q4 2025"
