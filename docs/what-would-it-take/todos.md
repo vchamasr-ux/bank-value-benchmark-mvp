@@ -43,3 +43,11 @@
 - [x] Build UI to display tradeoff warnings beneath suggested paths.
 - [x] Build UI "Confidence Badges" (High/Medium/Low) based on RMSE and lever distance.
 - [x] Refactor static "Path Cards" into Interactive Sliders so users can manually tweak prescribed lever values.
+
+## Phase 7: V3 Business Reality Constraints
+- [ ] Update `train_pipeline.py` to loop over all 6 asset tiers and output a `whatwouldittake_tiered.json`.
+- [ ] React Agent: Remove Horizon dropdown; handle JSON payload restructuring.
+- [ ] React Agent: Disable "worsen" Target Type options based on current KPIs.
+- [ ] React Agent: Hardcode "Good Direction" constraints into inverse solver ("Do No Harm").
+- [ ] React Agent: Implement Hard Practical Caps within the interactive sliders.
+- [ ] React Agent: Expand solver to output 4-5 Multivariate Combination Paths.

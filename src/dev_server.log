@@ -1,0 +1,275 @@
+
+> bank-value-benchmark-mvp@0.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m547[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m12:58:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mscripts/export_reports/template.html[22m
+[2m1:10:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mscripts/export_reports/template.html[22m
+[2m1:12:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mscripts/export_reports/template.html[22m
+[2m1:26:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mscripts/export_reports/template.html[22m
+[2m2:00:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mscripts/export_reports/template.html[22m
+[2m2:29:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m2:29:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m2:30:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m2:33:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m2:33:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m2:48:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m2:51:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m2:56:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m2:57:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m3:09:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m3:09:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m3:11:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m3:16:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/components/BankSearch.jsx, /src/index.css[22m
+[2m3:16:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/components/BankSearch.jsx, /src/index.css[22m
+[2m3:19:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m
+[2m3:19:29 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\StrategicPlannerTab.jsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (647:12)
+
+[0m [90m 645 |[31m                         [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 646 |[31m                     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 647 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m             [31m[1m^[22m[31m
+ [90m 648 |[31m             [33m<[31m[33mdiv[31m className[33m=[31m[32m"text-center text-xs text-slate-400 font-bold max-w-2xl mx-auto mt-8"[31m[33m>[31m
+ [90m 649 |[31m                 [33mDisclaimer[31m[33m:[31m [33mScenarios[31m are based on historical peer movements and ridge regression models[33m.[31m [33mNot[31m financial advice[33m.[31m [33mAlways[31m consult your [33mALM[31m model[33m.[31m
+ [90m 650 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/vcham/Documents/VS Code Programs/Benchmark/src/components/StrategicPlannerTab.jsx[39m:647:12
+      at constructor (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4742:18)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11321:23)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10883:29)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10875:17)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseExpressionBase (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10774:23)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:17)
+      at JSXParserMixin.jsxParseExpressionContainer (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4632:31)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4711:36)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+[2m3:19:30 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\StrategicPlannerTab.jsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (647:12)
+
+[0m [90m 645 |[31m                         [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 646 |[31m                     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 647 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m             [31m[1m^[22m[31m
+ [90m 648 |[31m             [33m<[31m[33mdiv[31m className[33m=[31m[32m"text-center text-xs text-slate-400 font-bold max-w-2xl mx-auto mt-8"[31m[33m>[31m
+ [90m 649 |[31m                 [33mDisclaimer[31m[33m:[31m [33mScenarios[31m are based on historical peer movements and ridge regression models[33m.[31m [33mNot[31m financial advice[33m.[31m [33mAlways[31m consult your [33mALM[31m model[33m.[31m
+ [90m 650 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/vcham/Documents/VS Code Programs/Benchmark/src/components/StrategicPlannerTab.jsx[39m:647:12
+      at constructor (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4742:18)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11321:23)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10883:29)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10875:17)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseExpressionBase (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10774:23)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:17)
+      at JSXParserMixin.jsxParseExpressionContainer (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4632:31)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4711:36)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+[2m3:19:30 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\StrategicPlannerTab.jsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (647:12)
+
+[0m [90m 645 |[31m                         [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 646 |[31m                     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 647 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m             [31m[1m^[22m[31m
+ [90m 648 |[31m             [33m<[31m[33mdiv[31m className[33m=[31m[32m"text-center text-xs text-slate-400 font-bold max-w-2xl mx-auto mt-8"[31m[33m>[31m
+ [90m 649 |[31m                 [33mDisclaimer[31m[33m:[31m [33mScenarios[31m are based on historical peer movements and ridge regression models[33m.[31m [33mNot[31m financial advice[33m.[31m [33mAlways[31m consult your [33mALM[31m model[33m.[31m
+ [90m 650 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/vcham/Documents/VS Code Programs/Benchmark/src/components/StrategicPlannerTab.jsx[39m:647:12
+      at constructor (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4742:18)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11321:23)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10883:29)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10875:17)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseExpressionBase (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10774:23)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:17)
+      at JSXParserMixin.jsxParseExpressionContainer (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4632:31)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4711:36)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+[2m3:19:30 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\StrategicPlannerTab.jsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (647:12)
+
+[0m [90m 645 |[31m                         [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 646 |[31m                     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 647 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m             [31m[1m^[22m[31m
+ [90m 648 |[31m             [33m<[31m[33mdiv[31m className[33m=[31m[32m"text-center text-xs text-slate-400 font-bold max-w-2xl mx-auto mt-8"[31m[33m>[31m
+ [90m 649 |[31m                 [33mDisclaimer[31m[33m:[31m [33mScenarios[31m are based on historical peer movements and ridge regression models[33m.[31m [33mNot[31m financial advice[33m.[31m [33mAlways[31m consult your [33mALM[31m model[33m.[31m
+ [90m 650 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/vcham/Documents/VS Code Programs/Benchmark/src/components/StrategicPlannerTab.jsx[39m:647:12
+      at constructor (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4742:18)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11321:23)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10883:29)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10875:17)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at JSXParserMixin.parseExpressionBase (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10774:23)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10770:17)
+      at JSXParserMixin.jsxParseExpressionContainer (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4632:31)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4711:36)
+      at JSXParserMixin.jsxParseElementAt (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11071:23)
+      at JSXParserMixin.parseUpdate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11056:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11036:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10889:61)
+      at JSXParserMixin.parseExprOps (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10894:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10871:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10821:21)
+      at C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:39
+      at JSXParserMixin.allowInAnd (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12416:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:10790:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:12483:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (C:\Users\vcham\Documents\VS Code Programs\Benchmark\node_modules\@babel\parser\lib\index.js:11665:28)
+[2m3:19:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/StrategicPlannerTab.jsx, /src/index.css[22m

@@ -6,48 +6,30 @@ The frontend and the offline training pipeline are decoupled. They communicate e
 ### Location
 `public/models/whatwouldittake_v1.json`
 
-### Schema Structure (V2 Draft)
+### Schema Structure (V3 Tiered)
 ```json
 {
-  "schema_version": "2.0",
+  "schema_version": "3.0",
   "trained_on": {
     "asof": "2026-02-27",
-    "quarters": ["2018Q1", "2025Q4"],
-    "n_banks": 4200,
-    "n_rows": 80000
+    "quarters": ["2018Q1", "2025Q4"]
   },
-  "features": [
-    "efficiencyRatio",
-    "nonInterestIncomePercent",
-    "yieldOnLoans",
-    "assetsPerEmployee"
-  ],
-  "scaler": {
-    "mean": [0.65, 0.20, 0.05, 8000000],
-    "std":  [0.15, 0.10, 0.02, 3000000]
-  },
-  "targets": {
-    "roa": { 
-      "coef": [-0.015, 0.005, 0.025, 0.0000001], 
-      "intercept": 0.011, 
-      "rmse": 0.0021 
+  "tiers": {
+    "<$1B": {
+      "n_banks": 3000,
+      "n_rows": 60000,
+      "features": ["efficiencyRatio", "nonInterestIncomePercent", "yieldOnLoans", "costOfFunds"],
+      "scaler": { ... },
+      "targets": { ... },
+      "lever_bounds": { ... },
+      "tradeoffs": { ... },
+      "confidence_metrics": { ... }
     },
-    "costOfFunds": { 
-      "coef": [0.001, -0.002, 0.5, -0.00000005], 
-      "intercept": 0.025, 
-      "rmse": 0.0017 
-    }
-  },
-  "lever_bounds": {
-    "4q": { 
-      "efficiencyRatio": {"min": -0.05, "max": 0.05}
-    }
-  },
-  "tradeoffs": {
-    "efficiencyRatio": {
-      "yieldOnLoans": -0.15,
-      "nonInterestIncomePercent": 0.05
-    }
+    "$1B-$10B": { ... },
+    "$10B-$50B": { ... },
+    "$50B-$100B": { ... },
+    "$100B-$250B": { ... },
+    ">$250B": { ... }
   }
 }
 ```
@@ -57,28 +39,31 @@ The frontend and the offline training pipeline are decoupled. They communicate e
 ### Inputs (Props)
 *   `financials`: Object containing the current bank's KPIs.
 *   `benchmarks`: Object containing the peer group statistics (median, p25, p75).
+*   `assetTier`: The selected bank's asset tier string (e.g. "<$1B").
 
 ### State Management
 *   `activeTarget`: The user-selected goal (e.g., 'returnOnAssets').
 *   `targetType`: The user-selected benchmark relative to the peer group.
-*   `horizon`: Timeframe for the goal.
 *   `modelArtifact`: The loaded JSON schema.
 *   `error`: Any fatal error that prevents rendering.
 
-### The Inverse Solver Logic (V1)
+### The Inverse Solver Logic (V3)
 Given a desired change in target $\Delta Y$:
-1. Determine the set of active features (levers).
-2. For a simple single-lever path, the required change in feature $X_i$ is $\Delta X_i = \Delta Y / \beta_i$.
-3. Clamp $\Delta X_i$ against `lever_bounds.4q[Xi]`.
-4. If the clamped value is insufficient to reach the target, report the maximum achievable $\Delta Y$ and flag the scenario as constrained.
+1. Determine the set of active features (levers) based on the target mapping.
+2. Generate base Single-Lever Paths by calculating required change $\Delta X_i = \Delta Y / \beta_i$.
+3. **Do No Harm Check**: If moving $X_i$ to close the gap requires moving it in its "worse" direction, discard the path.
+4. **Hard Caps**: Clamp $\Delta X_i$ against hardcoded realistic limits (e.g. 5% max efficiency bump).
+5. Generate **Multivariate Combination Paths**:
+   - Path C (Balanced): Spread $\Delta Y$ evenly across all active levers, clamped.
+   - Path D (Aggressive): Push 2 primary levers to 80% of max bounds.
 
 ### Error Handling Rules
-*   **Missing Artifact:** If fetch returns 404, throw error "Model artifact missing. Run offline training pipeline."
-*   **Invalid Schema:** If `schema_version` is missing, throw error "Invalid model architecture."
-*   **Missing Features:** If the `financials` object passed to the component lacks any key listed in `modelArtifact.features`, throw error `Missing required KPI in runtime data: ${missingKey}`.
+*   **Missing Artifact:** If fetch returns 404, throw error.
+*   **Invalid Schema:** If `schema_version` implies wrong format, throw error.
+*   **Missing Features:** If the `financials` object lacks any key listed in `modelArtifact.tiers[assetTier].features`, throw error.
 
-## 3. Scope for Version 2 (In Progress)
-*   **Targets:** ROA, Cost of Funds, Net Interest Margin (NIM), Asset Quality (NPLs).
-*   **Levers:** Efficiency Ratio, Yield on Loans, Non-Interest Income %, Cost of Funds.
-*   **Intelligence:** Tradeoff Projections (Secondary Impact), Confidence Badges (from RMSE/Density).
-*   **Interactivity:** Interactive sliders to override generated paths.
+## 3. Scope for Version 3 (In Progress)
+*   **Asset-Tiered Models:** Separate regressions for 6 different bank sizes.
+*   **"Do No Harm":** Solver rejects mathematically sound but practically stupid paths.
+*   **Hard Limits:** 12-month operational ceilings enforced.
+*   **Multivariate Scenarios:** Expanding beyond 2 simple paths to 4-5 combination paths.

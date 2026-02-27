@@ -182,7 +182,7 @@ const calculateKPIsInternal = (data, history = null) => {
         assetsPerEmployee: assetsPerEmployee.toFixed(0),
         returnOnEquity: returnOnEquity.toFixed(2),
         returnOnAssets: returnOnAssets.toFixed(2),
-        nonPerformingLoansRatio: nonPerformingLoansRatio.toFixed(2),
+        nptlRatio: nonPerformingLoansRatio.toFixed(2),
         assetGrowth3Y,
         loanGrowth3Y,
         depositGrowth3Y,

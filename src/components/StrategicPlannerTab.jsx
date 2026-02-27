@@ -1,4 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
+const ALL_KPIS = [
+    { id: 'returnOnAssets', label: 'Return on Assets (ROA)' },
+    { id: 'netInterestMargin', label: 'Net Interest Margin (NIM)' },
+    { id: 'costOfFunds', label: 'Cost of Funds' },
+    { id: 'efficiencyRatio', label: 'Efficiency Ratio' },
+    { id: 'nptlRatio', label: 'Non-Performing Loans (NPL)' }
+];
 
 // Helper to format camelCase KPI names
 const formatLabel = (key) => {
@@ -186,6 +194,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
     const [gap, setGap] = useState(0);
     const [currentTarget, setCurrentTarget] = useState(0);
     const [currentValue, setCurrentValue] = useState(0);
+    const [isOutperforming, setIsOutperforming] = useState(false);
 
     useEffect(() => {
         const fetchModel = async () => {
@@ -203,7 +212,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                 }
 
                 // Determine Bank's Tier based on ASSET (in thousands)
-                const assets = parseFloat(financials?.ASSET || 0);
+                const assets = parseFloat(financials?.raw?.ASSET || 0);
                 let tierKey = '<$1B';
                 if (assets > 250000000) tierKey = '>$250B';
                 else if (assets > 100000000) tierKey = '$100B-$250B';
@@ -253,6 +262,72 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
         }
     }, [targetKpi, financials, benchmarks, targetType]);
 
+    // Pre-calculate which KPIs have mathematically viable paths or aren't already outperforming
+    const availableKpis = useMemo(() => {
+        if (!model || !financials || !benchmarks) return [];
+        return ALL_KPIS.filter(kpi => {
+            try {
+                const targetKpiId = kpi.id;
+                const cVal = parseFloat(financials[targetKpiId]);
+                if (isNaN(cVal)) return false;
+
+                let tVal;
+                if (targetType === 'peer_median') {
+                    tVal = parseFloat(benchmarks[targetKpiId]);
+                } else if (targetType === 'peer_top_quartile') {
+                    const lowerIsBetter = ['costOfFunds', 'efficiencyRatio', 'nptlRatio'].includes(targetKpiId);
+                    tVal = lowerIsBetter ? parseFloat(benchmarks?.p25?.[targetKpiId]) : parseFloat(benchmarks?.p75?.[targetKpiId]);
+                }
+                if (isNaN(tVal)) return false;
+
+                const lowerIsBetter = ['costOfFunds', 'efficiencyRatio', 'nptlRatio'].includes(targetKpiId);
+                const beatingTarget = lowerIsBetter ? (cVal <= tVal) : (cVal >= tVal);
+                if (beatingTarget) return false;
+
+                const deltaY = tVal - cVal;
+                const targetModel = model.targets[targetKpiId];
+                if (!targetModel) return false;
+
+                const activeLevers = model.features;
+                let hasValidPath = false;
+
+                for (let idx = 0; idx < activeLevers.length; idx++) {
+                    const leverName = activeLevers[idx];
+                    const coef = targetModel.coef[idx];
+                    if (Math.abs(coef) < 0.0001) continue;
+
+                    let requiredMove = deltaY / coef;
+
+                    const shouldBePositive = ['yieldOnLoans', 'nonInterestIncomePercent'].includes(leverName);
+                    const shouldBeNegative = ['costOfFunds', 'efficiencyRatio', 'nptlRatio'].includes(leverName);
+
+                    if (shouldBePositive && requiredMove < 0) continue;
+                    if (shouldBeNegative && requiredMove > 0) continue;
+
+                    const currentVal = parseFloat(financials[leverName]) || 0;
+                    const newVal = currentVal + requiredMove;
+                    if (leverName === 'costOfFunds' && newVal < 0.05) continue;
+                    if (leverName === 'yieldOnLoans' && newVal > 25.0) continue;
+                    if (leverName === 'efficiencyRatio' && newVal < 30.0) continue;
+
+                    hasValidPath = true; // At least one path works physically
+                    break;
+                }
+
+                return hasValidPath;
+            } catch (e) {
+                return false;
+            }
+        });
+    }, [model, financials, benchmarks, targetType]);
+
+    // Auto-select valid KPI if selected is not allowed
+    useEffect(() => {
+        if (availableKpis.length > 0 && !availableKpis.find(k => k.id === targetKpi)) {
+            setTargetKpi(availableKpis[0].id);
+        }
+    }, [availableKpis, targetKpi]);
+
     // Core Scenario Engine Logic
     useEffect(() => {
         if (!model || !financials || !benchmarks) return;
@@ -277,8 +352,22 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
             setCurrentTarget(tVal);
 
             // Calculate required delta Y
+            // For ALL metrics, deltaY is what we need to ADD to current to get to target.
             const deltaY = tVal - cVal;
             setGap(deltaY);
+
+            const lowerIsBetter = ['costOfFunds', 'efficiencyRatio', 'nptlRatio'].includes(targetKpi);
+
+            // Beating Target logic is correct here:
+            // If lower is better, we are beating it if current <= target (current 1.0 vs target 1.5)
+            // If higher is better, we are beating it if current >= target (current 1.5 vs target 1.0)
+            const beatingTarget = lowerIsBetter ? (cVal <= tVal) : (cVal >= tVal);
+            setIsOutperforming(beatingTarget);
+
+            if (beatingTarget) {
+                setPaths([]);
+                return;
+            }
 
             // 2. Generate Paths
             const targetModel = model.targets[targetKpi];
@@ -301,6 +390,13 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
 
                 if (shouldBePositive && requiredMove < 0) return null;
                 if (shouldBeNegative && requiredMove > 0) return null;
+
+                // "Real World Physical Limits"
+                const currentVal = parseFloat(financials[leverName]) || 0;
+                const newVal = currentVal + requiredMove;
+                if (leverName === 'costOfFunds' && newVal < 0.05) return null;
+                if (leverName === 'yieldOnLoans' && newVal > 25.0) return null;
+                if (leverName === 'efficiencyRatio' && newVal < 30.0) return null;
 
                 return {
                     id: leverName,
@@ -454,10 +550,9 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                     value={targetKpi}
                                     onChange={(e) => setTargetKpi(e.target.value)}
                                 >
-                                    <option value="returnOnAssets">Return on Assets (ROA)</option>
-                                    <option value="netInterestMargin">Net Interest Margin (NIM)</option>
-                                    <option value="costOfFunds">Cost of Funds</option>
-                                    <option value="nptlRatio">Non-Performing Loans (NPL)</option>
+                                    {availableKpis.map(kpi => (
+                                        <option key={kpi.id} value={kpi.id}>{kpi.label}</option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -479,56 +574,77 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                     </div>
                 </div>
 
-                {/* Middle Column: Gap & Paths */}
-                <div className="md:col-span-8 space-y-6">
-                    <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 relative text-left">
-                        <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5V2a1 1 0 112 0v5a1 1 0 01-1 1h-5z" clipRule="evenodd" />
-                                <path d="M2.293 12.293a1 1 0 011.414 0L11 4.586 15.586 9H13a1 1 0 110-2h5v5a1 1 0 11-2 0V9.414l-5.293 5.293a1 1 0 01-1.414 0L6 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L5.293 10 9 13.707l5.586-5.586L13 9.414V11a1 1 0 11-2 0v-5a1 1 0 011-1h5a1 1 0 110 2h-2.586l4.293 4.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0L6 11.414l-3.707 3.707a1 1 0 01-1.414-1.414l4.414-4.414L2.293 12.293z" />
-                            </svg>
-                            Required Lever Movements
-                        </h3>
-
-                        <div className="mb-6 flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-slate-200">
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current {formatLabel(targetKpi)}</span>
-                                <span className="text-xl font-black text-slate-700">{currentValue.toFixed(2)}%</span>
-                            </div>
-                            <div className="flex flex-col items-center px-4">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Gap</span>
-                                <span className={`px-2 py-0.5 rounded font-bold text-sm ${gap > 0 ? 'bg-emerald-100 text-emerald-700' :
-                                    gap < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
-                                    }`}>
-                                    {gap > 0 ? '+' : ''}{gap.toFixed(2)}%
-                                </span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target ({targetType.replace('_', ' ')})</span>
-                                <span className="text-xl font-black text-blue-900">{currentTarget.toFixed(2)}%</span>
-                            </div>
-                        </div>
-
-                        {/* Stubs for paths */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {paths.length === 0 ? (
-                                <div className="col-span-2 text-center py-8 text-sm text-slate-500 bg-white rounded-lg border border-dashed border-slate-300">
-                                    Unable to calculate paths for this scenario.
-                                </div>
-                            ) : (
-                                paths.map((path, idx) => (
-                                    <InteractivePathCard
-                                        key={path.id}
-                                        path={path}
-                                        model={model}
-                                        financials={financials}
-                                        deltaY={gap}
-                                    />
-                                ))
-                            )}
+                {availableKpis.length === 0 ? (
+                    <div className="md:col-span-8 space-y-6">
+                        <div className="bg-emerald-50 py-16 px-8 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center h-full">
+                            <span className="text-6xl mb-6 drop-shadow-sm">🏆</span>
+                            <h3 className="text-2xl font-black text-emerald-800 mb-3 tracking-tight">Maximum Outperformance Achieved</h3>
+                            <p className="text-emerald-700 max-w-lg mb-6 leading-relaxed">
+                                Your bank is currently outperforming all available benchmark targets, or there are no remaining mathematically viable constraints left to pull.
+                            </p>
+                            <span className="bg-emerald-200/50 text-emerald-900 font-bold px-4 py-2 rounded-full text-sm border border-emerald-300">
+                                Excellent Standing Among Peers
+                            </span>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="md:col-span-8 space-y-6">
+                        <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 relative text-left">
+                            <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5V2a1 1 0 112 0v5a1 1 0 01-1 1h-5z" clipRule="evenodd" />
+                                    <path d="M2.293 12.293a1 1 0 011.414 0L11 4.586 15.586 9H13a1 1 0 110-2h5v5a1 1 0 11-2 0V9.414l-5.293 5.293a1 1 0 01-1.414 0L6 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L5.293 10 9 13.707l5.586-5.586L13 9.414V11a1 1 0 11-2 0v-5a1 1 0 011-1h5a1 1 0 110 2h-2.586l4.293 4.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0L6 11.414l-3.707 3.707a1 1 0 01-1.414-1.414l4.414-4.414L2.293 12.293z" />
+                                </svg>
+                                Required Lever Movements
+                            </h3>
+
+                            <div className="mb-6 flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-slate-200">
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current {formatLabel(targetKpi)}</span>
+                                    <span className="text-xl font-black text-slate-700">{currentValue.toFixed(2)}%</span>
+                                </div>
+                                <div className="flex flex-col items-center px-4">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Gap</span>
+                                    <span className={`px-2 py-0.5 rounded font-bold text-sm ${isOutperforming ? 'bg-emerald-100 text-emerald-700' :
+                                        gap !== 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                                        }`}>
+                                        {gap > 0 ? '+' : ''}{gap.toFixed(2)}%
+                                    </span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target ({targetType.replace('_', ' ')})</span>
+                                    <span className="text-xl font-black text-blue-900">{currentTarget.toFixed(2)}%</span>
+                                </div>
+                            </div>
+
+                            {/* Stubs for paths */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {isOutperforming ? (
+                                    <div className="col-span-2 text-center py-10 bg-emerald-50 rounded-xl border-2 border-emerald-100 flex flex-col items-center justify-center">
+                                        <span className="text-4xl mb-3">🏆</span>
+                                        <h4 className="text-emerald-800 font-black text-lg">Goal Achieved</h4>
+                                        <p className="text-emerald-600 font-bold text-sm mt-1">You are already outperforming the set target.</p>
+                                    </div>
+                                ) : paths.length === 0 ? (
+                                    <div className="col-span-2 text-center py-8 text-sm text-slate-500 bg-white rounded-lg border border-dashed border-slate-300">
+                                        <p className="font-bold text-slate-700 mb-1">Constrained by Market Reality</p>
+                                        <p>The Scenario Engine cannot find a mathematically viable path to achieve this target without breaking core physical constraints (e.g. lowering Cost of Funds below 0.05% or increasing Yield to extreme levels).</p>
+                                    </div>
+                                ) : (
+                                    paths.map((path, idx) => (
+                                        <InteractivePathCard
+                                            key={path.id}
+                                            path={path}
+                                            model={model}
+                                            financials={financials}
+                                            deltaY={gap}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
             <div className="text-center text-xs text-slate-400 font-bold max-w-2xl mx-auto mt-8">
                 Disclaimer: Scenarios are based on historical peer movements and ridge regression models. Not financial advice. Always consult your ALM model.

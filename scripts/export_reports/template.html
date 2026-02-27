@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic Intelligence Brief</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
+        .page {
+            width: 8.5in;
+            height: 11in;
+            padding: 0.6in;
+            box-sizing: border-box;
+            background: #ffffff;
+            position: relative;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page:last-child {
+            page-break-after: auto;
+        }
+
+        .header-bg {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            color: #1e293b;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .bar-bg {
+            background: #e2e8f0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            position: absolute;
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .page-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: Cover Page -->
+    <div class="page text-center relative" style="justify-content: center; align-items: center; padding: 0;">
+        <div class="absolute inset-0 z-0">
+            <img src="{{coverImagePath}}" class="w-full h-full object-cover opacity-90" alt="Cover Art"
+                style="object-fit: cover;">
+            <div class="absolute inset-0 bg-slate-900/60" style="mix-blend-mode: multiply;"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 w-full px-12 text-white mt-12" style="padding-top: 300px;">
+            <h4 class="text-blue-300 font-bold tracking-widest uppercase mb-6 drop-shadow-md">Strategic Intelligence
+                Brief</h4>
+            <h1 class="text-6xl font-black mb-8 leading-tight drop-shadow-xl">{{bankName}}</h1>
+            <div
+                class="inline-block bg-white/10 backdrop-blur-md text-white px-8 py-3 rounded-full font-bold tracking-wide border border-white/20 mb-12 shadow-lg">
+                FDIC CERT: {{cert}} | {{city}}, {{state}}
+            </div>
+        </div>
+        <div class="mt-auto relative z-10 w-full text-center pb-12 text-sm text-slate-300 font-medium tracking-wide">
+            Generated {{reportDate}} | Peer Segment: {{peerGroup}}
+        </div>
+    </div>
+
+    <!-- PAGE 2: Executive Narrative -->
+    <div class="page">
+        <header class="header-bg mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Executive Narrative & Market Posture</h1>
+                <p class="text-sm text-slate-400 font-medium mt-1">AI-Synthesized Strategic Context</p>
+            </div>
+        </header>
+
+        <div class="flex-grow">
+            {{#if aiSummary}}
+            <div
+                class="bg-blue-50/50 rounded-xl p-8 border border-blue-100 text-lg leading-relaxed text-slate-800 shadow-inner">
+                {{{aiSummary}}}
+            </div>
+            {{else}}
+            <div class="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-8">
+                <h3 class="text-slate-500 font-bold mb-4 uppercase tracking-wider text-sm">Automated Generation
+                    Unavailable</h3>
+                <p class="text-slate-600 mb-6">The AI inference API is currently unreachable or out of quota. To
+                    generate this insight manually, copy the prompt below and paste it into the secure LLM portal.</p>
+
+                <div
+                    class="bg-slate-800 text-slate-300 p-4 rounded-lg font-mono text-sm leading-relaxed overflow-x-auto whitespace-pre-wrap">
+                    {{aiFallbackPrompt}}
+                </div>
+            </div>
+            {{/if}}
+        </div>
+
+        <div class="page-footer">
+            <span class="font-bold tracking-widest uppercase text-slate-400">Page 2 // Executive Narrative</span>
+            <span>Bank Value Benchmark Engine</span>
+        </div>
+    </div>
+
+
+    <!-- PAGE 2: Core Financial Scorecard -->
+    <div class="page">
+        <header class="header-bg mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Core Financial Scorecard</h1>
+                <p class="text-sm text-slate-400 font-medium mt-1">Benchmarked against {{peerGroup}} segment peers</p>
+            </div>
+        </header>
+
+        <div class="flex-grow">
+            <div class="grid grid-cols-2 gap-6">
+                {{#each coreKpis}}
+                <div class="metric-card bg-slate-50 border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-bold text-slate-600 uppercase tracking-wide">{{name}}</span>
+                    </div>
+                    <div>
+                        <span class="metric-value text-slate-900">{{value}}</span>
+                    </div>
+                    <div class="bar-bg mt-6">
+                        <div class="bar-fill {{statusColor}}" style="width: 20%; left: {{leftPct}}%;"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 mt-3 font-semibold">
+                        <span>Subject Perf.</span>
+                        <span>Peer Avg: {{mean}}</span>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <span class="font-bold tracking-widest uppercase text-slate-400">Page 2 // Core Financials</span>
+            <span>Bank Value Benchmark Engine</span>
+        </div>
+    </div>
+
+
+    <!-- PAGE 3: Strategic Momentum -->
+    <div class="page">
+        <header class="header-bg mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Strategic Momentum</h1>
+                <p class="text-sm text-slate-400 font-medium mt-1">3-Year Compound Annual Growth Rates (CAGR)</p>
+            </div>
+        </header>
+
+        <div class="flex-grow">
+            <div class="grid grid-cols-1 gap-8">
+                {{#each growthKpis}}
+                <div class="metric-card bg-white items-center flex gap-8">
+                    <div class="w-1/3">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-widest">{{name}}</span>
+                        <div class="mt-2 text-4xl font-black text-slate-900">{{value}}</div>
+                    </div>
+                    <div class="w-2/3 border-l pl-8 border-slate-100">
+                        <div class="bar-bg h-4 rounded-full mb-3">
+                            <div class="bar-fill {{statusColor}} rounded-full" style="width: 10%; left: {{leftPct}}%;">
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm text-slate-500 font-medium">
+                            <span>Subject Path</span>
+                            <span>Peer Peer Avg Growth: {{mean}}</span>
+                        </div>
+                        <p class="text-slate-400 text-xs mt-3">Reflects compound trajectory over the prior 36-month
+                            period, normalizing for seasonal variance and isolated M&A.</p>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <span class="font-bold tracking-widest uppercase text-slate-400">Page 3 // Strategic Momentum</span>
+            <span>Bank Value Benchmark Engine</span>
+        </div>
+    </div>
+
+
+    <!-- PAGE 4: Competitive Radar -->
+    <div class="page">
+        <header class="header-bg mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Competitive Radar: Market Movers</h1>
+                <p class="text-sm text-slate-400 font-medium mt-1">Z-Score Anomalies within the {{peerGroup}} Segment
+                </p>
+            </div>
+        </header>
+
+        <div class="flex-grow">
+            <p class="text-base text-slate-600 mb-8 leading-relaxed font-medium">
+                Identifying outsized performance shifts. The institutions below registered the largest
+                quarter-over-quarter
+                momentum deviations across core metrics, signaling structural pivots or strategic execution threats.
+            </p>
+
+            <div class="space-y-6">
+                {{#each movers}}
+                <div class="bg-white border-2 border-slate-100 rounded-xl p-6 shadow-sm">
+                    <h4 class="text-2xl font-black text-slate-800 mb-4">{{name}}</h4>
+                    <div class="grid grid-cols-2 gap-6 mt-2 border-t border-slate-50 pt-4">
+                        {{#each drivers}}
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <span
+                                class="text-sm font-bold text-slate-500 uppercase tracking-wider block mb-2">{{name}}</span>
+                            <div class="flex items-center gap-4">
+                                <span class="text-3xl font-black {{color}}">{{symbol}} {{valStr}}</span>
+                                <span class="text-sm font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded">Z:
+                                    {{zStr}}</span>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{else}}
+                <div class="p-8 text-center text-slate-500 italic text-lg bg-slate-50 rounded-xl">
+                    Insufficient historical data within peer group to calculate accurate Z-Score anomalies.
+                </div>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <span class="font-bold tracking-widest uppercase text-slate-400">Page 4 // Competitive Radar</span>
+            <span>Bank Value Benchmark Engine</span>
+        </div>
+    </div>
+
+    <!-- PAGE 5: Scenario Optimization -->
+    <div class="page">
+        <header class="header-bg mb-8 bg-gradient-to-r from-indigo-900 to-slate-900">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white mb-2">Scenario Optimization & "Do No Harm"
+                    Strategies</h1>
+                <p class="text-sm text-indigo-200 font-medium">Advanced prescriptive modeling via Ridge Regression</p>
+            </div>
+        </header>
+
+        <div class="flex-grow">
+            <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-xl mb-8">
+                <h3 class="text-indigo-900 font-black text-lg mb-2">Target Goal: Top-Quartile Return on Assets (ROA)
+                </h3>
+                <p class="text-indigo-800 text-sm">
+                    Current ROA: <span class="font-bold">{{scenarios.currentRoa}}%</span> &rarr;
+                    Top Quartile Target: <span class="font-bold">{{scenarios.targetRoa}}%</span>
+                </p>
+                <div class="flex items-center gap-4 mt-2">
+                    <p class="text-indigo-800 text-sm">Required ROA Lift: <span
+                            class="font-bold bg-indigo-200 px-2 py-0.5 rounded">+{{scenarios.roaGap}} pts</span></p>
+                    <p class="text-indigo-800 text-sm">Estimated Net Income Impact: <span
+                            class="font-bold bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded shadow-sm">~${{scenarios.roaGapDollars}}M</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Balanced Path -->
+                <div class="bg-white border-2 border-purple-200 rounded-xl p-6 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 bg-purple-100 text-purple-700 font-bold px-3 py-1 text-xs uppercase tracking-wider rounded-bl-lg">
+                        BALANCED PATH</div>
+                    <h3 class="text-lg font-black text-slate-800 mb-6">Balanced Tactical Mix</h3>
+
+                    <div class="space-y-4">
+                        {{#each scenarios.balancedPath}}
+                        <div class="border-b border-slate-100 pb-4">
+                            <h4 class="text-sm font-bold text-slate-500 uppercase mb-1">{{name}}</h4>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xl font-black text-slate-800">{{currentVal}}% &rarr;
+                                    {{targetVal}}%</span>
+                                <span class="text-sm font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded">Delta:
+                                    {{deltaSign}}{{deltaVal}}</span>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+
+                <!-- Aggressive Path -->
+                <div class="bg-white border-2 border-rose-200 rounded-xl p-6 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 bg-rose-100 text-rose-700 font-bold px-3 py-1 text-xs uppercase tracking-wider rounded-bl-lg">
+                        AGGRESSIVE PATH</div>
+                    <h3 class="text-lg font-black text-slate-800 mb-6">Aggressive 60/40 Split</h3>
+
+                    <div class="space-y-4">
+                        {{#each scenarios.aggressivePath}}
+                        <div class="border-b border-slate-100 pb-4">
+                            <h4 class="text-sm font-bold text-slate-500 uppercase mb-1">{{name}}</h4>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xl font-black text-slate-800">{{currentVal}}% &rarr;
+                                    {{targetVal}}%</span>
+                                <span class="text-sm font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded">Delta:
+                                    {{deltaSign}}{{deltaVal}}</span>
+                            </div>
+                            {{#if tradeoff}}
+                            <div
+                                class="mt-3 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
+                                Tradeoff Warning: Expect {{tradeoff}}
+                            </div>
+                            {{/if}}
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                <h4 class="font-bold text-slate-700 text-sm uppercase mb-2">"Do No Harm" Constraints Applied</h4>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2 font-medium">
+                    <li>Scenario paths enforce strict directional constraints (e.g., rejecting paths that achieve ROA
+                        purely through cost-cutting limits that harm loan growth).</li>
+                    <li>Movements are bounded by historical anomaly thresholds (P10 / P90 limits) mapped internally from
+                        the selected peer segment.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <span class="font-bold tracking-widest uppercase text-slate-400">Page 5 // Scenario Optimization</span>
+            <span>Bank Value Benchmark Engine</span>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

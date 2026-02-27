@@ -33,3 +33,10 @@ To elevate BankValue from a descriptive benchmarking tool to a prescriptive stra
 *   **Confidence Scoring:** The engine will generate visual confidence scores derived from model RMSE and historical anomaly bounds.
 *   **Interactive Sliders:** The UI will transition from generating static, prescriptive paths to allowing dynamic user override via interactive range sliders (e.g. "I can only cut efficiency by 2%").
 *   **Expanded Targets:** Expanding the target KPI list to include Net Interest Margin (NIM) and growth-related targets.
+
+## V3 Architecture Scope: "Business Reality Constraints"
+*   **Asset-Tiered Models:** The Python pipeline trains 6 completely separate regression models based on FDIC asset size tiers (from Micro Community to G-SIB) to ensure coefficients reflect a bank's scale.
+*   **"Do No Harm" Math:** The frontend enforces the "Physics of Banking." It will instantly discard mathematically balanced paths if they suggest worsening a KPI (e.g., lowering yield) to reach a target.
+*   **Hard Practical Caps:** The UI restricts 12-month lever movements to strict, realistic bounds (e.g., maximum 500 bps improvement in Efficiency Ratio) rather than relying on noisy industry-wide standard deviations.
+*   **Multivariate Scenarios:** Single-lever paths often fall short of ambitious goals under hard caps. The engine generates "Balanced" and "Aggressive" paths that spread the effort across 3-4 levers simultaneously.
+*   **No Horizon Selection:** Horizon is fixed at 12-months (4-Quarters) to align with strategic planning cycles.
