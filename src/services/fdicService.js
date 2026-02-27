@@ -282,3 +282,95 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
         return null;
     }
 };
+
+/**
+ * Adapter for MoversSummaryModal to fetch a list of peer banks.
+ */
+export const listPeerBanks = async ({ segmentKey, focusCert }) => {
+    // If it's a dynamic peer group or specific asset filter, we fetch the candidates
+    const fields = 'NAME,CITY,STNAME,STALP,CERT';
+    let url = `https://api.fdic.gov/banks/financials/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+
+    if (segmentKey && segmentKey.includes('ASSET:')) {
+        url = `https://api.fdic.gov/banks/financials/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch peers");
+        const json = await response.json();
+
+        // Deduplicate
+        const seen = new Set();
+        const peers = [];
+        (json.data || []).forEach(item => {
+            const cert = String(item.data.CERT);
+            if (!seen.has(cert)) {
+                seen.add(cert);
+                peers.push({ cert, name: item.data.NAME });
+            }
+        });
+        return peers;
+    } catch (e) {
+        console.error("listPeerBanks error:", e);
+        return [];
+    }
+};
+
+/**
+ * Adapter for MoversSummaryModal to fetch specific KPIs for a bank/quarter.
+ */
+export const getBankKpis = async ({ cert, quarter }) => {
+    // 1. Fetch historical record from FDIC based on string parsing (quarter is like "Q4 2025")
+    const dteMap = { "Q1": "0331", "Q2": "0630", "Q3": "0930", "Q4": "1231" };
+    const parts = quarter.split(' ');
+    const repDte = `${parts[1]}${dteMap[parts[0]]}`;
+
+    const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP,NAME,CITY,STNAME';
+    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${cert}%20AND%20REPDTE:${repDte}&fields=${fields}&limit=1&format=json`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const json = await response.json();
+        const record = json.data?.[0]?.data;
+        if (!record) return null;
+
+        // 2. Fetch baseline for Growth KPIs
+        const baseYear = parseInt(parts[1]) - 3;
+        const baseUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:${cert}%20AND%20REPDTE:${baseYear}${dteMap[parts[0]]}&fields=ASSET,DEP,LNLSNET&limit=1&format=json`;
+        const baseRes = await fetch(baseUrl);
+        const baseJson = baseRes.ok ? await baseRes.json() : { data: [] };
+        const baseRec = baseJson.data?.[0]?.data;
+
+        // 3. Compute KPI mapping
+        const rawKpis = calculateKPIs(record);
+
+        let assetGrowth3Y = 0, loanGrowth3Y = 0, depositGrowth3Y = 0;
+        if (baseRec) {
+            const calcCAGR = (c, p) => (p > 0 && c > 0) ? (Math.pow(c / p, 1 / 3) - 1) : 0;
+            assetGrowth3Y = calcCAGR(parseFloat(record.ASSET), parseFloat(baseRec.ASSET));
+            loanGrowth3Y = calcCAGR(parseFloat(record.LNLSNET), parseFloat(baseRec.LNLSNET));
+            depositGrowth3Y = calcCAGR(parseFloat(record.DEP), parseFloat(baseRec.DEP));
+        }
+
+        return {
+            asset_growth_3y: assetGrowth3Y,
+            loan_growth_3y: loanGrowth3Y,
+            deposit_growth_3y: depositGrowth3Y,
+            eff_ratio: parseFloat(rawKpis.efficiencyRatio) / 100,
+            nim: parseFloat(rawKpis.netInterestMargin) / 100,
+            cost_of_funds: parseFloat(rawKpis.costOfFunds) / 100,
+            non_int_income_pct: parseFloat(rawKpis.nonInterestIncomePercent) / 100,
+            loan_yield: parseFloat(rawKpis.yieldOnLoans) / 100,
+            assets_per_employee: parseFloat(rawKpis.assetsPerEmployee),
+            roe: parseFloat(rawKpis.returnOnEquity) / 100,
+            roa: parseFloat(rawKpis.returnOnAssets) / 100,
+            npl_ratio: parseFloat(rawKpis.nonPerformingLoansRatio) / 100
+        };
+
+    } catch (e) {
+        console.error("getBankKpis failed:", e);
+        return null;
+    }
+};
