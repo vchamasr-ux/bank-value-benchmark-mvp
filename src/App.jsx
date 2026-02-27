@@ -272,15 +272,16 @@ function App() {
         )}
       </main>
 
-      {FEAT_MARKET_MOVERS && showMovers && selectedBank && benchmarks && (
+      {/* Render the AI Intelligence Modal if triggered gracefully from anywhere */}
+      {FEAT_MARKET_MOVERS && showMovers && selectedBank && (
         <MoversSummaryModal
           isOpen={showMovers}
           onClose={() => setShowMovers(false)}
           dataProvider={sidecarDataProvider}
           perspectiveBankName={selectedBank.NAME}
           focusBankCert={String(selectedBank.CERT)}
-          segmentKey={benchmarks.groupName || 'DYNAMIC'}
-          segmentLabel={benchmarks.groupName || 'Peer Group'}
+          segmentKey={benchmarks?.groupName || 'DYNAMIC'}
+          segmentLabel={benchmarks?.groupName || 'Peer Group'}
           priorQuarter="Q3 2025"
           currentQuarter="Q4 2025"
           authRequired={FEAT_AUTH_REQUIRED}
