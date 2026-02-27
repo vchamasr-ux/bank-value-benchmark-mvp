@@ -90,22 +90,6 @@ function App() {
     }
   }, [selectedBank]);
 
-  // Independent Landing Page Route
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
-  useEffect(() => {
-    const handlePopState = () => setCurrentPath(window.location.pathname);
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  if (currentPath === '/landing') {
-    return <LandingPage onBankSelect={(bank) => {
-      setRadarContextBank(null);
-      setSelectedBank(bank);
-      window.history.pushState({}, '', '/');
-      setCurrentPath('/');
-    }} />;
-  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
@@ -176,7 +160,7 @@ function App() {
         </div>
       </header>
 
-      <main className={(localStorage.getItem('dev_landing') === 'true' || (!selectedBank && view === 'benchmark')) ? "w-full" : "max-w-7xl mx-auto px-4 py-8"}>
+      <main className={(!selectedBank && view === 'benchmark') ? "w-full" : "max-w-7xl mx-auto px-4 py-8"}>
         {view === 'movers' ? (
           <MoversView
             dataProvider={fdicService}
@@ -210,23 +194,10 @@ function App() {
         ) : (
           <div className="space-y-8">
             {!selectedBank ? (
-              localStorage.getItem('dev_landing') === 'true' ? (
-                <LandingPage onBankSelect={(bank) => {
-                  setRadarContextBank(null);
-                  setSelectedBank(bank);
-                }} />
-              ) : (
-                <section className="max-w-3xl mx-auto pt-10">
-                  <div className="text-center mb-12">
-                    <h2 className="text-4xl font-black text-blue-900 mb-4 tracking-tight">Real-time Performance Benchmarks</h2>
-                    <p className="text-lg text-slate-600">Search 4,000+ FDIC-insured institutions to instantly map their strategic posture.</p>
-                  </div>
-                  <BankSearch onBankSelect={(bank) => {
-                    setRadarContextBank(null);
-                    setSelectedBank(bank);
-                  }} />
-                </section>
-              )
+              <LandingPage onBankSelect={(bank) => {
+                setRadarContextBank(null);
+                setSelectedBank(bank);
+              }} />
             ) : (
               <div className="max-w-4xl mx-auto space-y-8">
                 {/* Contextual Back Button */}

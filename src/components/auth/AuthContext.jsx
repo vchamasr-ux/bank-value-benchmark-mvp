@@ -52,7 +52,6 @@ export const AuthProvider = ({ children }) => {
                     });
 
                     const regData = await regResponse.json();
-                    console.log("Registration Status:", regData.message);
 
                     // 4. Set user and clean up
                     const userWithProfile = {

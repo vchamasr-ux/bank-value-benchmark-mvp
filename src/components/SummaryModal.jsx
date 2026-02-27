@@ -71,7 +71,6 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
             let textResult = "";
 
             if (isDev && devApiKey && !authRequired) {
-                console.log("DEV MODE: Calling Gemini API directly from frontend...");
                 const genAI = new GoogleGenerativeAI(devApiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
