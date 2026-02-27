@@ -100,8 +100,10 @@ function App() {
 
   if (currentPath === '/landing') {
     return <LandingPage onBankSelect={(bank) => {
-      // Just redirect to main app for now if they click search
-      window.location.href = '/';
+      setRadarContextBank(null);
+      setSelectedBank(bank);
+      window.history.pushState({}, '', '/');
+      setCurrentPath('/');
     }} />;
   }
 
