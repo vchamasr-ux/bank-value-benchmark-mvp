@@ -13,9 +13,9 @@ from sklearn.metrics import root_mean_squared_error
 CONFIG = {
     "api_batch_size": 1000,
     "quarters_to_fetch": ["2024-03-31", "2024-06-30", "2024-09-30", "2024-12-31", "2025-03-31", "2025-06-30", "2025-09-30", "2025-12-31"], 
-    "targets": ["returnOnAssets", "costOfFunds"],
+    "targets": ["returnOnAssets", "costOfFunds", "netInterestMargin", "nptlRatio"],
     "features": ["efficiencyRatio", "nonInterestIncomePercent", "yieldOnLoans", "costOfFunds"],
-    "output_file": "../../public/models/whatwouldittake_v1.json"
+    "output_file": "../../public/models/whatwouldittake_v2.json"
 }
 
 # The FDIC variables we need to calculate our KPIs
@@ -115,6 +115,8 @@ def calculate_kpis(df):
     df['nonInterestIncomePercent'] = safe_div(non_interest_inc, total_income) * 100
     df['yieldOnLoans'] = safe_div(interest_inc, total_loans) * 100
     df['returnOnAssets'] = safe_div(net_income, total_assets) * 100
+    df['netInterestMargin'] = safe_div(net_interest_inc, total_assets) * 100
+    df['nptlRatio'] = safe_div(df['NCLNLS'], total_loans) * 100
     
     # Clean up infinities or massive outliers from dividing by tiny numbers
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -169,9 +171,25 @@ def train_and_export(df):
             "max": std_dev * 1.5    # Max allowable increase
         }
 
+    # 3b. Calculate Tradeoff (Correlation Matrix) for 4 core features
+    tradeoffs = {}
+    core_features = ["efficiencyRatio", "nonInterestIncomePercent", "yieldOnLoans", "costOfFunds"]
+    corr_matrix = df[core_features].corr()
+    for feat in core_features:
+        tradeoffs[feat] = corr_matrix[feat].to_dict()
+        
+    # 3c. Calculate Confidence Metrics (10th, 50th, 90th percentiles)
+    confidence_metrics = {}
+    for feat in features:
+        confidence_metrics[feat] = {
+            "p10": float(df[feat].quantile(0.10)),
+            "median": float(df[feat].median()),
+            "p90": float(df[feat].quantile(0.90))
+        }
+
     # 4. Construct Artifact
     artifact = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "trained_on": {
             "asof": datetime.now().strftime("%Y-%m-%d"),
             "quarters": CONFIG["quarters_to_fetch"],
@@ -187,6 +205,8 @@ def train_and_export(df):
         "lever_bounds": {
             "4q": bounds
         },
+        "tradeoffs": tradeoffs,
+        "confidence_metrics": confidence_metrics,
         "notes": {
             "units": "Levers are in standard KPI units (%, etc). Coefficients map unscaled features to the target."
         }

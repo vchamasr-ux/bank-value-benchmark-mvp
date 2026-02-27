@@ -1,0 +1,151 @@
+{
+    "schema_version": "2.0",
+    "trained_on": {
+        "asof": "2026-02-27",
+        "quarters": [
+            "2024-03-31",
+            "2024-06-30",
+            "2024-09-30",
+            "2024-12-31",
+            "2025-03-31",
+            "2025-06-30",
+            "2025-09-30",
+            "2025-12-31"
+        ],
+        "n_banks": 4150,
+        "n_rows": 32202
+    },
+    "features": [
+        "efficiencyRatio",
+        "nonInterestIncomePercent",
+        "yieldOnLoans",
+        "costOfFunds"
+    ],
+    "scaler": {
+        "mean": [
+            70.58411191731341,
+            13.029594891234865,
+            6.0400916431042955,
+            1.0999769964416215
+        ],
+        "std": [
+            37.26528978756894,
+            15.923193699567317,
+            36.75393533584253,
+            0.6630017066741677
+        ]
+    },
+    "targets": {
+        "returnOnAssets": {
+            "coef": [
+                -0.014399737815860616,
+                0.0016005411868595264,
+                0.027999961121853066,
+                0.03007687295415019
+            ],
+            "intercept": 1.4513890675509105,
+            "rmse": 4.124665777538049
+        },
+        "costOfFunds": {
+            "coef": [
+                3.5121702469436406e-08,
+                2.6303170034738815e-08,
+                2.4285062689450827e-08,
+                0.9999292805565164
+            ],
+            "intercept": 7.482132320113521e-05,
+            "rmse": 4.686111709497038e-05
+        },
+        "netInterestMargin": {
+            "coef": [
+                -0.006715684578934361,
+                -0.010267500625005773,
+                0.0034788341907565335,
+                0.8829593992381823
+            ],
+            "intercept": 1.7072211955955408,
+            "rmse": 1.365803240234299
+        },
+        "nptlRatio": {
+            "coef": [
+                0.0038031549873794976,
+                0.005980616135539154,
+                0.0009469650108329783,
+                0.0867570983053021
+            ],
+            "intercept": 0.3308810510431986,
+            "rmse": 1.2949045767505072
+        }
+    },
+    "lever_bounds": {
+        "4q": {
+            "efficiencyRatio": {
+                "min": -55.89880262801207,
+                "max": 55.89880262801207
+            },
+            "nonInterestIncomePercent": {
+                "min": -23.8851614167948,
+                "max": 23.8851614167948
+            },
+            "yieldOnLoans": {
+                "min": -55.13175904045502,
+                "max": 55.13175904045502
+            },
+            "costOfFunds": {
+                "min": -0.9945180019981319,
+                "max": 0.9945180019981319
+            }
+        }
+    },
+    "tradeoffs": {
+        "efficiencyRatio": {
+            "efficiencyRatio": 1.0,
+            "nonInterestIncomePercent": -0.49418395959588257,
+            "yieldOnLoans": 0.113966653996003,
+            "costOfFunds": 0.025669411186481386
+        },
+        "nonInterestIncomePercent": {
+            "efficiencyRatio": -0.49418395959588257,
+            "nonInterestIncomePercent": 1.0,
+            "yieldOnLoans": 0.03659158411139117,
+            "costOfFunds": -0.004165471453173327
+        },
+        "yieldOnLoans": {
+            "efficiencyRatio": 0.113966653996003,
+            "nonInterestIncomePercent": 0.03659158411139117,
+            "yieldOnLoans": 1.0,
+            "costOfFunds": 0.022544771043642213
+        },
+        "costOfFunds": {
+            "efficiencyRatio": 0.025669411186481386,
+            "nonInterestIncomePercent": -0.004165471453173327,
+            "yieldOnLoans": 0.022544771043642213,
+            "costOfFunds": 1.0
+        }
+    },
+    "confidence_metrics": {
+        "efficiencyRatio": {
+            "p10": 49.346635682242876,
+            "median": 67.41425588996182,
+            "p90": 90.96783409984856
+        },
+        "nonInterestIncomePercent": {
+            "p10": 4.096645780664545,
+            "median": 10.902134005313211,
+            "p90": 22.999342223757637
+        },
+        "yieldOnLoans": {
+            "p10": 1.8427772729842746,
+            "median": 4.9233009724595895,
+            "p90": 8.64387206524348
+        },
+        "costOfFunds": {
+            "p10": 0.35682021762418836,
+            "median": 0.9860591381942652,
+            "p90": 2.024058374037768
+        }
+    },
+    "notes": {
+        "units": "Levers are in standard KPI units (%, etc). Coefficients map unscaled features to the target."
+    }
+}

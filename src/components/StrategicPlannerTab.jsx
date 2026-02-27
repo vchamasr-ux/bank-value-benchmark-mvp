@@ -19,7 +19,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
         const fetchModel = async () => {
             try {
                 // Fetch the static artifact
-                const response = await fetch('/models/whatwouldittake_v1.json');
+                const response = await fetch('/models/whatwouldittake_v2.json');
                 if (!response.ok) {
                     throw new Error('Model artifact missing or inaccessible. Run offline training pipeline.');
                 }
@@ -57,7 +57,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                 tVal = parseFloat(benchmarks[targetKpi]);
             } else if (targetType === 'peer_top_quartile') {
                 // Determine if higher is better based on KPI
-                const lowerIsBetter = ['costOfFunds', 'efficiencyRatio', 'nonPerformingLoansRatio'].includes(targetKpi);
+                const lowerIsBetter = ['costOfFunds', 'efficiencyRatio', 'nptlRatio'].includes(targetKpi);
                 tVal = lowerIsBetter ? parseFloat(benchmarks?.p25?.[targetKpi]) : parseFloat(benchmarks?.p75?.[targetKpi]);
             }
 
@@ -89,34 +89,19 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                 let requiredMove = deltaY / coef;
 
                 // Clamp to bounds
-                let isConstrained = false;
                 const bound = bounds[leverName];
                 if (bound) {
-                    if (requiredMove > bound.max) { requiredMove = bound.max; isConstrained = true; }
-                    if (requiredMove < bound.min) { requiredMove = bound.min; isConstrained = true; }
+                    if (requiredMove > bound.max) { requiredMove = bound.max; }
+                    if (requiredMove < bound.min) { requiredMove = bound.min; }
                 }
-
-                // What is the actual predicted impact after clamping?
-                const achievedDeltaY = requiredMove * coef;
-                const confidence = isConstrained ? 'Low (Constrained)' : 'High';
-
-                // Format the numbers for display
-                const currentLeverVal = parseFloat(financials[leverName]) || 0;
-                const newLeverVal = (currentLeverVal + requiredMove).toFixed(2);
 
                 return {
                     id: leverName,
                     type: type,
                     title: `Adjust ${formatLabel(leverName)}`,
-                    moves: [{
-                        lever: formatLabel(leverName),
-                        from: currentLeverVal.toFixed(2),
-                        to: newLeverVal,
-                        delta: requiredMove > 0 ? `+${requiredMove.toFixed(2)}` : requiredMove.toFixed(2)
-                    }],
-                    achievedGap: achievedDeltaY,
-                    percentOfGoal: deltaY !== 0 ? Math.min(100, Math.max(0, (achievedDeltaY / deltaY) * 100)) : 100,
-                    confidence
+                    prescribedDelta: requiredMove,
+                    coef: coef,
+                    idx: leverIdx
                 };
             };
 
@@ -201,10 +186,116 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
             efficiencyRatio: 'Efficiency Ratio',
             nonInterestIncomePercent: 'Non-Interest Income',
             yieldOnLoans: 'Yield on Loans',
-            netInterestMargin: 'Net Interest Margin'
+            netInterestMargin: 'Net Interest Margin',
+            nptlRatio: 'Non-Performing Loans'
         };
         return labels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
     };
+
+    const InteractivePathCard = ({ path, model, financials, deltaY }) => {
+        const leverName = path.id;
+        const coef = path.coef;
+        const currentVal = parseFloat(financials[leverName]) || 0;
+
+        const [sliderDelta, setSliderDelta] = useState(path.prescribedDelta);
+        useEffect(() => setSliderDelta(path.prescribedDelta), [path.prescribedDelta]);
+
+        const newLeverVal = currentVal + sliderDelta;
+        const achievedDeltaY = sliderDelta * coef;
+        const percentOfGoal = deltaY !== 0 ? Math.min(100, Math.max(0, (achievedDeltaY / deltaY) * 100)) : 100;
+
+        // Confidence Check
+        const confMetrics = model.confidence_metrics ? model.confidence_metrics[leverName] : null;
+        let confidence = 'High';
+        let confColor = 'bg-emerald-100 text-emerald-700';
+        if (confMetrics) {
+            if (newLeverVal < confMetrics.p10 || newLeverVal > confMetrics.p90) {
+                confidence = 'Low (Anomaly)';
+                confColor = 'bg-red-100 text-red-700';
+            } else {
+                confidence = 'High (Typical)';
+            }
+        }
+
+        // Tradeoffs Check
+        const tradeoffs = model.tradeoffs ? model.tradeoffs[leverName] : null;
+        let topTradeoff = null;
+        let maxCorr = 0;
+        if (tradeoffs) {
+            Object.entries(tradeoffs).forEach(([feat, corr]) => {
+                if (feat !== leverName && Math.abs(corr) > Math.abs(maxCorr)) {
+                    maxCorr = corr;
+                    topTradeoff = feat;
+                }
+            });
+        }
+        const tradeoffImpact = topTradeoff ? sliderDelta * maxCorr : 0;
+
+        // Bounds for slider
+        const bounds = model.lever_bounds['4q'][leverName];
+        let minBound = bounds ? bounds.min : -10;
+        let maxBound = bounds ? bounds.max : 10;
+        // Make sure slider covers current delta nicely if we are somehow outside
+        if (sliderDelta < minBound) minBound = sliderDelta * 1.5;
+        if (sliderDelta > maxBound) maxBound = sliderDelta * 1.5;
+
+        return (
+            <div className={`bg-white p-5 rounded-xl border-2 shadow-sm transition-colors relative overflow-hidden ${path.type === 'primary' ? 'border-emerald-500/30' : 'border-blue-500/20'}`}>
+                <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-black uppercase tracking-wider rounded-bl-lg ${path.type === 'primary' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                    Path {path.type === 'primary' ? 'A' : 'B'}
+                </div>
+                <h4 className="text-sm font-bold text-slate-800 mt-2 mb-4">{path.title}</h4>
+
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center text-slate-600 font-bold text-sm">
+                        <span>{formatLabel(leverName)}</span>
+                        <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                            {currentVal.toFixed(2)}% &rarr; <span className="text-blue-600">{newLeverVal.toFixed(2)}%</span>
+                        </span>
+                    </div>
+
+                    <input
+                        type="range"
+                        min={minBound}
+                        max={maxBound}
+                        step="0.01"
+                        value={sliderDelta}
+                        onChange={(e) => setSliderDelta(parseFloat(e.target.value))}
+                        className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${path.type === 'primary' ? 'accent-emerald-600 bg-emerald-100' : 'accent-blue-600 bg-blue-100'}`}
+                    />
+
+                    <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                        <div className={`h-2 rounded-full transition-all duration-300 ${percentOfGoal >= 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} style={{ width: `${Math.max(0, percentOfGoal)}%` }}></div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs text-slate-500 font-bold">
+                        <span>Delta: {sliderDelta > 0 ? '+' : ''}{sliderDelta.toFixed(2)} pts</span>
+                        <span>Achieves {percentOfGoal.toFixed(0)}% of Goal</span>
+                    </div>
+
+                    <div className="pt-4 mt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+                        <div className={`text-[10px] font-black uppercase px-2 py-1.5 rounded flex flex-col justify-center items-center text-center ${confColor}`}>
+                            <span className="opacity-70 mb-0.5">Confidence</span>
+                            <span>{confidence}</span>
+                        </div>
+                        {topTradeoff && maxCorr !== 0 && Math.abs(tradeoffImpact) > 0.05 ? (
+                            <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1.5 rounded border border-amber-200 flex flex-col justify-center items-center text-center leading-tight">
+                                <span className="opacity-70 mb-0.5">Tradeoff Warning</span>
+                                <span>{formatLabel(topTradeoff)} {tradeoffImpact > 0 ? '+' : ''}{tradeoffImpact.toFixed(2)}%</span>
+                            </div>
+                        ) : (
+                            <div className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1.5 rounded flex flex-col justify-center items-center text-center">
+                                <span className="opacity-70 mb-0.5">Tradeoff Warning</span>
+                                <span>Negligible impact</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+
 
     // Stub UI for V1 Layout
     return (
@@ -241,7 +332,9 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                     onChange={(e) => setTargetKpi(e.target.value)}
                                 >
                                     <option value="returnOnAssets">Return on Assets (ROA)</option>
+                                    <option value="netInterestMargin">Net Interest Margin (NIM)</option>
                                     <option value="costOfFunds">Cost of Funds</option>
+                                    <option value="nptlRatio">Non-Performing Loans (NPL)</option>
                                 </select>
                             </div>
 
@@ -310,33 +403,13 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                 </div>
                             ) : (
                                 paths.map((path, idx) => (
-                                    <div key={path.id} className={`bg-white p-4 rounded-xl border-2 shadow-sm transition-colors cursor-pointer relative overflow-hidden ${path.type === 'primary' ? 'border-emerald-500/30 hover:border-emerald-500/60' : 'border-blue-500/20 hover:border-blue-500/50'
-                                        }`}>
-                                        <div className={`absolute top-0 right-0 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-bl-lg ${path.type === 'primary' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                                            }`}>
-                                            Path {String.fromCharCode(65 + idx)}
-                                        </div>
-                                        <h4 className="text-sm font-bold text-slate-800 mt-2 mb-3">{path.title}</h4>
-                                        <ul className="space-y-3 test-sm">
-                                            {path.moves.map((move, i) => (
-                                                <li key={i} className="flex flex-col gap-1">
-                                                    <div className="flex justify-between items-center text-slate-600">
-                                                        <span className="font-medium text-xs">{move.lever}</span>
-                                                        <span className="font-bold text-slate-800 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 text-xs">
-                                                            {move.from}% &rarr; {move.to}%
-                                                        </span>
-                                                    </div>
-                                                    <div className="w-full bg-slate-100 rounded-full h-1.5 flex overflow-hidden">
-                                                        <div className={`h-1.5 rounded-full ${path.percentOfGoal >= 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} style={{ width: `${Math.min(100, path.percentOfGoal)}%` }}></div>
-                                                    </div>
-                                                    <div className="flex justify-between text-[10px] text-slate-400 font-bold mt-0.5">
-                                                        <span>{move.delta} pts required</span>
-                                                        <span>Achieves {path.percentOfGoal.toFixed(0)}% of Goal</span>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                                    <InteractivePathCard
+                                        key={path.id}
+                                        path={path}
+                                        model={model}
+                                        financials={financials}
+                                        deltaY={gap}
+                                    />
                                 ))
                             )}
                         </div>
