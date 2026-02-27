@@ -5,6 +5,7 @@ import OperationalDashboard from './components/OperationalDashboard';
 import MoversSummaryModal from './components/MoversSummaryModal';
 import MoversView from './components/MoversView';
 import UserProfileMenu from './components/UserProfileMenu';
+import LandingPage from './components/LandingPage';
 import { calculateKPIs } from './utils/kpiCalculator';
 import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
 import * as fdicService from './services/fdicService';
@@ -106,11 +107,12 @@ function App() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setView('benchmark')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === 'benchmark'
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'benchmark'
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
                 >
-                  Banks
+                  <span>Banks</span>
+                  <span className="text-[10px] opacity-70 font-medium tracking-tight">Performance Benchmarks</span>
                 </button>
                 <button
                   onClick={() => setView('movers')}
@@ -123,7 +125,7 @@ function App() {
                       : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
                 >
                   <span>Market Movers</span>
-                  <span className="hidden sm:inline text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
+                  <span className="text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
                 </button>
                 <button
                   onClick={() => setView('planner')}
@@ -136,7 +138,7 @@ function App() {
                       : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
                 >
                   <span>What Would It Take?</span>
-                  <span className="hidden sm:inline text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
+                  <span className="text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
                 </button>
               </div>
 
@@ -157,7 +159,7 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className={(localStorage.getItem('dev_landing') === 'true' || (!selectedBank && view === 'benchmark')) ? "w-full" : "max-w-7xl mx-auto px-4 py-8"}>
         {view === 'movers' ? (
           <MoversView
             dataProvider={fdicService}
@@ -191,16 +193,23 @@ function App() {
         ) : (
           <div className="space-y-8">
             {!selectedBank ? (
-              <section className="max-w-3xl mx-auto pt-10">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-black text-blue-900 mb-4 tracking-tight">Real-time Performance Benchmarks</h2>
-                  <p className="text-lg text-slate-600">Search 4,000+ FDIC-insured institutions to instantly map their strategic posture.</p>
-                </div>
-                <BankSearch onBankSelect={(bank) => {
+              localStorage.getItem('dev_landing') === 'true' ? (
+                <LandingPage onBankSelect={(bank) => {
                   setRadarContextBank(null);
                   setSelectedBank(bank);
                 }} />
-              </section>
+              ) : (
+                <section className="max-w-3xl mx-auto pt-10">
+                  <div className="text-center mb-12">
+                    <h2 className="text-4xl font-black text-blue-900 mb-4 tracking-tight">Real-time Performance Benchmarks</h2>
+                    <p className="text-lg text-slate-600">Search 4,000+ FDIC-insured institutions to instantly map their strategic posture.</p>
+                  </div>
+                  <BankSearch onBankSelect={(bank) => {
+                    setRadarContextBank(null);
+                    setSelectedBank(bank);
+                  }} />
+                </section>
+              )
             ) : (
               <div className="max-w-4xl mx-auto space-y-8">
                 {/* Contextual Back Button */}
