@@ -25,3 +25,9 @@ yarn-error.log*
 
 # Testing
 coverage
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc

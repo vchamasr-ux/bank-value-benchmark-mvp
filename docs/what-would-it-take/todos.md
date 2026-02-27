@@ -30,3 +30,16 @@
 - [x] Test inverse solver math against actual bank scenarios.
 - [x] Validate edge cases (e.g., Target is already met; Target is mathematically impossible within bounds).
 - [x] Final UI polish and review.
+
+## Phase 5: V2 Offline Model Enhancements (Python Agent)
+- [ ] Expand target KPIs to include Net Interest Margin (NIM) and Asset Quality (NPLs).
+- [ ] Implement calculation and export of a feature covariance/correlation matrix for tradeoff projections.
+- [ ] Calculate baseline confidence metrics/percentiles based on historical distribution density.
+- [ ] Update `train_pipeline.py` to output `whatwouldittake_v2.json`.
+
+## Phase 6: V2 Frontend Interactive Enhancements (React Agent)
+- [ ] Parse new V2 artifact (`tradeoffs` matrix, `confidence` metrics).
+- [ ] Implement secondary impact (Tradeoff) math in the inverse solver.
+- [ ] Build UI to display tradeoff warnings beneath suggested paths.
+- [ ] Build UI "Confidence Badges" (High/Medium/Low) based on RMSE and lever distance.
+- [ ] Refactor static "Path Cards" into Interactive Sliders so users can manually tweak prescribed lever values.

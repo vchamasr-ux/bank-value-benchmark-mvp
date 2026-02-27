@@ -6,10 +6,10 @@ The frontend and the offline training pipeline are decoupled. They communicate e
 ### Location
 `public/models/whatwouldittake_v1.json`
 
-### Schema Structure
+### Schema Structure (V2 Draft)
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "trained_on": {
     "asof": "2026-02-27",
     "quarters": ["2018Q1", "2025Q4"],
@@ -42,6 +42,12 @@ The frontend and the offline training pipeline are decoupled. They communicate e
     "4q": { 
       "efficiencyRatio": {"min": -0.05, "max": 0.05}
     }
+  },
+  "tradeoffs": {
+    "efficiencyRatio": {
+      "yieldOnLoans": -0.15,
+      "nonInterestIncomePercent": 0.05
+    }
   }
 }
 ```
@@ -53,9 +59,9 @@ The frontend and the offline training pipeline are decoupled. They communicate e
 *   `benchmarks`: Object containing the peer group statistics (median, p25, p75).
 
 ### State Management
-*   `activeTarget`: The user-selected goal (e.g., 'roa').
-*   `targetType`: The user-selected benchmark relative to the peer group (e.g., 'median', 'p75', 'absolute').
-*   `horizon`: Timeframe for the goal (fixed at '4q' for V1).
+*   `activeTarget`: The user-selected goal (e.g., 'returnOnAssets').
+*   `targetType`: The user-selected benchmark relative to the peer group.
+*   `horizon`: Timeframe for the goal.
 *   `modelArtifact`: The loaded JSON schema.
 *   `error`: Any fatal error that prevents rendering.
 
@@ -71,7 +77,8 @@ Given a desired change in target $\Delta Y$:
 *   **Invalid Schema:** If `schema_version` is missing, throw error "Invalid model architecture."
 *   **Missing Features:** If the `financials` object passed to the component lacks any key listed in `modelArtifact.features`, throw error `Missing required KPI in runtime data: ${missingKey}`.
 
-## 3. Scope for Version 1
-*   **Targets:** ROA (Return on Assets), Cost of Funds.
-*   **Levers:** Efficiency Ratio, Yield on Loans, Non-Interest Income %. (Keep list small to ensure stability).
-*   **Horizon:** 4 Quarters only.
+## 3. Scope for Version 2 (In Progress)
+*   **Targets:** ROA, Cost of Funds, Net Interest Margin (NIM), Asset Quality (NPLs).
+*   **Levers:** Efficiency Ratio, Yield on Loans, Non-Interest Income %, Cost of Funds.
+*   **Intelligence:** Tradeoff Projections (Secondary Impact), Confidence Badges (from RMSE/Density).
+*   **Interactivity:** Interactive sliders to override generated paths.

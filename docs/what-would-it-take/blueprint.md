@@ -28,7 +28,8 @@ To elevate BankValue from a descriptive benchmarking tool to a prescriptive stra
 6.  **Guardrail Enforcement:** The engine clamps suggested lever movements against the bounds defined in the model artifact.
 7.  **Tradeoff Projection:** The UI projects the secondary impact of the suggested lever movements on other modeled KPIs.
 
-## Future Enhancements
-*   Expanding the target KPI list to include Net Interest Margin, NPL Ratio, etc.
-*   incorporating more complex growth-related levers (e.g., Loan Growth, Deposit Growth).
-*   Adding "Confidence Scores" derived from model RMSE and historical anomaly detection.
+## V2 Architecture Scope
+*   **Tradeoff Projections:** The offline matrix will now export covariance/correlation metrics so the frontend can project the secondary impact of the suggested lever movements on other modeled KPIs.
+*   **Confidence Scoring:** The engine will generate visual confidence scores derived from model RMSE and historical anomaly bounds.
+*   **Interactive Sliders:** The UI will transition from generating static, prescriptive paths to allowing dynamic user override via interactive range sliders (e.g. "I can only cut efficiency by 2%").
+*   **Expanded Targets:** Expanding the target KPI list to include Net Interest Margin (NIM) and growth-related targets.
