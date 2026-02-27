@@ -183,12 +183,19 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                 const isPrimaryCore = primaryDriver.spec.metric_class === 'core';
 
                 const highStrengthDrivers = topDrivers.filter(d => d.absZ >= 1.5);
-                const sameDirectionCount = highStrengthDrivers.filter(d => d.stats.vs_peers_effect === primaryDriver.stats.vs_peers_effect).length;
+                const mediumStrengthDrivers = topDrivers.filter(d => d.absZ >= 0.8 && d.absZ < 1.5);
 
-                if (isPrimaryCore && highStrengthDrivers.length >= 2 && sameDirectionCount >= 2) {
-                    computedConfidence = "High";
-                } else if (isPrimaryCore && highStrengthDrivers.length >= 1) {
-                    computedConfidence = "Medium";
+                // Redefined logic: We don't care if the drivers move in the *same relative direction* anymore 
+                // (e.g. better_than_median vs worse). A massive drop in loans AND a massive increase in NIM 
+                // is a HIGH confidence "Margin over Growth" story.
+                // We just want to ensure there is enough robust absolute anomaly data.
+
+                if (isPrimaryCore) {
+                    if (highStrengthDrivers.length >= 2 || (highStrengthDrivers.length === 1 && mediumStrengthDrivers.length >= 2)) {
+                        computedConfidence = "High";
+                    } else if (highStrengthDrivers.length === 1 || mediumStrengthDrivers.length >= 2) {
+                        computedConfidence = "Medium";
+                    }
                 }
 
                 return {
