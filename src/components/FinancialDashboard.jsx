@@ -3,26 +3,15 @@ import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
 
-const FinancialDashboard = ({ financials, benchmarks, onShowMovers, showMoversButton, authRequired = true }) => {
+const FinancialDashboard = ({ financials, benchmarks, authRequired = true }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
     if (!financials) return null;
 
-    // Use dynamic benchmarks if available, otherwise fallback
-    const avgs = benchmarks || {
-        efficiencyRatio: 60,
-        costOfFunds: 2.5,
-        nonInterestIncomePercent: 20,
-        yieldOnLoans: 6,
-        assetsPerEmployee: 10000000
-    };
-
     // Note: kpiCalculator returns strings. ParseFloat needed.
     const getAvg = (key, fallback) => benchmarks ? parseFloat(benchmarks[key]) : fallback;
     const getAvgAssets = () => benchmarks ? (parseFloat(benchmarks.assetsPerEmployee) / 1000000).toFixed(1) : 10;
-
-    const peerGroupLabel = benchmarks && benchmarks.groupName ? `Avg (${benchmarks.groupName})` : 'Avg (Peer Group)';
 
     return (
         <div className="space-y-8">

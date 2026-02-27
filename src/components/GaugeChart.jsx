@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import TrendIndicator from './TrendIndicator';
 
 // Helper for range calculations to support Testing
-export const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, inverse = false }) => {
+const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, inverse = false }) => {
     // Strategy: Center the gauge around the Average value.
     // Determine the Visual Range such that Average is exactly in the middle.
 

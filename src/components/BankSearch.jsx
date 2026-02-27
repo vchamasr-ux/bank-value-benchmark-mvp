@@ -18,7 +18,8 @@ const BankSearch = ({ onBankSelect }) => {
         try {
             const banks = await searchBank(searchTerm);
             setResults(banks);
-        } catch (err) {
+        } catch {
+            console.error("Search failed");
             setError('Failed to fetch banks. Please try again.');
         } finally {
             setLoading(false);

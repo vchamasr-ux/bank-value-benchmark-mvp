@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // --- KPI config (Same as used in analysis) ---
 const KPI_SPECS = [
@@ -20,8 +20,6 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [moversData, setMoversData] = useState({ threats: [], playbooks: [], tape: "" });
-    const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
-    const [brief, setBrief] = useState(null);
 
     useEffect(() => {
         fetchAndAnalyze();

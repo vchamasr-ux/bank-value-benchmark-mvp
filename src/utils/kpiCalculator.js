@@ -6,8 +6,17 @@
 /**
  * Format YYYYMMDD to "Qx YYYY"
  */
-export const formatQuarter = (dateString) => {
-    if (!dateString || dateString.length !== 8) return dateString;
+const formatQuarter = (dateString) => {
+    if (!dateString) return 'Missing Date';
+
+    // Check if it's already formatted 'Qx YYYY'
+    if (typeof dateString === 'string' && dateString.match(/^Q[1-4] \d{4}$/)) {
+        return dateString;
+    }
+
+    // If not already formatted, proceed with YYYYMMDD parsing
+    if (dateString.length !== 8) return dateString; // Fallback for invalid length
+
     const year = dateString.substring(0, 4);
     const month = dateString.substring(4, 6);
     let q = '';

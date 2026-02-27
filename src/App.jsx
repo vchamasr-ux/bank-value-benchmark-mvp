@@ -5,9 +5,9 @@ import OperationalDashboard from './components/OperationalDashboard';
 import MoversSummaryModal from './components/MoversSummaryModal';
 import MoversView from './components/MoversView';
 import UserProfileMenu from './components/UserProfileMenu';
-import { sidecarDataProvider } from './components/market_movers/fdicAdapter';
-import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
 import { calculateKPIs } from './utils/kpiCalculator';
+import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
+import * as fdicService from './services/fdicService';
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') === 'true';
@@ -145,7 +145,7 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {view === 'movers' ? (
           <MoversView
-            dataProvider={sidecarDataProvider}
+            dataProvider={fdicService}
             perspectiveBankName={selectedBank?.NAME || 'Market'}
             focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
             segmentKey={benchmarks?.groupName || 'ASSET:[50000000 TO 250000000]'}
@@ -277,7 +277,7 @@ function App() {
         <MoversSummaryModal
           isOpen={showMovers}
           onClose={() => setShowMovers(false)}
-          dataProvider={sidecarDataProvider}
+          dataProvider={fdicService}
           perspectiveBankName={selectedBank.NAME}
           focusBankCert={String(selectedBank.CERT)}
           segmentKey={benchmarks?.groupName || 'DYNAMIC'}

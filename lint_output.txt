@@ -1,0 +1,102 @@
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\api\auth\linkedin.js
+   2:19  error  'state' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+   8:22  error  'process' is not defined                                                               no-undef
+   9:26  error  'process' is not defined                                                               no-undef
+  10:25  error  'process' is not defined                                                               no-undef
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\api\insights.js
+   4:38  error  'process' is not defined  no-undef
+  22:10  error  'process' is not defined  no-undef
+  41:21  error  'process' is not defined  no-undef
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\api\register.js
+  29:26  error  'process' is not defined  no-undef
+  30:26  error  'process' is not defined  no-undef
+  31:26  error  'process' is not defined  no-undef
+  32:26  error  'process' is not defined  no-undef
+  33:28  error  'process' is not defined  no-undef
+  33:55  error  'process' is not defined  no-undef
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\App.jsx
+   35:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  33 |       }
+  34 |     } else {
+> 35 |       setRadarContextBank(null);
+     |       ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |     }
+  37 |   }, [selectedBank]);
+  38 |                                                                                                                    react-hooks/set-state-in-effect
+   37:6   warning  React Hook useEffect has missing dependencies: 'radarContextBank' and 'view'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+   41:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  39 |   useEffect(() => {
+  40 |     if (selectedBank) {
+> 41 |       setLoadingFinancials(true);
+     |       ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  42 |       setErrorFinancials(null);
+  43 |
+  44 |       // Chain fetches: We need Bank Data first to get ASSET size for the Peer Group  react-hooks/set-state-in-effect
+  147:27  error    'sidecarDataProvider' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-undef
+  279:25  error    'sidecarDataProvider' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-undef
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\BankSearch.jsx
+  21:18  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\FinancialDashboard.jsx
+   6:55  error  'onShowMovers' is defined but never used                                                        no-unused-vars
+   6:69  error  'showMoversButton' is defined but never used                                                    no-unused-vars
+  13:11  error  'avgs' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u            no-unused-vars
+  25:11  error  'peerGroupLabel' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\GaugeChart.jsx
+  6:33  error  'value' is defined but never used  no-unused-vars
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\MoversSummaryModal.jsx
+    1:38  error    'useMemo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                 no-unused-vars
+   32:10  error    'sorted' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                  no-unused-vars
+   33:10  error    'quantile' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                no-unused-vars
+   42:10  error    'percentileRank' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                          no-unused-vars
+   52:10  error    'fmtDelta' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                no-unused-vars
+   73:74  error    'segmentLabel' is defined but never used                                                                                       no-unused-vars
+   90:8   warning  React Hook useEffect has a missing dependency: 'generateMoversIntelligence'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  109:8   warning  React Hook useEffect has a missing dependency: 'generateMoversIntelligence'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  208:19  error    'playbooksList' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                  no-unused-vars
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\MoversView.jsx
+   1:38  error    'useMemo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                      no-unused-vars
+  23:12  error    'isGeneratingBrief' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                   no-unused-vars
+  23:31  error    'setIsGeneratingBrief' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                no-unused-vars
+  24:12  error    'brief' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                               no-unused-vars
+  24:19  error    'setBrief' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                            no-unused-vars
+  28:8   warning  React Hook useEffect has a missing dependency: 'fetchAndAnalyze'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\SummaryModal.jsx
+  33:8  warning  React Hook useEffect has a missing dependency: 'generateSummary'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  52:8  warning  React Hook useEffect has a missing dependency: 'generateSummary'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\auth\AuthContext.jsx
+  97:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\src\components\auth\LoginModal.jsx
+  4:40  error  'onLoginSuccess' is defined but never used                                             no-unused-vars
+  5:13  error  'login' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\vcham\Documents\VS Code Programs\Benchmark\vite.config.js
+  3:10  error  'resolve' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+✖ 45 problems (39 errors, 6 warnings)
+

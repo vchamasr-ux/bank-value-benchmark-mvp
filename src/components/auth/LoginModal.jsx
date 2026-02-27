@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 
-const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
-    const { login } = useAuth(); // Get login to mock it
+const LoginModal = ({ isOpen, onClose }) => {
     const [consent, setConsent] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);

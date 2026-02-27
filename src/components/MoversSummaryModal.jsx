@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -29,48 +29,12 @@ const SNAPSHOT_KPIS = [
 ];
 
 // --- Static Helpers (Copied from market_movers logic) ---
-function sorted(values) { return [...values].sort((a, b) => a - b); }
-function quantile(sortedVals, q) {
-    if (sortedVals.length === 1) return sortedVals[0];
-    const pos = (sortedVals.length - 1) * q;
-    const lo = Math.floor(pos);
-    const hi = Math.ceil(pos);
-    if (lo === hi) return sortedVals[lo];
-    const w = pos - lo;
-    return sortedVals[lo] * (1 - w) + sortedVals[hi] * w;
-}
-function percentileRank(sortedVals, x) {
-    let lo = 0;
-    let hi = sortedVals.length;
-    while (lo < hi) {
-        const mid = (lo + hi) >> 1;
-        if (sortedVals[mid] <= x) lo = mid + 1;
-        else hi = mid;
-    }
-    return sortedVals.length === 0 ? 0 : lo / sortedVals.length;
-}
-function fmtDelta(spec, delta) {
-    if (!Number.isFinite(delta)) return "N/A";
-    if (spec.type === "rate") {
-        const bp = delta * 10000;
-        const sign = bp >= 0 ? "+" : "";
-        return `Δ ${sign}${bp.toFixed(0)} bp`;
-    }
-    const abs = Math.abs(delta);
-    if (abs >= 1_000_000) {
-        const m = delta / 1_000_000;
-        const sign = m >= 0 ? "+" : "";
-        return `Δ ${sign}${m.toFixed(2)}M`;
-    }
-    const sign = delta >= 0 ? "+" : "";
-    return `Δ ${sign}${delta.toFixed(2)}`;
-}
 function fmtSigned(x, digits = 2) {
     const sign = x >= 0 ? "+" : "";
     return `${sign}${x.toFixed(digits)}`;
 }
 
-const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, authRequired = true }) => {
+const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, authRequired = true }) => {
     const [summary, setSummary] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [loadStep, setLoadStep] = useState('');

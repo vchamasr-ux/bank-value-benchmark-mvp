@@ -67,9 +67,9 @@ import { getProximityScore } from '../utils/stateMapping.js';
  * Determine the asset class group and filter string for peers.
  * @param {number} assetSize - Bank assets in thousands
  */
-export const getAssetGroupConfig = (assetSize) => {
-    if (assetSize < 100000) return { filter: 'ASSET:[0 TO 100000]', name: 'Assets < $100M' };
-    if (assetSize < 1000000) return { filter: 'ASSET:[100000 TO 1000000]', name: 'Assets $100M - $1B' };
+const getAssetGroupConfig = (assetSize) => {
+    if (assetSize > 100000000) return { filter: 'ASSET:>100000000', name: '>$100B' }; // Super Regional/G-SIB
+    if (assetSize > 10000000) return { filter: 'ASSET:["10000000" TO "100000000"]', name: '$10B-$100B' }; // Regional$1B' };
     if (assetSize < 10000000) return { filter: 'ASSET:[1000000 TO 10000000]', name: 'Assets $1B - $10B' };
     if (assetSize < 50000000) return { filter: 'ASSET:[10000000 TO 50000000]', name: 'Assets $10B - $50B' };
     if (assetSize < 250000000) return { filter: 'ASSET:[50000000 TO 250000000]', name: 'Assets $50B - $250B' };

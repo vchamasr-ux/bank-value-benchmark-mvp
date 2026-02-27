@@ -1,8 +1,7 @@
-
 /**
  * Adjacency list for US States (by 2-letter code).
  */
-export const ADJACENT_STATES = {
+const ADJACENT_STATES = {
     AK: [], // No land borders with US states
     AL: ['FL', 'GA', 'TN', 'MS'],
     AR: ['LA', 'TX', 'OK', 'MO', 'TN', 'MS'],
