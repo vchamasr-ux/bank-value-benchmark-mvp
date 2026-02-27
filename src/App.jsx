@@ -90,6 +90,21 @@ function App() {
     }
   }, [selectedBank]);
 
+  // Independent Landing Page Route
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  if (currentPath === '/landing') {
+    return <LandingPage onBankSelect={(bank) => {
+      // Just redirect to main app for now if they click search
+      window.location.href = '/';
+    }} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
       {/* Global Navigation Header */}
