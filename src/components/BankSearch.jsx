@@ -32,16 +32,17 @@ const BankSearch = ({ onBankSelect }) => {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Find Your Bank</h2>
-            <p className="text-xs text-gray-500 mb-4">Enter a name (e.g. "Chase") and click Search.</p>
+        <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md text-slate-900">
+            <h2 className="text-xl font-bold mb-4 text-slate-800">Find Your Bank</h2>
+            <p className="text-xs text-slate-500 mb-4">Enter a name (e.g. "Chase") and click Search.</p>
             <form onSubmit={handleSearch} className="flex gap-2 mb-4">
                 <input
                     type="text"
                     value={searchTerm}
                     onChange={handleInputChange}
                     placeholder="Enter bank name..."
-                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 p-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 bg-white placeholder-slate-400"
+                    style={{ color: '#0f172a' }}
                 />
                 <button
                     type="submit"
@@ -60,25 +61,25 @@ const BankSearch = ({ onBankSelect }) => {
             )}
 
             {results.length > 0 && (
-                <ul className="divide-y divide-gray-200 border border-gray-200 rounded">
+                <ul className="divide-y divide-slate-200 border border-slate-200 rounded mt-2">
                     {results.map((bank) => (
                         <li
                             key={bank.CERT}
                             onClick={() => onBankSelect(bank)}
-                            className="p-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors"
+                            className="p-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors bg-white text-slate-900"
                         >
                             <div>
-                                <p className="font-semibold text-gray-700">{bank.NAME}</p>
-                                <p className="text-sm text-gray-500">{bank.CITY}, {bank.STNAME}</p>
+                                <p className="font-semibold text-slate-800">{bank.NAME}</p>
+                                <p className="text-sm text-slate-500">{bank.CITY}, {bank.STNAME}</p>
                             </div>
-                            <span className="text-xs text-gray-400">CERT: {bank.CERT}</span>
+                            <span className="text-xs text-slate-400">CERT: {bank.CERT}</span>
                         </li>
                     ))}
                 </ul>
             )}
 
             {results.length === 0 && !loading && hasSearched && !error && (
-                <p className="text-gray-500 text-center text-sm mt-2">No active banks found.</p>
+                <p className="text-slate-500 text-center text-sm mt-2">No active banks found.</p>
             )}
         </div>
     );
