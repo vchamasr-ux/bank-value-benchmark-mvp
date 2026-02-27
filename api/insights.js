@@ -86,17 +86,15 @@ Instead, use pattern-based language:
    - You may include it as a driver, but you MUST treat it primarily as context for other moves.
    - If it is the top driver, you MUST add specific caveat language (e.g., "CAGR-based; verify next quarter before concluding trend break" or "headcount effect possible; verify next quarter").
 3. NOISY METRICS: Non-Interest Income % or Efficiency Ratio. At subsidiary level, these can be distorted by internal allocations. If a swing is catastrophic/unprecedented (strength=High), flag as "(possible data/reporting artifact)".
+4. SUPERLATIVE LANGUAGE: ONLY use phrases like "worst in the peer set" or "best in the peer group" if delta_pct <= 0.06 or >= 0.94. Otherwise, use relative language like "bottom quartile" or "lagged median peers".
+5. NO ARTIFACT EXCUSES FOR CORE KPIs: Do NOT label changes as "possible artifacts" unless they belong to metric_class="derived" or "denominator-sensitive", OR if a core metric is noted as "NOISY" in rule 3 above.
 
 --- CONFIDENCE RUBRIC (Deterministic) ---
-Assign exactly one Confidence: High / Medium / Low.
-Identify the TOP DRIVER (highest strength).
-- High   = Magnitude high (strength=High) AND at least 2 metrics agree on direction AND no fragile/noisy/derived metrics involved as the primary anchor.
-- Medium = Magnitude high (strength=High) but only 1 metric supports the move OR signals are partially mixed.
-- Low    = Magnitude high but driven by derived/denominator-sensitive metrics OR extreme single-metric outlier OR possible reporting/data artifact.
+Use the strictly calculated Computed Confidence provided in the tape for each bank. Do not guess the confidence.  
 
 --- OUTPUT FORMAT (Exactly as shown) ---
 
-[BANK NAME] — Theme: [theme label] ([Threat / Opportunity / Monitor]) | Confidence: [High / Medium / Low]
+[BANK NAME] — Theme: [theme label] ([Threat / Opportunity / Monitor]) | Confidence: [High / Medium / Low from tape]
 What changed (QoQ):
   • [Insight 1: One-sentence analytical observation using ordinal language ("worst in the peer set", "top quartile")]
     Evidence: [Numbers: "Metric Label: {bank_delta} QoQ, peer median {peer_median} (delta_pct={value}) | strength={strength}"]

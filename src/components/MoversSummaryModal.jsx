@@ -119,24 +119,42 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
 
             const metricStats = {};
             KPI_SPECS.forEach(spec => {
-                const vals = completePeers.map(b => deltasByCert[b.cert][spec.key]);
+                const vals = completePeers.map(b => deltasByCert[b.cert][spec.key]).sort((a, b) => a - b);
                 const mean = vals.reduce((sum, v) => sum + v, 0) / vals.length;
                 const variance = vals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / vals.length;
-                metricStats[spec.key] = { mean, stdDev: Math.sqrt(variance) || 1 };
+                const median = vals.length % 2 !== 0
+                    ? vals[Math.floor(vals.length / 2)]
+                    : (vals[Math.floor((vals.length - 1) / 2)] + vals[Math.floor(vals.length / 2)]) / 2;
+                metricStats[spec.key] = { mean, median, stdDev: Math.sqrt(variance) || 1, sortedVals: vals };
             });
 
             const rankedMovers = completePeers.map(b => {
                 const deltas = deltasByCert[b.cert];
                 const zScores = {};
+                const stats = {};
                 let surprise = 0;
                 let validKpis = 0;
 
                 KPI_SPECS.forEach(spec => {
                     const val = deltas[spec.key];
-                    const { mean, stdDev } = metricStats[spec.key];
+                    const { mean, stdDev, sortedVals, median } = metricStats[spec.key];
                     let z = (val - mean) / stdDev;
                     if (spec.better === 'lower') z = -z;
                     zScores[spec.key] = z;
+
+                    // calculate percentile (delta_pct) bounds [0..1]
+                    const idx = sortedVals.indexOf(val);
+                    const delta_pct = Math.max(0, Math.min(1, idx / Math.max(1, sortedVals.length - 1)));
+
+                    // calculate vs_peers_effect
+                    let vs_peers_effect = 'equal_to_median';
+                    if (val > median) {
+                        vs_peers_effect = spec.better === 'higher' ? 'better_than_median' : 'worse_than_median';
+                    } else if (val < median) {
+                        vs_peers_effect = spec.better === 'lower' ? 'better_than_median' : 'worse_than_median';
+                    }
+
+                    stats[spec.key] = { delta_pct, median, vs_peers_effect };
 
                     // Exclude non-core metric classes from surprise score aggregation
                     if (spec.metric_class === 'core') {
@@ -153,10 +171,25 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                         z: zScores[spec.key],
                         signedZ: spec.better === 'lower' ? -zScores[spec.key] : zScores[spec.key],
                         absZ: Math.abs(zScores[spec.key]),
-                        delta: deltas[spec.key]
+                        delta: deltas[spec.key],
+                        stats: stats[spec.key]
                     }))
                     .sort((a, b) => b.absZ - a.absZ)
                     .slice(0, 3);
+
+                // Determine Computed Confidence
+                let computedConfidence = "Low";
+                const primaryDriver = topDrivers[0];
+                const isPrimaryCore = primaryDriver.spec.metric_class === 'core';
+
+                const highStrengthDrivers = topDrivers.filter(d => d.absZ >= 1.5);
+                const sameDirectionCount = highStrengthDrivers.filter(d => d.stats.vs_peers_effect === primaryDriver.stats.vs_peers_effect).length;
+
+                if (isPrimaryCore && highStrengthDrivers.length >= 2 && sameDirectionCount >= 2) {
+                    computedConfidence = "High";
+                } else if (isPrimaryCore && highStrengthDrivers.length >= 1) {
+                    computedConfidence = "Medium";
+                }
 
                 return {
                     cert: b.cert,
@@ -164,34 +197,35 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                     deltas,
                     zScores,
                     surprise: cappedSurprise,
-                    topDrivers
+                    topDrivers,
+                    computedConfidence
                 };
             }).sort((a, b) => b.surprise - a.surprise);
 
-            const threatsList = rankedMovers.slice(0, 3);
-            const playbooksList = [...rankedMovers].sort((a, b) => a.surprise - b.surprise).slice(0, 3);
+            const threatsList = rankedMovers.slice(0, 5);
             const focusRank = rankedMovers.findIndex(m => m.cert === focusBankCert) + 1;
 
             let tapeStr = "";
             let snapshotBlock = "";
 
             if (threatsList.length > 0) {
-                tapeStr += "TOP QOQ MOVERS (THREATS):\n";
+                tapeStr += "TOP QOQ MOVERS:\n";
                 threatsList.forEach((m, idx) => {
-                    tapeStr += `${idx + 1}. ${m.bankName} (Surprise: ${m.surprise.toFixed(2)})\n`;
+                    tapeStr += `${idx + 1}. ${m.bankName} (Surprise: ${m.surprise.toFixed(2)}, Computed Confidence: ${m.computedConfidence})\n`;
                     m.topDrivers.forEach(d => {
                         let strength = "Low";
                         if (d.absZ >= 1.5) strength = "High";
                         else if (d.absZ >= 0.8) strength = "Medium";
-                        const isContextOnly = d.spec.metric_class !== 'core';
-                        const contextFlag = isContextOnly ? " [CONTEXT_ONLY: Require verification next quarter]" : "";
+
+                        const contextFlag = `[metric_class: ${d.spec.metric_class}]`;
 
                         // Inject strict units based on type
                         const unitStr = d.spec.type === 'rate' ? 'bp' : 'units';
                         // Convert delta to exact requested units (bp formatting here matches UI scale roughly)
                         const exactDeltaVal = d.spec.type === 'rate' ? Math.round(d.delta * 10000) : d.delta;
+                        const exactMedianVal = d.spec.type === 'rate' ? Math.round(d.stats.median * 10000) : d.stats.median;
 
-                        tapeStr += `  - Driver: ${d.spec.label} | Z-Score: ${fmtSigned(d.z)} | Strength: ${strength} | Delta: ${fmtSigned(exactDeltaVal, 0)} ${unitStr}${contextFlag}\n`;
+                        tapeStr += `  - Driver: ${d.spec.label} | Z-Score: ${fmtSigned(d.z)} | Strength: ${strength} | Delta: ${fmtSigned(exactDeltaVal, 0)} ${unitStr} | Peer Median: ${fmtSigned(exactMedianVal, 0)} ${unitStr} (delta_pct=${d.stats.delta_pct.toFixed(2)}, effect=${d.stats.vs_peers_effect}) ${contextFlag}\n`;
                     });
                 });
             }
@@ -201,77 +235,37 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
             setLoadStep('Synthesizing brief via Gemini...');
             let textResult = "";
 
-            const isDev = import.meta.env.DEV;
-            const devApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            const response = await fetch('/api/insights', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-linkedin-sub': user?.sub || 'anonymous',
+                    'x-linkedin-name': user?.name || ''
+                },
+                body: JSON.stringify({
+                    type: 'market_movers',
+                    tapeStr,
+                    snapshotBlock,
+                    perspectiveBankName
+                })
+            });
 
-            if (isDev && devApiKey && !authRequired) {
-                console.log("DEV MODE: Calling Gemini API directly...");
-                const genAI = new GoogleGenerativeAI(devApiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = errorData.error || response.statusText;
 
-                const prompt = `
-You are an elite competitive intelligence analyst specializing in banking.
-Analyze the following Market Movers tape, which tracks significant Quarter-over-Quarter (QoQ) shifts in peer bank financials for ${currentQuarter}. 
-Write a concise, hard-hitting competitive brief strictly from the perspective of ${perspectiveBankName}.
-
-[CRITICAL INSTRUCTION FOR TAPE INTERPRETATION: You MUST preserve the exact numerical units explicitly provided in the tape string (e.g., if it says "+14 bp", output "+14 bp"). Do NOT convert bases or append your own unit guesses.]
-
-[CRITICAL INSTRUCTION FOR CONTEXT_ONLY METRICS: If a driver is tagged [CONTEXT_ONLY], your "Confidence" score for that bank must be downgraded to "Medium" or "Low", and you must explicitly mention that the metric needs verification in upcoming quarters.]
-
-Output exactly 1-2 paragraphs for each top mover, structured as:
-[BANK NAME] — Theme: [1 sentence synthesis] (Threat/Opportunity/Monitor) | Confidence: [High/Medium/Low]
-What changed (QoQ): [Bullet points translating Z-scores into plain English, e.g., "Sharp deterioration in efficiency" OR "Outpacing peers in loan growth". Rely on 'Strength' indicator (High/Med/Low).]
-So what: [What this means strategically for them vs the peer group.]
-What ${perspectiveBankName} should do:
-- Defend: [1 concrete defensive action]
-- Attack: [1 concrete offensive action]
-- Monitor: [1 metric to watch next quarter]
-
-[CRITICAL PLAYBOOK RULES: FORBID internal housekeeping / inward-facing initiatives (e.g., "improve our efficiency", "streamline operations"). FORBID product-line speculation UNLESS explicitly supported by tape data (e.g., do not say "they are pushing wealth management").]
-
-Watch next quarter: [Conditional IF/THEN signal based on trend confirmation.]
-
---- MARKET MOVERS TAPE ---
-${tapeStr}
-${snapshotBlock}
-`.trim();
-
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                textResult = response.text();
-            } else {
-                const response = await fetch('/api/insights', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-linkedin-sub': user?.sub || 'anonymous',
-                        'x-linkedin-name': user?.name || ''
-                    },
-                    body: JSON.stringify({
-                        type: 'market_movers',
-                        tapeStr,
-                        snapshotBlock,
-                        perspectiveBankName
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    const errorMsg = errorData.error || response.statusText;
-
-                    if (response.status === 429) {
-                        // Check if this is a daily quota or a rate limit
-                        if (errorMsg.toLowerCase().includes('daily quota')) {
-                            throw new Error("DAILY_QUOTA: Daily AI quota reached (2/2). Try again tomorrow.");
-                        }
-                        // Otherwise it's likely a Gemini rate limit (retryable)
-                        throw new Error(`RATE_LIMIT: ${errorMsg}`);
+                if (response.status === 429) {
+                    // Check if this is a daily quota or a rate limit
+                    if (errorMsg.toLowerCase().includes('daily quota')) {
+                        throw new Error("DAILY_QUOTA: Daily AI quota reached (2/2). Try again tomorrow.");
                     }
-                    throw new Error(errorMsg || "Failed to generate intelligence brief.");
+                    // Otherwise it's likely a Gemini rate limit (retryable)
+                    throw new Error(`RATE_LIMIT: ${errorMsg}`);
                 }
-                const resData = await response.json();
-                textResult = resData.text || "No analysis generated.";
+                throw new Error(errorMsg || "Failed to generate intelligence brief.");
             }
+            const resData = await response.json();
+            textResult = resData.text || "No analysis generated.";
 
             setSummary(textResult);
             setRetryCount(0); // Reset retry tracker on success
