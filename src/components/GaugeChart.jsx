@@ -41,9 +41,9 @@ export const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, 
         const vMax = Math.max(max, q3 + padding);
 
         ranges = [
-            { name: inverse ? 'Top Q' : 'Bottom Q', value: q1 - vMin, color: colors[0] },
-            { name: 'Middle 50%', value: q3 - q1, color: colors[1] },
-            { name: inverse ? 'Bottom Q' : 'Top Q', value: vMax - q3, color: colors[2] }
+            { name: inverse ? 'Top Q' : 'Bottom Q', value: q1 - vMin, color: colors[0], type: 'low' },
+            { name: 'Middle 50%', value: q3 - q1, color: colors[1], type: 'mid' },
+            { name: inverse ? 'Bottom Q' : 'Top Q', value: vMax - q3, color: colors[2], type: 'high' }
         ];
 
         // Return early with new bounds (No ticks needed when sectors match quartiles)
@@ -54,9 +54,9 @@ export const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, 
     const sectorWidth = totalVisualRange / 3;
 
     ranges = [
-        { name: 'Low', value: sectorWidth, color: colors[0] },
-        { name: 'Mid', value: sectorWidth, color: colors[1] },
-        { name: 'High', value: sectorWidth, color: colors[2] },
+        { name: 'Low', value: sectorWidth, color: colors[0], type: 'low' },
+        { name: 'Mid', value: sectorWidth, color: colors[1], type: 'mid' },
+        { name: 'High', value: sectorWidth, color: colors[2], type: 'high' },
     ];
 
     // Method 1 Ticks
@@ -125,9 +125,9 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                                         <span className="font-bold" style={{ color: data.color }}>{data.name}</span>
                                         {p25 && p75 && (
                                             <div className="text-gray-500 mt-1">
-                                                {data.name.includes('Low') || data.name.includes('Bottom') ? `Below ${format(p25)}` : ''}
-                                                {data.name.includes('Mid') || data.name.includes('Middle') ? `${format(p25)} - ${format(p75)}` : ''}
-                                                {data.name.includes('High') || data.name.includes('Top') ? `Above ${format(p75)}` : ''}
+                                                {data.type === 'low' ? `Below ${format(p25)}` : ''}
+                                                {data.type === 'mid' ? `${format(p25)} - ${format(p75)}` : ''}
+                                                {data.type === 'high' ? `Above ${format(p75)}` : ''}
                                             </div>
                                         )}
                                     </div>
