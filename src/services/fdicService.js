@@ -1,5 +1,5 @@
 const FDIC_API_BASE = 'https://banks.data.fdic.gov/api/institutions/';
-const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
+const FDIC_FINANCIALS_URL = 'https://banks.data.fdic.gov/api/financials/';
 
 /**
  * Search for banks by name using the FDIC API.
@@ -185,7 +185,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
 
             // Fetch 3rd-year historical data for these 20 peers to calculate growth benchmarks
             const peerCerts = peers.map(p => p.CERT).join(' OR ');
-            const histUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
+            const histUrl = `https://banks.data.fdic.gov/api/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
             let histMap = {};
             try {
                 const histResponse = await fetch(histUrl);
@@ -395,7 +395,7 @@ export const getBankKpis = async ({ cert, quarter }) => {
     const repDte = `${parts[1]}${dteMap[parts[0]]}`;
 
     const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP,NAME,CITY,STNAME';
-    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${cert}%20AND%20REPDTE:${repDte}&fields=${fields}&limit=1&format=json`;
+    const url = `https://banks.data.fdic.gov/api/financials/?filters=CERT:${cert}%20AND%20REPDTE:${repDte}&fields=${fields}&limit=1&format=json`;
 
     try {
         const response = await fetch(url);
@@ -406,7 +406,7 @@ export const getBankKpis = async ({ cert, quarter }) => {
 
         // 2. Fetch baseline for Growth KPIs
         const baseYear = parseInt(parts[1]) - 3;
-        const baseUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:${cert}%20AND%20REPDTE:${baseYear}${dteMap[parts[0]]}&fields=ASSET,DEP,LNLSNET&limit=1&format=json`;
+        const baseUrl = `https://banks.data.fdic.gov/api/financials/?filters=CERT:${cert}%20AND%20REPDTE:${baseYear}${dteMap[parts[0]]}&fields=ASSET,DEP,LNLSNET&limit=1&format=json`;
         const baseRes = await fetch(baseUrl);
         const baseJson = baseRes.ok ? await baseRes.json() : { data: [] };
         const baseRec = baseJson.data?.[0]?.data;

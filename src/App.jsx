@@ -124,7 +124,7 @@ function App() {
         })
         .catch(err => {
           console.error(err);
-          setErrorFinancials(prev => prev || "Failed to load financials.");
+          setErrorFinancials(err.message || "Failed to load financials.");
         })
         .finally(() => setLoadingFinancials(false));
     } else {
