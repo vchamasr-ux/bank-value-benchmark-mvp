@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
+
 
 const LoginModal = ({ isOpen, onClose }) => {
     const [consent, setConsent] = useState(false);

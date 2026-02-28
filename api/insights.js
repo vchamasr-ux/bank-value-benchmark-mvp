@@ -1,3 +1,4 @@
+
 import { kv } from "@vercel/kv";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
@@ -19,7 +20,6 @@ export default async function handler(req, res) {
 
     // Get identification from header
     const linkedinSub = req.headers['x-linkedin-sub'];
-    const linkedinName = req.headers['x-linkedin-name'];
 
     if (!linkedinSub) {
         return res.status(401).json({ error: "Authentication required" });
@@ -200,6 +200,9 @@ ${snapshotBlock}
             } : null;
 
             const promptData = { financials: kpiSlim, benchmarks: benchSlim };
+
+            const bankName = financials?.raw?.NAME || "the subject bank";
+            const bankLocation = financials?.raw?.CITY && financials?.raw?.STALP ? `${financials.raw.CITY}, ${financials.raw.STALP}` : "";
 
             prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}${bankLocation ? ` based in ${bankLocation}` : ''}. 
 CRITICAL CONTEXT: 

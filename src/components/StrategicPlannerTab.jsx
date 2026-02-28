@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 // Module-level cache: the tiered model JSON is static and only needs to be fetched once.
 let _cachedModelJson = null;
@@ -284,7 +284,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
     }, [financials]);
 
     // Target Logic Helper
-    const isBeatingMedian = () => {
+    const isBeatingMedian = useCallback(() => {
         if (!targetKpi || !financials || !benchmarks) return false;
         const currentVals = parseFloat(financials[targetKpi]);
         const medianVals = parseFloat(benchmarks[targetKpi]);
@@ -292,14 +292,14 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
 
         const lowerIsBetter = ['costOfFunds', 'efficiencyRatio', 'nptlRatio'].includes(targetKpi);
         return lowerIsBetter ? currentVals < medianVals : currentVals > medianVals;
-    };
+    }, [targetKpi, financials, benchmarks]);
 
     // Auto-adjust targetType if bank is already beating median
     useEffect(() => {
         if (targetType === 'peer_median' && isBeatingMedian()) {
             setTargetType('peer_top_quartile');
         }
-    }, [targetKpi, financials, benchmarks, targetType]);
+    }, [targetKpi, financials, benchmarks, targetType, isBeatingMedian]);
 
     // Pre-calculate which KPIs have mathematically viable paths or aren't already outperforming
     const availableKpis = useMemo(() => {

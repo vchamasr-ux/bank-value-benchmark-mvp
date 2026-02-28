@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
                         })
                     });
 
-                    const regData = await regResponse.json();
+                    await regResponse.json();
 
                     // 4. Set user and clean up
                     const userWithProfile = {

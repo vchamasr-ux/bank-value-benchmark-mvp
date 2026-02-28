@@ -337,7 +337,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
 /**
  * Adapter for MoversSummaryModal to fetch a list of peer banks.
  */
-export const listPeerBanks = async ({ segmentKey, focusCert }) => {
+export const listPeerBanks = async ({ segmentKey }) => {
     const fields = 'NAME,CITY,STNAME,STALP,CERT';
     let url = `https://banks.data.fdic.gov/api/institutions/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
 
