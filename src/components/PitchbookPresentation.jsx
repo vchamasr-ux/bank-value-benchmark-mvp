@@ -134,10 +134,10 @@ const PitchbookPresentation = ({
                         </svg>
                     </div>
                     <div>
-                        <h1 className="text-4xl md:text-6xl font-black text-slate-800 tracking-tight uppercase">
+                        <h1 className="text-4xl md:text-5xl font-black font-serif text-slate-800 tracking-tight uppercase">
                             Executive Briefing
                         </h1>
-                        <p className="text-xl md:text-2xl text-slate-500 font-bold mt-4 uppercase tracking-widest">
+                        <p className="text-xl md:text-2xl text-slate-500 font-serif italic mt-4 tracking-wide">
                             Performance Benchmarking Review
                         </p>
                     </div>
@@ -150,6 +150,45 @@ const PitchbookPresentation = ({
                     <div className="absolute bottom-16 w-full text-center">
                         <p className="text-slate-500 text-sm font-bold">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                     </div>
+                </div>
+            )
+        },
+        {
+            id: 'agenda',
+            isDivider: true,
+            content: (
+                <div className="flex flex-col items-center justify-center h-full animate-in fade-in slide-in-from-right-8 duration-700">
+                    <div className="w-full max-w-4xl px-16 py-12 bg-white shadow-xl border-t-8 border-blue-900">
+                        <h2 className="text-3xl font-serif font-black text-slate-800 mb-10 pb-4 border-b-2 border-slate-100 uppercase tracking-widest">Agenda</h2>
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-6">
+                                <span className="text-2xl font-serif font-black text-slate-300">I.</span>
+                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Strategic Summary & Key Insights</span>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <span className="text-2xl font-serif font-black text-slate-300">II.</span>
+                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Core Financial Benchmarking</span>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <span className="text-2xl font-serif font-black text-slate-300">III.</span>
+                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Competitive Radar & Positioning</span>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <span className="text-2xl font-serif font-black text-slate-300">IV.</span>
+                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Forward-Looking Strategy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            id: 'divider-1',
+            isDivider: true,
+            content: (
+                <div className="flex flex-col items-start justify-center h-full w-full bg-blue-900 px-24 animate-in fade-in slide-in-from-right-8 duration-500">
+                    <h2 className="text-5xl font-serif font-black text-white mb-4">I. Strategic Summary</h2>
+                    <div className="w-24 h-1.5 bg-blue-400"></div>
                 </div>
             )
         },
@@ -192,6 +231,16 @@ const PitchbookPresentation = ({
             )
         },
         {
+            id: 'divider-2',
+            isDivider: true,
+            content: (
+                <div className="flex flex-col items-start justify-center h-full w-full bg-blue-900 px-24 animate-in fade-in slide-in-from-right-8 duration-500">
+                    <h2 className="text-5xl font-serif font-black text-white mb-4">II. Core Financial Benchmarking</h2>
+                    <div className="w-24 h-1.5 bg-blue-400"></div>
+                </div>
+            )
+        },
+        {
             id: 'financial',
             actionTitle: `Core Financial Performance vs. ${benchmarks?.groupName || 'Peers'}`,
             actionSubtitle: "A distilled view of the most critical financial health and profitability indicators against the benchmark.",
@@ -214,6 +263,21 @@ const PitchbookPresentation = ({
                             />
                         ))}
                     </div>
+                    <div className="absolute bottom-8 right-8 bg-slate-50 border border-slate-200 p-3 rounded-lg shadow-sm text-xs text-slate-500 max-w-xs flex flex-col gap-1.5 font-sans">
+                        <strong className="text-slate-700 uppercase tracking-widest text-[10px]">Legend</strong>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 bg-blue-500 rounded-sm"></span> Peer Median</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 bg-slate-300 rounded-sm"></span> Selected Bank</div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            id: 'divider-3',
+            isDivider: true,
+            content: (
+                <div className="flex flex-col items-start justify-center h-full w-full bg-blue-900 px-24 animate-in fade-in slide-in-from-right-8 duration-500">
+                    <h2 className="text-5xl font-serif font-black text-white mb-4">III. Competitive Radar</h2>
+                    <div className="w-24 h-1.5 bg-blue-400"></div>
                 </div>
             )
         },
@@ -243,6 +307,7 @@ const PitchbookPresentation = ({
             id: 'radar-playbooks',
             actionTitle: "Market Positioning & Peer Distribution",
             actionSubtitle: "Competitive outliers with the highest surprise score — outperforming relative to the peer group.",
+            source: `Source: BankValue Analytics; Peer Group: ${benchmarks?.groupName || 'Segment'}`,
             content: (
                 <div className="w-full h-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
                     <MoversView
@@ -265,6 +330,7 @@ const PitchbookPresentation = ({
             id: 'planner',
             actionTitle: "Forward-Looking Strategy & Rate Shock",
             actionSubtitle: "Modeling the theoretical impact of interest rate movements on Net Interest Margin and baseline profitability.",
+            source: "Source: BankValue Scenario Modeler. Forecasts are illustrative.",
             content: (
                 <div className="w-full h-[100%] border border-slate-200 rounded p-4 bg-slate-50 shadow-inner overflow-y-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
                     {/* Note: We force overflow-y-auto ALONE here because Strategic Planner is tall */}
@@ -346,7 +412,7 @@ const PitchbookPresentation = ({
                     maxHeight: '90vh' // Ensure it doesn't overflow vertically on small screens
                 }}
             >
-                {!activeSlide.isCover && (
+                {!activeSlide.isCover && !activeSlide.isDivider && (
                     <div className="w-full px-10 pt-8 pb-4 border-b-2 border-slate-800 flex justify-between items-end flex-shrink-0 animate-in fade-in duration-300">
                         <div className="max-w-4xl">
                             <h2 className="text-3xl font-black text-blue-900 tracking-tight leading-tight">
@@ -370,14 +436,21 @@ const PitchbookPresentation = ({
                 )}
 
                 {/* Main Body Content */}
-                <div className="flex-1 w-full p-10 relative overflow-hidden bg-white">
+                <div className={`flex-1 w-full relative overflow-hidden ${activeSlide.isDivider ? '' : 'p-10 bg-white'}`}>
                     {activeSlide.content}
                 </div>
 
                 {/* Mandatory IB Footer */}
-                <div className="w-full px-10 py-4 border-t border-slate-200 flex justify-between items-center flex-shrink-0 bg-white z-20">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        STRICTLY CONFIDENTIAL — DO NOT DISTRIBUTE OR COPY
+                <div className="w-full px-10 py-4 border-t border-slate-200 flex justify-between items-end flex-shrink-0 bg-white z-20">
+                    <div>
+                        {activeSlide.source && (
+                            <div className="text-[9px] font-serif font-medium italic text-slate-500 mb-1.5">
+                                {activeSlide.source}
+                            </div>
+                        )}
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                            STRICTLY CONFIDENTIAL — DO NOT DISTRIBUTE OR COPY
+                        </div>
                     </div>
                     <div className="text-xs font-bold text-slate-500">
                         {selectedBank.NAME}

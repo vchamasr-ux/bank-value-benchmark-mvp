@@ -105,7 +105,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center max-w-xl mx-auto my-20">
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-8 text-center max-w-xl mx-auto my-20">
                 <div className="text-3xl mb-4">⚠️</div>
                 <h3 className="text-red-900 font-bold text-lg">Radar Interrupted</h3>
                 <p className="text-red-700 mt-2">{error}</p>
@@ -135,20 +135,20 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                     <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
                         <button
                             onClick={() => setActiveTab('threats')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-rose-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
                         >
                             Market Threats ({moversData.threats.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('playbooks')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
                         >
                             Growth Playbooks ({moversData.playbooks.length})
                         </button>
                     </div>
                 )}
                 {forcedTab && (
-                    <div className={`px-4 py-2 rounded-lg text-sm font-black ${forcedTab === 'threats' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
+                    <div className={`px-4 py-2 rounded-lg text-sm font-black ${forcedTab === 'threats' ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}>
                         {forcedTab === 'threats' ? `⚠ Market Threats (${moversData.threats.length})` : `✦ Growth Playbooks (${moversData.playbooks.length})`}
                     </div>
                 )}
@@ -167,7 +167,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                 <div className={`flex justify-between items-start ${isPresentationMode ? 'p-3' : 'p-5'}`}>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3">
-                                            <span className={`text-xs font-black ${activeTab === 'threats' ? 'text-red-500' : 'text-green-500'} bg-slate-100 w-6 h-6 flex items-center justify-center rounded-full`}>{idx + 1}</span>
+                                            <span className={`text-xs font-black ${activeTab === 'threats' ? 'text-rose-700' : 'text-emerald-700'} bg-slate-100 w-6 h-6 flex items-center justify-center rounded-full`}>{idx + 1}</span>
                                             <h4
                                                 className="text-lg font-bold text-slate-900 cursor-pointer hover:text-blue-600 flex items-center gap-1"
                                                 onClick={() => handleDrillDown(m.cert)}
@@ -179,7 +179,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                             {m.topDrivers.map((d, dIdx) => (
                                                 <div key={dIdx} className="flex flex-col">
                                                     <span className={`text-slate-400 font-bold uppercase ${isPresentationMode ? 'text-[8px]' : 'text-[10px]'}`}>{d.spec.label}</span>
-                                                    <span className={`font-bold ${d.signedZ > 0 ? 'text-green-600' : 'text-red-600'} ${isPresentationMode ? 'text-xs' : 'text-sm'}`}>
+                                                    <span className={`font-bold ${d.signedZ > 0 ? 'text-emerald-800' : 'text-rose-800'} ${isPresentationMode ? 'text-xs' : 'text-sm'}`}>
                                                         {d.z > 0 ? '+' : ''}{d.z.toFixed(2)}σ <span className={`text-slate-400 font-medium ${isPresentationMode ? 'text-[8px]' : 'text-[10px]'}`}>({d.delta > 0 ? '+' : ''}{(d.delta * 100).toFixed(2)}%)</span>
                                                     </span>
                                                 </div>
@@ -188,7 +188,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                     </div>
                                     <div className="text-right">
                                         <div className="text-[10px] text-slate-400 font-black uppercase mb-1">Surprise Score</div>
-                                        <div className={`text-2xl font-black ${activeTab === 'threats' ? 'text-red-600' : 'text-green-600'}`}>
+                                        <div className={`text-2xl font-black ${activeTab === 'threats' ? 'text-rose-800' : 'text-emerald-800'}`}>
                                             {m.surprise.toFixed(1)}
                                         </div>
                                     </div>

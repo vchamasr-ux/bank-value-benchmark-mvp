@@ -32,8 +32,8 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
     let totalVisualRange = visualMax - visualMin;
 
     const colors = inverse
-        ? ['#22c55e', '#eab308', '#ef4444'] // Green -> Yellow -> Red
-        : ['#ef4444', '#eab308', '#22c55e']; // Red -> Yellow -> Green
+        ? ['#047857', '#d97706', '#be123c'] // Emerald -> Amber -> Rose
+        : ['#be123c', '#d97706', '#047857']; // Rose -> Amber -> Emerald
 
     let ranges = [];
     let p25Angle = null;
