@@ -39,6 +39,22 @@ const LandingPage = ({ onBankSelect }) => {
                             Secured by LinkedIn
                         </div>
                     </div>
+
+                    {/* Social proof stats bar */}
+                    <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-px border border-white/10 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm divide-y sm:divide-y-0 sm:divide-x divide-white/10 max-w-2xl mx-auto">
+                        <div className="flex-1 px-8 py-4 text-center">
+                            <div className="text-2xl font-black text-white tracking-tight">4,700<span className="text-blue-400">+</span></div>
+                            <div className="text-xs text-slate-400 font-medium mt-0.5">FDIC Banks Covered</div>
+                        </div>
+                        <div className="flex-1 px-8 py-4 text-center">
+                            <div className="text-2xl font-black text-white tracking-tight">16 <span className="text-blue-400">Qtrs</span></div>
+                            <div className="text-xs text-slate-400 font-medium mt-0.5">of Call Report History</div>
+                        </div>
+                        <div className="flex-1 px-8 py-4 text-center">
+                            <div className="text-2xl font-black text-white tracking-tight">Gemini <span className="text-blue-400">2.5</span></div>
+                            <div className="text-xs text-slate-400 font-medium mt-0.5">AI Model</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

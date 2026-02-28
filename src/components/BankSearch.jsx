@@ -36,14 +36,18 @@ const BankSearch = ({ onBankSelect }) => {
             <h2 className="text-xl font-bold mb-4 text-slate-800">Find Your Bank</h2>
             <p className="text-xs text-slate-500 mb-4">Enter a name (e.g. "Chase") and click Search.</p>
             <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={handleInputChange}
-                    placeholder="Enter bank name..."
-                    className="flex-1 p-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 bg-white placeholder-slate-400"
-                    style={{ color: '#0f172a' }}
-                />
+                <div className="relative flex-1">
+                    <input
+                        id="bank-search-input"
+                        type="text"
+                        value={searchTerm}
+                        onChange={handleInputChange}
+                        placeholder="Enter bank name..."
+                        className="w-full p-2 pr-8 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 bg-white placeholder-slate-400"
+                        style={{ color: '#0f172a' }}
+                    />
+                    <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-1 py-0.5 pointer-events-none select-none">/</kbd>
+                </div>
                 <button
                     type="submit"
                     disabled={loading}

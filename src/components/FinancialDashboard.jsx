@@ -114,6 +114,14 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             )}
                         </div>
                     )}
+                    {financials.reportDate && (
+                        <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100" title="Data period from FDIC Call Reports">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-xs font-semibold text-emerald-700">Data as of {financials.reportDate} · FDIC</span>
+                        </div>
+                    )}
                 </div>
             </div>
 

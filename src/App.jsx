@@ -46,6 +46,18 @@ function App() {
   const CURRENT_QUARTER = financials?.reportDate || null;
   const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
 
+  // Global '/' keyboard shortcut — focus the bank search input (Datadog / Grafana convention)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key !== '/') return;
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || document.activeElement?.isContentEditable) return;
+      e.preventDefault();
+      document.getElementById('bank-search-input')?.focus();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   // Clear radar context when bank is deselected
   useEffect(() => {
     if (!selectedBank) {
