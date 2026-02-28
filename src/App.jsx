@@ -24,6 +24,7 @@ function App() {
   const [view, setView] = useState('benchmark'); // 'benchmark' | 'movers'
   const [showMovers, setShowMovers] = useState(false);
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
+  const [isPresentMode, setIsPresentMode] = useState(false);
 
   // Sync selected bank and manage radar context
   useEffect(() => {
@@ -94,73 +95,79 @@ function App() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
       {/* Global Navigation Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-[100] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-8">
-            <h1
-              className="text-lg sm:text-xl font-black text-blue-900 tracking-tight cursor-pointer shrink-0"
-              onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
-            >
-              BANK<span className="text-blue-600">VALUE</span>
-            </h1>
+      {!isPresentMode && (
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-[100] shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-8">
+              <h1
+                className="text-lg sm:text-xl font-black text-blue-900 tracking-tight cursor-pointer shrink-0"
+                onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
+              >
+                BANK<span className="text-blue-600">VALUE</span>
+              </h1>
 
-            <nav className="flex items-center gap-1 sm:gap-4">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setView('benchmark')}
-                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'benchmark'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                >
-                  <span>Banks</span>
-                  <span className="text-[10px] opacity-70 font-medium tracking-tight">Performance Benchmarks</span>
-                </button>
-                <button
-                  onClick={() => setView('movers')}
-                  disabled={!selectedBank}
-                  title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
-                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'movers'
-                    ? 'bg-blue-50 text-blue-700'
-                    : !selectedBank
-                      ? 'text-slate-300 opacity-40 cursor-not-allowed'
+              <nav className="flex items-center gap-1 sm:gap-4">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setView('benchmark')}
+                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'benchmark'
+                      ? 'bg-blue-50 text-blue-700'
                       : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                >
-                  <span>Market Movers</span>
-                  <span className="text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
-                </button>
-                <button
-                  onClick={() => setView('planner')}
-                  disabled={!selectedBank}
-                  title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
-                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'planner'
-                    ? 'bg-blue-50 text-blue-700'
-                    : !selectedBank
-                      ? 'text-slate-300 opacity-40 cursor-not-allowed'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                >
-                  <span>What Would It Take?</span>
-                  <span className="text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
-                </button>
-              </div>
+                  >
+                    <span>Banks</span>
+                    <span className="text-[10px] opacity-70 font-medium tracking-tight">Performance Benchmarks</span>
+                  </button>
+                  <button
+                    onClick={() => setView('movers')}
+                    disabled={!selectedBank}
+                    title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
+                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'movers'
+                      ? 'bg-blue-50 text-blue-700'
+                      : !selectedBank
+                        ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                  >
+                    <span>Market Movers</span>
+                    <span className="text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
+                  </button>
+                  <button
+                    onClick={() => setView('planner')}
+                    disabled={!selectedBank}
+                    title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
+                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'planner'
+                      ? 'bg-blue-50 text-blue-700'
+                      : !selectedBank
+                        ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                  >
+                    <span>What Would It Take?</span>
+                    <span className="text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
+                  </button>
+                </div>
 
-              {/* Authenticated User Menu */}
-              <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
-                <UserProfileMenu />
-              </div>
-            </nav>
-          </div>
-
-          {selectedBank && view === 'benchmark' && (
-            <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 ${radarContextBank ? 'border-blue-200 bg-blue-50/50' : ''}`}>
-              <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></span>
-              {selectedBank.NAME}
-              {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
+                {/* Authenticated User Menu */}
+                <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
+                  <UserProfileMenu />
+                </div>
+              </nav>
             </div>
-          )}
-        </div>
-      </header>
 
-      <main className={(!selectedBank && view === 'benchmark') ? "w-full" : "max-w-7xl mx-auto px-4 py-8"}>
+            {selectedBank && view === 'benchmark' && (
+              <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 ${radarContextBank ? 'border-blue-200 bg-blue-50/50' : ''}`}>
+                <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></span>
+                {selectedBank.NAME}
+                {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
+              </div>
+            )}
+          </div>
+        </header>
+      )}
+
+      <main className={
+        isPresentMode
+          ? "w-full max-w-full min-h-screen bg-slate-50 relative p-4"
+          : (!selectedBank && view === 'benchmark') ? "w-full" : "max-w-7xl mx-auto px-4 py-8"
+      }>
         {view === 'movers' ? (
           <MoversView
             dataProvider={fdicService}
@@ -223,8 +230,8 @@ function App() {
                   </button>
                 )}
 
-                <div className="bg-white p-6 rounded-lg shadow-lg text-center relative overflow-hidden">
-                  {radarContextBank && (
+                <div className={`bg-white p-6 rounded-lg shadow-lg text-center relative overflow-hidden ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
+                  {radarContextBank && !isPresentMode && (
                     <div className="absolute top-0 right-0 px-3 py-1 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-lg opacity-80">
                       Peer Analysis Mode
                     </div>
@@ -254,12 +261,14 @@ function App() {
                     </div>
                   )}
 
-                  <button
-                    onClick={() => setSelectedBank(null)}
-                    className="mb-8 mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium"
-                  >
-                    <span>&larr;</span> Search for another bank
-                  </button>
+                  {!isPresentMode && (
+                    <button
+                      onClick={() => setSelectedBank(null)}
+                      className="mb-8 mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium"
+                    >
+                      <span>&larr;</span> Search for another bank
+                    </button>
+                  )}
 
                   {loadingFinancials && <div className="text-blue-600 animate-pulse my-10">Loading Financial Data...</div>}
                   {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-4 rounded">{errorFinancials}</div>}
@@ -271,6 +280,8 @@ function App() {
                       onShowMovers={() => { setView('movers'); }}
                       showMoversButton={FEAT_MARKET_MOVERS}
                       authRequired={FEAT_AUTH_REQUIRED}
+                      isPresentMode={isPresentMode}
+                      setIsPresentMode={setIsPresentMode}
                     />
                   )}
 

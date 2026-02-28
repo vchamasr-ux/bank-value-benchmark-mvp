@@ -1,11 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
 
-const FinancialDashboard = ({ financials, benchmarks, authRequired = true }) => {
+const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+
+    // Listen for native Fullscreen exits (e.g., ESC key)
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement && isPresentMode) {
+                setIsPresentMode(false);
+            }
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, [isPresentMode, setIsPresentMode]);
+
+    const handlePresentLiveToggled = async () => {
+        try {
+            if (!isPresentMode) {
+                await document.documentElement.requestFullscreen();
+                setIsPresentMode(true);
+            } else {
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                }
+                setIsPresentMode(false);
+            }
+        } catch (err) {
+            console.error("Fullscreen toggle failed", err);
+            // Fallback: just toggle the CSS state if native fullscreen fails
+            setIsPresentMode(!isPresentMode);
+        }
+    };
 
     if (!financials) return null;
 
@@ -17,36 +46,65 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true }) => 
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <h2 className="text-2xl font-black text-blue-900 tracking-tight">
+                    <h2 className={`font-black text-blue-900 tracking-tight ${isPresentMode ? 'text-4xl' : 'text-2xl'}`}>
                         Financial Health Scorecard
                     </h2>
-                    <button
-                        onClick={() => setIsSummaryModalOpen(true)}
-                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                        </svg>
-                        AI Summarize
-                    </button>
+                    {!isPresentMode && (
+                        <button
+                            onClick={() => setIsSummaryModalOpen(true)}
+                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                            </svg>
+                            AI Summarize
+                        </button>
+                    )}
                 </div>
 
-                {benchmarks && benchmarks.groupName && (
-                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Benchmark:</span>
-                        <span className="text-sm font-bold text-slate-600">{benchmarks.groupName}</span>
-                        {benchmarks.sampleSize && (
-                            <button
-                                onClick={() => setIsPeerModalOpen(true)}
-                                className="text-blue-600 hover:text-blue-800 font-bold ml-1 bg-blue-100/50 px-2 py-0.5 rounded text-xs transition-colors"
-                                title="View Peer Group List"
-                            >
-                                N={benchmarks.sampleSize}
-                            </button>
-                        )}
-                    </div>
-                )}
+                <div className="flex items-center gap-4">
+                    {!isPresentMode && (
+                        <button
+                            onClick={handlePresentLiveToggled}
+                            className="flex items-center gap-2 border border-slate-300 hover:border-blue-500 hover:text-blue-600 text-slate-600 px-4 py-2 rounded-full text-sm font-bold transition-colors shadow-sm bg-white"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Present Live
+                        </button>
+                    )}
+
+                    {benchmarks && benchmarks.groupName && (
+                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Benchmark:</span>
+                            <span className="text-sm font-bold text-slate-600">{benchmarks.groupName}</span>
+                            {benchmarks.sampleSize && (
+                                <button
+                                    onClick={() => !isPresentMode && setIsPeerModalOpen(true)}
+                                    className={`text-blue-600 font-bold ml-1 bg-blue-100/50 px-2 py-0.5 rounded text-xs transition-colors ${!isPresentMode ? 'hover:text-blue-800 cursor-pointer' : 'cursor-default'}`}
+                                    title="View Peer Group List"
+                                >
+                                    N={benchmarks.sampleSize}
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {isPresentMode && (
+                <button
+                    onClick={handlePresentLiveToggled}
+                    className="fixed bottom-8 right-8 z-[200] bg-slate-900 border border-slate-700 text-white shadow-2xl rounded-full px-6 py-3 font-bold flex items-center gap-2 hover:bg-slate-800 hover:scale-105 transition-all outline-none"
+                    title="Exit Presentation Mode (Esc)"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Exit Presentation
+                </button>
+            )}
 
             {/* Peer Group Details Modal */}
             <PeerGroupModal
