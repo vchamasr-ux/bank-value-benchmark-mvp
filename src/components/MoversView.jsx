@@ -119,9 +119,9 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
     const displayList = isPresentationMode ? currentList.slice(0, 3) : currentList;
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className={`animate-in fade-in slide-in-from-bottom-2 duration-500 ${isPresentationMode ? 'space-y-3' : 'space-y-6'}`}>
             {/* Header / Stats */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white rounded-2xl border border-slate-200 shadow-sm ${isPresentationMode ? 'p-3' : 'p-6'}`}>
                 <div>
                     <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-black uppercase tracking-wider mb-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
@@ -155,8 +155,8 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
             </div>
 
             {/* List */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-4">
+            <div className={`grid grid-cols-1 lg:grid-cols-3 ${isPresentationMode ? 'gap-3' : 'gap-6'}`}>
+                <div className={`lg:col-span-2 ${isPresentationMode ? 'space-y-2' : 'space-y-4'}`}>
                     {displayList.length === 0 ? (
                         <div className="bg-white p-20 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400">
                             No {activeTab} detected in this segment.
@@ -164,7 +164,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                     ) : (
                         displayList.map((m, idx) => (
                             <div key={m.cert} className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all">
-                                <div className="p-5 flex justify-between items-start">
+                                <div className={`flex justify-between items-start ${isPresentationMode ? 'p-3' : 'p-5'}`}>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3">
                                             <span className={`text-xs font-black ${activeTab === 'threats' ? 'text-red-500' : 'text-green-500'} bg-slate-100 w-6 h-6 flex items-center justify-center rounded-full`}>{idx + 1}</span>
@@ -178,9 +178,9 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                         <div className="mt-4 flex flex-wrap gap-4">
                                             {m.topDrivers.map((d, dIdx) => (
                                                 <div key={dIdx} className="flex flex-col">
-                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">{d.spec.label}</span>
-                                                    <span className={`text-sm font-bold ${d.signedZ > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                        {d.z > 0 ? '+' : ''}{d.z.toFixed(2)}σ <span className="text-[10px] text-slate-400 font-medium">({d.delta > 0 ? '+' : ''}{(d.delta * 100).toFixed(2)}%)</span>
+                                                    <span className={`text-slate-400 font-bold uppercase ${isPresentationMode ? 'text-[8px]' : 'text-[10px]'}`}>{d.spec.label}</span>
+                                                    <span className={`font-bold ${d.signedZ > 0 ? 'text-green-600' : 'text-red-600'} ${isPresentationMode ? 'text-xs' : 'text-sm'}`}>
+                                                        {d.z > 0 ? '+' : ''}{d.z.toFixed(2)}σ <span className={`text-slate-400 font-medium ${isPresentationMode ? 'text-[8px]' : 'text-[10px]'}`}>({d.delta > 0 ? '+' : ''}{(d.delta * 100).toFixed(2)}%)</span>
                                                     </span>
                                                 </div>
                                             ))}
@@ -199,9 +199,9 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                 </div>
 
                 {/* Sidebar */}
-                <div className="space-y-6">
-                    <div className="bg-blue-900 rounded-2xl p-6 text-white shadow-xl">
-                        <h3 className="font-black text-lg mb-2">AI Intelligence</h3>
+                <div className={isPresentationMode ? 'space-y-3' : 'space-y-6'}>
+                    <div className={`bg-blue-900 rounded-2xl text-white shadow-xl ${isPresentationMode ? 'p-4' : 'p-6'}`}>
+                        <h3 className={`font-black mb-2 ${isPresentationMode ? 'text-base' : 'text-lg'}`}>AI Intelligence</h3>
                         {isPresentationMode ? (
                             <p className="text-blue-100 text-sm leading-relaxed">These market signals highlight competitive outliers based on standard deviation anomalies across key performance indicators.</p>
                         ) : (
@@ -217,23 +217,25 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                         )}
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <h3 className="font-bold text-slate-900 mb-4 text-sm">How to read the Radar</h3>
-                        <div className="space-y-4">
-                            <div className="flex gap-3">
-                                <span className="bg-slate-100 text-xs p-2 rounded-lg">σ</span>
-                                <p className="text-xs text-slate-500 leading-relaxed">
-                                    <strong className="text-slate-700">Sigma Scopes:</strong> We measure performance volatility relative to the peer group. High sigma (&gt; 2) indicates a "Breakout" or "Breakdown".
-                                </p>
-                            </div>
-                            <div className="flex gap-3">
-                                <span className="bg-slate-100 text-xs p-2 rounded-lg">⚡</span>
-                                <p className="text-xs text-slate-500 leading-relaxed">
-                                    <strong className="text-slate-700">Surprise:</strong> Cumulative absolute volatility across {KPI_SPECS.length} KPIs. Higher surprise means a bank has fundamentally shifted its profile.
-                                </p>
+                    {!isPresentationMode && (
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <h3 className="font-bold text-slate-900 mb-4 text-sm">How to read the Radar</h3>
+                            <div className="space-y-4">
+                                <div className="flex gap-3">
+                                    <span className="bg-slate-100 text-xs p-2 rounded-lg">σ</span>
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        <strong className="text-slate-700">Sigma Scopes:</strong> We measure performance volatility relative to the peer group. High sigma (&gt; 2) indicates a "Breakout" or "Breakdown".
+                                    </p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <span className="bg-slate-100 text-xs p-2 rounded-lg">⚡</span>
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        <strong className="text-slate-700">Surprise:</strong> Cumulative absolute volatility across {KPI_SPECS.length} KPIs. Higher surprise means a bank has fundamentally shifted its profile.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
