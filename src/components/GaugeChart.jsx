@@ -75,7 +75,19 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
 };
 
 
-const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric }) => {
+const GaugeChart = ({ value, min = 0, max = 100, label, average, topQuartile, bottomQuartile, inverse = false, suffix = "%", trend, metric }) => {
+    // Map Top/Bottom Quartiles to p75/p25 depending on if it's an inverse metric or not
+    let p25, p75;
+    if (inverse) {
+        // Inverse metrics (like vendor spend, where lower is better)
+        p25 = topQuartile;    // Top quartile is a lower number
+        p75 = bottomQuartile;  // Bottom quartile is a higher number
+    } else {
+        // Standard metrics (like NPS, where higher is better)
+        p25 = bottomQuartile; // Bottom quartile is a lower number
+        p75 = topQuartile;    // Top quartile is a higher number
+    }
+
     // Calculate ranges and the visual bounds used for them
     const { ranges, visualMin, visualMax, p25Angle, p75Angle } = calculateGaugeRanges({ value, min, max, average, p25, p75, inverse });
 
@@ -125,9 +137,9 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                                         <span className="font-bold" style={{ color: data.color }}>{data.name}</span>
                                         {p25 && p75 && (
                                             <div className="text-gray-500 mt-1">
-                                                {data.type === 'low' ? `Below ${format(p25)}` : ''}
-                                                {data.type === 'mid' ? `${format(p25)} - ${format(p75)}` : ''}
-                                                {data.type === 'high' ? `Above ${format(p75)}` : ''}
+                                                {data.type === 'low' ? `Bottom Quartile (< ${format(p25)})` : ''}
+                                                {data.type === 'mid' ? `Middle 50% (${format(p25)} - ${format(p75)})` : ''}
+                                                {data.type === 'high' ? `Top Quartile (> ${format(p75)})` : ''}
                                             </div>
                                         )}
                                     </div>
