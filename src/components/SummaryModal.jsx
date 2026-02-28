@@ -4,7 +4,7 @@ import LoginModal from './auth/LoginModal';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateHtmlBriefString } from '../utils/exportHtmlBrief';
 
-const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = true }) => {
+const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = true, onSummaryGenerated }) => {
     const [summary, setSummary] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -209,6 +209,9 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
             }
 
             setSummary(textResult);
+            if (onSummaryGenerated && textResult) {
+                onSummaryGenerated(textResult);
+            }
             setRetryCount(0); // Reset retry tracker on success
         } catch (err) {
             console.error("AI Insights Error:", err);

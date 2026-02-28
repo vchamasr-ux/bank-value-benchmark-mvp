@@ -9,6 +9,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [aiSummary, setAiSummary] = useState('');
 
     const handlePresentLiveToggled = () => {
         setIsPresentMode(!isPresentMode);
@@ -19,8 +20,16 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
         try {
             // Give React a tiny tick to ensure loaders show up
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Trigger capture of the hidden 16:9 slides instead of the visible UI
-            await exportDashboardToPDF(['pdf-slide-1', 'pdf-slide-2'], `BankValue_${financials.raw?.NAME || 'Report'}.pdf`);
+
+            // Base slides that are always present
+            const slidesToCapture = ['pdf-slide-1', 'pdf-slide-2'];
+
+            // Add optional slides if data is present
+            if (aiSummary) slidesToCapture.push('pdf-slide-3');
+            if (benchmarks?.peerBanks?.length > 0) slidesToCapture.push('pdf-slide-4');
+
+            // Trigger capture of the hidden 16:9 slides
+            await exportDashboardToPDF(slidesToCapture, `BankValue_${financials.raw?.NAME || 'Report'}.pdf`);
         } catch (error) {
             console.error("Failed to export PDF:", error);
             alert("Error generating PDF. Please check the console.");
@@ -116,6 +125,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 financials={financials}
                 benchmarks={benchmarks}
                 authRequired={authRequired}
+                onSummaryGenerated={setAiSummary}
             />
 
             {/* Geographic Distribution Map */}
@@ -310,7 +320,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Hidden PDF Export Slides */}
-            <PrintContainer financials={financials} benchmarks={benchmarks} />
+            <PrintContainer financials={financials} benchmarks={benchmarks} aiSummary={aiSummary} />
         </div>
     );
 };
