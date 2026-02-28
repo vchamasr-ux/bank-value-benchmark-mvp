@@ -275,7 +275,10 @@ function App() {
                   )}
 
                   {selectedBank && view === 'benchmark' && (
-                    <OperationalDashboard key={selectedBank.CERT} />
+                    <OperationalDashboard
+                      key={selectedBank.CERT}
+                      assetSize={financials?.raw?.ASSET ? parseFloat(financials.raw.ASSET) : 0}
+                    />
                   )}
 
                   {financials && !loadingFinancials && view === 'planner' && (

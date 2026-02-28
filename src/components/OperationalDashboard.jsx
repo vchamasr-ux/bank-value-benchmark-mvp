@@ -4,9 +4,12 @@ import benchmarkData from '../data/operationalBenchmarks.json';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
 
-const OperationalDashboard = () => {
+const OperationalDashboard = ({ assetSize = 0 }) => {
     const { user } = useAuth();
-    const [selectedPeerGroup, setSelectedPeerGroup] = useState('communityBank_under10B');
+
+    // FDIC ASSET is in thousands. 10 Billion = 10,000,000
+    const defaultPeerGroup = assetSize >= 10000000 ? 'regionalBank_over10B' : 'communityBank_under10B';
+    const [selectedPeerGroup, setSelectedPeerGroup] = useState(defaultPeerGroup);
     const [formData, setFormData] = useState({
         digitalAdoptionRate: '',
         digitalAccountOpening: '',
