@@ -12,11 +12,17 @@ const Sparkline = ({ value, min = 0, max = 100, average, inverse = false, suffix
         avgPercent = ((clampedAvg - min) / range) * 100;
     }
 
-    // Determine color based on value vs. average and inverse logic
+    // Determine color based on value vs. average and inverse logic.
+    // Within a 5% tolerance of the average → show amber (not a hard red).
     let fillClass = "bg-blue-500";
     if (avgPercent !== null) {
+        const delta = Math.abs(value - average) / Math.abs(average || 1);
         const isBetter = inverse ? value <= average : value >= average;
-        fillClass = isBetter ? "bg-green-500" : "bg-red-500";
+        if (delta < 0.05) {
+            fillClass = "bg-amber-400";
+        } else {
+            fillClass = isBetter ? "bg-green-500" : "bg-red-500";
+        }
     }
 
     return (

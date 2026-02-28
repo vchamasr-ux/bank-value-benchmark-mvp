@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import TrendIndicator from './TrendIndicator';
 import Tooltip from './Tooltip';
@@ -85,7 +85,21 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
 };
 
 
-const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric }) => {
+const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric, isActive = true }) => {
+    // Animate needle sweep: starts at far-left (-90°) and transitions to real rotation when active
+    const [animated, setAnimated] = useState(false);
+    useEffect(() => {
+        if (isActive) {
+            setAnimated(false);
+            const raf = requestAnimationFrame(() => {
+                // Small delay so the CSS transition actually fires (needs a frame gap)
+                setTimeout(() => setAnimated(true), 50);
+            });
+            return () => cancelAnimationFrame(raf);
+        } else {
+            setAnimated(false);
+        }
+    }, [isActive]);
     // Calculate ranges and the visual bounds used for them
     const { ranges, visualMin, visualMax, p25Angle, p75Angle } = calculateGaugeRanges({ value, min, max, average, p25, p75, inverse });
 
@@ -168,11 +182,11 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                     ></div>
                 )}
 
-                {/* Needle - Added pointer-events-none to fix hover issue */}
+                {/* Needle - sweeps from -90° (far left) to real rotation when isActive */}
                 <div
-                    className="absolute bottom-0 left-1/2 w-1 h-20 origin-bottom bg-gray-800 transition-transform duration-1000 ease-out pointer-events-none"
+                    className="absolute bottom-0 left-1/2 w-1 h-20 origin-bottom bg-gray-800 transition-transform duration-[1200ms] ease-out pointer-events-none"
                     style={{
-                        transform: `translateX(-50%) rotate(${rotation}deg)`
+                        transform: `translateX(-50%) rotate(${animated ? rotation : -90}deg)`
                     }}
                 ></div>
                 <div className="absolute bottom-0 left-1/2 w-4 h-4 -ml-2 -mb-2 rounded-full bg-gray-800 pointer-events-none"></div>
@@ -195,6 +209,23 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                 {(average !== undefined && average !== null) && (
                     <div className="text-xs text-gray-400 mt-1 flex flex-col items-center w-full">
                         <span className="font-semibold">Avg: {format(average)}</span>
+                        {p25 != null && p75 != null && (() => {
+                            const q1 = Number(p25), q3 = Number(p75), iqr = (q3 - q1) || 0.0001;
+                            const v = Number(value);
+                            let pct;
+                            if (v <= q1) pct = Math.round(25 * Math.max(0, (v - (q1 - iqr)) / iqr));
+                            else if (v <= q3) pct = Math.round(25 + 50 * ((v - q1) / iqr));
+                            else pct = Math.round(75 + 25 * Math.min(1, (v - q3) / iqr));
+                            pct = Math.max(1, Math.min(99, pct));
+                            const clr = inverse
+                                ? (pct <= 33 ? 'text-emerald-600' : pct <= 66 ? 'text-amber-500' : 'text-rose-600')
+                                : (pct >= 67 ? 'text-emerald-600' : pct >= 34 ? 'text-amber-500' : 'text-rose-600');
+                            return (
+                                <span className={`text-[11px] font-bold mt-0.5 ${clr}`} title="Estimated percentile rank within peer group">
+                                    {pct}th pct of peers
+                                </span>
+                            );
+                        })()}
                     </div>
                 )}
             </div>

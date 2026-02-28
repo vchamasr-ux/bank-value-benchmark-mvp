@@ -16,6 +16,7 @@ const PitchbookPresentation = ({
     currentQuarter = 'Q4 2025',
 }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [direction, setDirection] = useState('forward'); // for directional transitions (#2)
     const [aiSummaryHtml, setAiSummaryHtml] = useState(null);
 
     const getBenchmark = (key) => benchmarks ? parseFloat(benchmarks[key]) : 0;
@@ -39,6 +40,25 @@ const PitchbookPresentation = ({
             }
         }
     }, [financials.raw.CERT]);
+
+    // #5 — extract a short topic label from each AI bullet for a smarter heading
+    const extractInsightTopic = (bullet) => {
+        const topics = [
+            { match: /efficiency ratio|efficiency/i, label: 'Cost Efficiency' },
+            { match: /return on assets|\broa\b/i, label: 'Return on Assets' },
+            { match: /return on equity|\broe\b/i, label: 'Return on Equity' },
+            { match: /net interest margin|\bnim\b/i, label: 'Net Interest Margin' },
+            { match: /asset growth/i, label: 'Asset Growth' },
+            { match: /non-performing|\bnpl\b/i, label: 'Loan Quality' },
+            { match: /capital/i, label: 'Capital Adequacy' },
+            { match: /deposit/i, label: 'Deposit Base' },
+            { match: /loan/i, label: 'Loan Portfolio' },
+        ];
+        for (const { match, label } of topics) {
+            if (match.test(bullet)) return label;
+        }
+        return bullet.replace(/[^a-zA-Z\s]/g, '').split(/\s+/).filter(w => w.length > 3).slice(0, 3).join(' ') || 'Key Finding';
+    };
 
     const getAiBullets = () => {
         let bullets = [];
@@ -148,7 +168,7 @@ const PitchbookPresentation = ({
                         {selectedBank.CITY}, {selectedBank.STNAME} • Cert: {selectedBank.CERT}
                     </div>
                     <div className="absolute bottom-16 w-full text-center">
-                        <p className="text-slate-500 text-sm font-bold">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                        <p className="text-slate-500 text-sm font-bold tracking-widest uppercase">{currentQuarter} Performance Review</p>
                     </div>
                 </div>
             )
@@ -160,23 +180,22 @@ const PitchbookPresentation = ({
                 <div className="flex flex-col items-center justify-center h-full animate-in fade-in slide-in-from-right-8 duration-700">
                     <div className="w-full max-w-4xl px-16 py-12 bg-white shadow-xl border-t-8 border-blue-900">
                         <h2 className="text-3xl font-serif font-black text-slate-800 mb-10 pb-4 border-b-2 border-slate-100 uppercase tracking-widest">Agenda</h2>
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-6">
-                                <span className="text-2xl font-serif font-black text-slate-300">I.</span>
-                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Strategic Summary & Key Insights</span>
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <span className="text-2xl font-serif font-black text-slate-300">II.</span>
-                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Core Financial Benchmarking</span>
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <span className="text-2xl font-serif font-black text-slate-300">III.</span>
-                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Competitive Radar & Positioning</span>
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <span className="text-2xl font-serif font-black text-slate-300">IV.</span>
-                                <span className="text-xl font-medium text-slate-700 tracking-wide uppercase">Forward-Looking Strategy</span>
-                            </div>
+                        <div className="space-y-4">
+                            {/* #8 — clickable agenda items jump to the relevant slide */}
+                            {[{ num: 'I.', label: 'Strategic Summary & Key Insights', idx: 3 },
+                            { num: 'II.', label: 'Core Financial Benchmarking', idx: 5 },
+                            { num: 'III.', label: 'Competitive Radar & Positioning', idx: 7 },
+                            { num: 'IV.', label: 'Forward-Looking Strategy', idx: 9 }].map(item => (
+                                <button
+                                    key={item.num}
+                                    onClick={() => { setDirection('forward'); setCurrentSlide(item.idx); }}
+                                    className="flex items-center gap-6 w-full text-left group hover:bg-slate-50 rounded px-2 py-2 transition-colors"
+                                >
+                                    <span className="text-2xl font-serif font-black text-slate-300 group-hover:text-blue-300 transition-colors w-12 shrink-0">{item.num}</span>
+                                    <span className="text-xl font-medium text-slate-700 tracking-wide uppercase group-hover:text-blue-900 transition-colors flex-1">{item.label}</span>
+                                    <svg className="ml-auto w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -201,13 +220,14 @@ const PitchbookPresentation = ({
                     <div className="w-full space-y-8">
                         {aiBullets.map((bullet, idx) => {
                             const matchedMetric = matchBulletToMetric(bullet);
+                            const topic = extractInsightTopic(bullet); // #5 smart heading
                             return (
                                 <div key={idx} className={`flex items-start gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both delay-${(idx + 1) * 200}`}>
                                     <div className="w-12 h-12 rounded-sm bg-blue-900 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
                                         <span className="text-white font-black text-xl">{idx + 1}</span>
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-bold text-blue-900 mb-1 uppercase tracking-wide">Key Insight {idx + 1}</h3>
+                                        <h3 className="text-xl font-bold text-blue-900 mb-1 uppercase tracking-wide">{topic}</h3>
                                         <p className="text-lg text-slate-700 leading-relaxed font-medium">{bullet}</p>
                                         {matchedMetric && (
                                             <div className="mt-4 bg-slate-50 p-4 rounded border border-slate-200 inline-block w-full max-w-sm shadow-sm">
@@ -244,6 +264,7 @@ const PitchbookPresentation = ({
             id: 'financial',
             actionTitle: `Core Financial Performance vs. ${benchmarks?.groupName || 'Peers'}`,
             actionSubtitle: "A distilled view of the most critical financial health and profitability indicators against the benchmark.",
+            source: `Source: FDIC Call Report Data, ${currentQuarter}; Peer Group: ${benchmarks?.groupName || 'Segment'}`,  // #1
             content: (
                 <div className="w-full h-full flex flex-col justify-center px-8 gap-4">
                     <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-y-8 gap-x-8 justify-items-center content-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
@@ -260,6 +281,7 @@ const PitchbookPresentation = ({
                                 inverse={cfg.inverse || false}
                                 suffix={cfg.suffix || '%'}
                                 metric={cfg.metric}
+                                isActive={slides[currentSlide]?.id === 'financial'} // #6 needle sweep
                             />
                         ))}
                     </div>
@@ -378,18 +400,24 @@ const PitchbookPresentation = ({
     ];
 
     const handleNext = () => {
-        if (currentSlide < slides.length - 1) setCurrentSlide(currentSlide + 1);
+        if (currentSlide < slides.length - 1) {
+            setDirection('forward');   // #2 directional transitions
+            setCurrentSlide(currentSlide + 1);
+        }
     };
 
     const handlePrev = () => {
-        if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
+        if (currentSlide > 0) {
+            setDirection('backward');  // #2 directional transitions
+            setCurrentSlide(currentSlide - 1);
+        }
     };
 
     // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'Space') handleNext();
-            else if (e.key === 'ArrowLeft') handlePrev();
+            if (e.key === 'ArrowRight' || e.key === 'Space') { setDirection('forward'); handleNext(); }
+            else if (e.key === 'ArrowLeft') { setDirection('backward'); handlePrev(); }
             else if (e.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -404,6 +432,7 @@ const PitchbookPresentation = ({
             <div className="absolute top-0 w-full flex items-center justify-between p-4 bg-slate-800 text-white shadow-md z-10">
                 <button
                     onClick={onClose}
+                    aria-label="Close presentation" // #9
                     className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-white/20 px-4 py-2 rounded outline-none"
                 >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -420,6 +449,7 @@ const PitchbookPresentation = ({
                     <button
                         onClick={handlePrev}
                         disabled={currentSlide === 0}
+                        aria-label="Previous slide" // #9
                         className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                     >
                         Prev
@@ -427,6 +457,7 @@ const PitchbookPresentation = ({
                     <button
                         onClick={handleNext}
                         disabled={currentSlide === slides.length - 1}
+                        aria-label="Next slide" // #9
                         className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === slides.length - 1 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'}`}
                     >
                         Next
@@ -444,6 +475,13 @@ const PitchbookPresentation = ({
                     maxHeight: '90vh' // Ensure it doesn't overflow vertically on small screens
                 }}
             >
+                {/* #10 — thin progress bar at the very top edge of the canvas */}
+                <div className="absolute top-0 left-0 h-0.5 bg-blue-200 w-full z-30">
+                    <div
+                        className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                        style={{ width: `${((currentSlide) / (slides.length - 1)) * 100}%` }}
+                    />
+                </div>
                 {!activeSlide.isCover && !activeSlide.isDivider && (
                     <div className="w-full px-10 pt-8 pb-4 border-b-2 border-slate-800 flex justify-between items-end flex-shrink-0 animate-in fade-in duration-300">
                         <div className="max-w-4xl">
@@ -468,7 +506,18 @@ const PitchbookPresentation = ({
                 )}
 
                 {/* Main Body Content */}
-                <div className={`flex-1 w-full relative overflow-hidden ${activeSlide.isDivider ? '' : 'p-10 bg-white'}`}>
+                <div
+                    // #2 — directional transitions: forward slides in from right, back from left
+                    key={currentSlide}
+                    className={`flex-1 w-full relative overflow-hidden animate-in fade-in duration-400 fill-mode-both ${direction === 'forward' ? 'slide-in-from-right-6' : 'slide-in-from-left-6'
+                        } ${activeSlide.isDivider ? '' : 'p-10 bg-white'}`}
+                >
+                    {/* #11 — page number on divider slides */}
+                    {activeSlide.isDivider && (
+                        <div className="absolute bottom-4 right-8 text-white/30 text-xs font-bold tracking-widest">
+                            {currentSlide + 1} / {slides.length}
+                        </div>
+                    )}
                     {activeSlide.content}
                 </div>
 
