@@ -171,11 +171,13 @@ function App() {
                 </nav>
               </div>
 
-              <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 ${radarContextBank ? 'border-blue-200 bg-blue-50/50' : ''}`}>
-                <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></span>
-                {selectedBank.NAME}
-                {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
-              </div>
+              {selectedBank && (
+                <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 ${radarContextBank ? 'border-blue-200 bg-blue-50/50' : ''}`}>
+                  <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></span>
+                  {selectedBank.NAME}
+                  {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
+                </div>
+              )}
             </div>
           </header>
 
