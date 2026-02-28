@@ -227,12 +227,12 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                         The peer group averages and quartile ranges displayed above are synthesized on a best-effort basis from aggregated 2025-2026 industry research reports, surveys, and consulting benchmarks aimed at community and regional banking institutions. They should be used for general comparison and directional guidance only, not as definitive financial advice.
                     </p>
                     <div className="text-[10px] text-slate-500">
-                        <strong>Primary Data Sources (Aggregated 2024/2025):</strong>
+                        <strong>Primary Data Sources (Aggregated 2024 Research):</strong>
                         <span className="ml-1">
-                            <a href="https://www.q2.com/state-of-commercial-banking-2025" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Q2 State of Commercial Banking</a>,
-                            <a href="https://www.csbs.org/2024-annual-survey-community-banks" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">CSBS Annual Survey of Community Banks</a>,
-                            <a href="https://www.alkami.com/report/data-telemetry-report/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">Alkami Telemetry Report</a>,
-                            <a href="https://www.questionpro.com/blog/nps-benchmarks/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">QuestionPro Benchmark Reports</a>.
+                            <a href="https://www.bny.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">BNY Mellon Community Bank Survey</a>,
+                            <a href="https://www.csbs.org" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">CSBS Annual Survey</a>,
+                            <a href="https://thefinancialbrand.com" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">The Financial Brand Industry Reports</a>,
+                            <a href="https://www.alkami.com" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">Alkami Telemetry Data</a>.
                         </span>
                     </div>
                 </div>

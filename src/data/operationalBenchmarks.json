@@ -1,56 +1,56 @@
 {
     "communityBank_under10B": {
         "digitalAdoptionRate": {
-            "average": 70,
-            "topQuartile": 85,
-            "bottomQuartile": 55
+            "average": 72,
+            "topQuartile": 88,
+            "bottomQuartile": 60
         },
         "digitalAccountOpening": {
-            "average": 20,
-            "topQuartile": 35,
-            "bottomQuartile": 10
+            "average": 33,
+            "topQuartile": 45,
+            "bottomQuartile": 15
         },
         "vendorSpendPercent": {
-            "average": 18,
-            "topQuartile": 12,
-            "bottomQuartile": 25
+            "average": 11.4,
+            "topQuartile": 9,
+            "bottomQuartile": 15
         },
         "avgAgeCustomer": {
-            "average": 55,
-            "topQuartile": 48,
-            "bottomQuartile": 62
+            "average": 57,
+            "topQuartile": 51,
+            "bottomQuartile": 64
         },
         "netPromoterScore": {
             "average": 65,
-            "topQuartile": 78,
+            "topQuartile": 75,
             "bottomQuartile": 50
         }
     },
     "regionalBank_over10B": {
         "digitalAdoptionRate": {
-            "average": 82,
-            "topQuartile": 92,
-            "bottomQuartile": 70
+            "average": 85,
+            "topQuartile": 94,
+            "bottomQuartile": 75
         },
         "digitalAccountOpening": {
             "average": 45,
-            "topQuartile": 65,
-            "bottomQuartile": 25
+            "topQuartile": 60,
+            "bottomQuartile": 30
         },
         "vendorSpendPercent": {
-            "average": 14,
-            "topQuartile": 10,
-            "bottomQuartile": 18
+            "average": 10.5,
+            "topQuartile": 7,
+            "bottomQuartile": 13
         },
         "avgAgeCustomer": {
-            "average": 49,
-            "topQuartile": 42,
-            "bottomQuartile": 56
+            "average": 46,
+            "topQuartile": 38,
+            "bottomQuartile": 52
         },
         "netPromoterScore": {
-            "average": 40,
+            "average": 42,
             "topQuartile": 55,
-            "bottomQuartile": 25
+            "bottomQuartile": 30
         }
     }
 }
