@@ -199,6 +199,7 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     p25={currentBenchmarks.avgAgeCustomer.topQuartile}
                     p75={currentBenchmarks.avgAgeCustomer.bottomQuartile}
                     inverse={true}
+                    suffix=""
                 />
                 <GaugeChart
                     label="NPS"
@@ -208,6 +209,7 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     average={currentBenchmarks.netPromoterScore.average}
                     p25={currentBenchmarks.netPromoterScore.bottomQuartile}
                     p75={currentBenchmarks.netPromoterScore.topQuartile}
+                    suffix=""
                 />
             </div>
 
