@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateHtmlBriefString } from '../utils/exportHtmlBrief';
 
 const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = true }) => {
     const [summary, setSummary] = useState('');
@@ -21,6 +22,26 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
             setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy text: ', err);
+        }
+    };
+
+    const handleExportHTML = () => {
+        try {
+            const htmlString = generateHtmlBriefString(financials, benchmarks, { summary });
+            const blob = new Blob([htmlString], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeName = (financials?.name || financials?.raw?.NAME || 'Bank').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const reportDate = financials?.reportDate ? financials.reportDate.replace(/\s+/g, '_') : 'latest';
+            a.download = `${safeName}_Executive_Brief_${reportDate}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Failed to generate export:', err);
+            alert("Failed to generate export: " + err.message);
         }
     };
 
@@ -353,29 +374,42 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                 <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-between rounded-b-xl">
                     <div>
                         {summary && !isLoading && !error && (
-                            <button
-                                onClick={handleCopy}
-                                className={`px-4 py-2.5 rounded-lg text-sm font-bold focus:outline-none transition-all flex items-center gap-2 ${isCopied
-                                    ? 'bg-green-100 text-green-700 border border-green-200'
-                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm'
-                                    }`}
-                            >
-                                {isCopied ? (
-                                    <>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Copied!
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                                        </svg>
-                                        Copy Report
-                                    </>
-                                )}
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleCopy}
+                                    className={`px-4 py-2.5 rounded-lg text-sm font-bold focus:outline-none transition-all flex items-center gap-2 ${isCopied
+                                        ? 'bg-green-100 text-green-700 border border-green-200'
+                                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm'
+                                        }`}
+                                    title="Copy to Clipboard"
+                                >
+                                    {isCopied ? (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Copied!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                            </svg>
+                                            Copy Report
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={handleExportHTML}
+                                    className="px-4 py-2.5 bg-blue-900 border border-blue-900 text-white hover:bg-blue-800 rounded-lg text-sm font-bold focus:outline-none transition-all flex items-center gap-2 shadow-sm"
+                                    title="Download interactive Executive Brief"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Export HTML Brief
+                                </button>
+                            </div>
                         )}
                     </div>
                     <div className="flex gap-3">
@@ -407,7 +441,7 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                 }}
                 onLoginSuccess={handleLoginSuccess}
             />
-        </div>
+        </div >
     );
 };
 
