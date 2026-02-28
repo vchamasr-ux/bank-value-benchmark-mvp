@@ -186,8 +186,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={0}
                     max={100}
                     average={currentBenchmarks.digitalAdoptionRate.average}
-                    topQuartile={currentBenchmarks.digitalAdoptionRate.topQuartile}
-                    bottomQuartile={currentBenchmarks.digitalAdoptionRate.bottomQuartile}
+                    p25={currentBenchmarks.digitalAdoptionRate.bottomQuartile}
+                    p75={currentBenchmarks.digitalAdoptionRate.topQuartile}
                 />
                 <GaugeChart
                     label="Digital Acct Opening"
@@ -195,8 +195,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={0}
                     max={100}
                     average={currentBenchmarks.digitalAccountOpening.average}
-                    topQuartile={currentBenchmarks.digitalAccountOpening.topQuartile}
-                    bottomQuartile={currentBenchmarks.digitalAccountOpening.bottomQuartile}
+                    p25={currentBenchmarks.digitalAccountOpening.bottomQuartile}
+                    p75={currentBenchmarks.digitalAccountOpening.topQuartile}
                 />
                 <GaugeChart
                     label="Vendor Spend %"
@@ -204,8 +204,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={0}
                     max={30}
                     average={currentBenchmarks.vendorSpendPercent.average}
-                    topQuartile={currentBenchmarks.vendorSpendPercent.topQuartile}
-                    bottomQuartile={currentBenchmarks.vendorSpendPercent.bottomQuartile}
+                    p25={currentBenchmarks.vendorSpendPercent.topQuartile}
+                    p75={currentBenchmarks.vendorSpendPercent.bottomQuartile}
                     inverse={true}
                 />
                 <GaugeChart
@@ -214,8 +214,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={20}
                     max={80}
                     average={currentBenchmarks.avgAgeCustomer.average}
-                    topQuartile={currentBenchmarks.avgAgeCustomer.topQuartile}
-                    bottomQuartile={currentBenchmarks.avgAgeCustomer.bottomQuartile}
+                    p25={currentBenchmarks.avgAgeCustomer.topQuartile}
+                    p75={currentBenchmarks.avgAgeCustomer.bottomQuartile}
                     inverse={true}
                 />
                 <GaugeChart
@@ -224,8 +224,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={-100}
                     max={100}
                     average={currentBenchmarks.netPromoterScore.average}
-                    topQuartile={currentBenchmarks.netPromoterScore.topQuartile}
-                    bottomQuartile={currentBenchmarks.netPromoterScore.bottomQuartile}
+                    p25={currentBenchmarks.netPromoterScore.bottomQuartile}
+                    p75={currentBenchmarks.netPromoterScore.topQuartile}
                 />
             </div>
 

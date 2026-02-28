@@ -220,7 +220,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
             const metrics = [
                 'efficiencyRatio', 'netInterestMargin', 'costOfFunds',
                 'nonInterestIncomePercent', 'yieldOnLoans', 'assetsPerEmployee',
-                'returnOnEquity', 'returnOnAssets', 'nonPerformingLoansRatio',
+                'returnOnEquity', 'returnOnAssets', 'nptlRatio',
                 'assetGrowth3Y', 'loanGrowth3Y', 'depositGrowth3Y'
             ];
             const distributions = {};
@@ -256,7 +256,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     assetsPerEmployee: distributions.assetsPerEmployee.p25,
                     returnOnEquity: distributions.returnOnEquity.p25,
                     returnOnAssets: distributions.returnOnAssets.p25,
-                    nonPerformingLoansRatio: distributions.nonPerformingLoansRatio.p25,
+                    nptlRatio: distributions.nptlRatio.p25,
                     assetGrowth3Y: distributions.assetGrowth3Y.p25,
                     loanGrowth3Y: distributions.loanGrowth3Y.p25,
                     depositGrowth3Y: distributions.depositGrowth3Y.p25
@@ -270,7 +270,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     assetsPerEmployee: distributions.assetsPerEmployee.p75,
                     returnOnEquity: distributions.returnOnEquity.p75,
                     returnOnAssets: distributions.returnOnAssets.p75,
-                    nonPerformingLoansRatio: distributions.nonPerformingLoansRatio.p75,
+                    nptlRatio: distributions.nptlRatio.p75,
                     assetGrowth3Y: distributions.assetGrowth3Y.p75,
                     loanGrowth3Y: distributions.loanGrowth3Y.p75,
                     depositGrowth3Y: distributions.depositGrowth3Y.p75

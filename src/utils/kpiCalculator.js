@@ -110,10 +110,10 @@ const calculateKPIsInternal = (data, history = null) => {
     }
 
     // 9. Non-Performing Loans (NPL) Ratio
-    let nonPerformingLoansRatio = 0;
+    let nptlRatio = 0;
     const nonCurrentLoans = val('NCLNLS');
     if (totalLoans > 0) {
-        nonPerformingLoansRatio = (nonCurrentLoans / totalLoans) * 100;
+        nptlRatio = (nonCurrentLoans / totalLoans) * 100;
     }
 
     // 10. 3-Year Growth Metrics (CAGR)
@@ -182,7 +182,7 @@ const calculateKPIsInternal = (data, history = null) => {
         assetsPerEmployee: assetsPerEmployee.toFixed(0),
         returnOnEquity: returnOnEquity.toFixed(2),
         returnOnAssets: returnOnAssets.toFixed(2),
-        nptlRatio: nonPerformingLoansRatio.toFixed(2),
+        nptlRatio: nptlRatio.toFixed(2),
         assetGrowth3Y,
         loanGrowth3Y,
         depositGrowth3Y,

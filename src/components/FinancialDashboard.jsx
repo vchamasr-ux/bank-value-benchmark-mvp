@@ -244,15 +244,15 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true }) => 
                     />
                     <GaugeChart
                         label="NPL Ratio"
-                        value={parseFloat(financials.nonPerformingLoansRatio)}
+                        value={parseFloat(financials.nptlRatio)}
                         min={0}
                         max={5}
-                        average={getAvg('nonPerformingLoansRatio', 0.75)}
-                        p25={benchmarks?.p25?.nonPerformingLoansRatio}
-                        p75={benchmarks?.p75?.nonPerformingLoansRatio}
+                        average={getAvg('nptlRatio', 0.75)}
+                        p25={benchmarks?.p25?.nptlRatio}
+                        p75={benchmarks?.p75?.nptlRatio}
                         inverse={true}
                         trend={financials.history}
-                        metric="nonPerformingLoansRatio"
+                        metric="nptlRatio"
                     />
                 </div>
             </div>
