@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import BankSearch from './components/BankSearch';
 import FinancialDashboard from './components/FinancialDashboard';
 import OperationalDashboard from './components/OperationalDashboard';
-import MoversSummaryModal from './components/MoversSummaryModal';
-import MoversView from './components/MoversView';
+const MoversView = lazy(() => import('./components/MoversView'));
+const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
 import UserProfileMenu from './components/UserProfileMenu';
 import LandingPage from './components/LandingPage';
-import { calculateKPIs } from './utils/kpiCalculator';
 import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
 const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
@@ -18,9 +17,19 @@ import PitchbookPresentation from './components/PitchbookPresentation';
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
 const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false'; // Default to true, allow explicit disable
 
-// Quarter labels — update here when the quarter rolls over
-const PRIOR_QUARTER = 'Q3 2025';
-const CURRENT_QUARTER = 'Q4 2025';
+/**
+ * Derive the prior quarter label from a report date string like "Q4 2025".
+ * Avoids the need to manually update hardcoded constants each quarter.
+ */
+const derivePriorQuarter = (reportDate) => {
+  if (!reportDate) return null;
+  const match = reportDate.match(/^Q([1-4]) (\d{4})$/);
+  if (!match) return null;
+  let q = parseInt(match[1], 10);
+  let y = parseInt(match[2], 10);
+  if (q === 1) { q = 4; y -= 1; } else { q -= 1; }
+  return `Q${q} ${y}`;
+};
 
 function App() {
   const [selectedBank, setSelectedBank] = useState(null);
@@ -33,16 +42,13 @@ function App() {
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
   const [isPresentMode, setIsPresentMode] = useState(false);
 
-  // Sync selected bank and manage radar context
+  // Derived quarter labels — always in sync with live data, no manual updates needed
+  const CURRENT_QUARTER = financials?.reportDate || null;
+  const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
+
+  // Clear radar context when bank is deselected
   useEffect(() => {
-    if (selectedBank) {
-      // If we select a NEW bank manually (not via drill-down), clear radar context
-      if (!radarContextBank || (String(selectedBank.CERT) !== String(radarContextBank.cert))) {
-        if (view === 'benchmark' && !radarContextBank) {
-          // Reset context if we search/select something else entirely
-        }
-      }
-    } else {
+    if (!selectedBank) {
       setRadarContextBank(null);
       setView('benchmark');
     }
@@ -168,6 +174,15 @@ function App() {
                   <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
                     <UserProfileMenu />
                   </div>
+
+                  {/* Back to Suite */}
+                  <a
+                    href="https://fdic-suite-landing.vercel.app"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-slate-200 ml-2"
+                    aria-label="Back to FDIC Intelligence Suite"
+                  >
+                    ← Suite
+                  </a>
                 </nav>
               </div>
 
@@ -274,35 +289,37 @@ function App() {
 
                 {/* View Switching */}
                 {view === 'movers' ? (
-                  <MoversView
-                    dataProvider={fdicService}
-                    perspectiveBankName={selectedBank?.NAME || 'Market'}
-                    focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
-                    segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
-                    segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
-                    priorQuarter={PRIOR_QUARTER}
-                    currentQuarter={CURRENT_QUARTER}
-                    onDrillDown={async (cert) => {
-                      // Maintain radar context of the SOURCE bank
-                      if (selectedBank) {
-                        setRadarContextBank({
-                          cert: String(selectedBank.CERT),
-                          name: selectedBank.NAME
-                        });
-                      }
-                      const data = await getBankFinancials(cert);
-                      if (data && data.length > 0) {
-                        setSelectedBank({
-                          CERT: cert,
-                          NAME: data[0].NAME || 'Selected Bank',
-                          CITY: data[0].CITY || '',
-                          STNAME: data[0].STALP || data[0].STNAME || ''
-                        });
-                        setView('benchmark');
-                      }
-                    }}
-                    onShowBrief={() => setShowMovers(true)}
-                  />
+                  <Suspense fallback={<div className="flex justify-center items-center h-64 text-blue-600 animate-pulse font-bold">Loading Competitive Radar...</div>}>
+                    <MoversView
+                      dataProvider={fdicService}
+                      perspectiveBankName={selectedBank?.NAME || 'Market'}
+                      focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
+                      segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
+                      segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
+                      priorQuarter={PRIOR_QUARTER}
+                      currentQuarter={CURRENT_QUARTER}
+                      onDrillDown={async (cert) => {
+                        // Maintain radar context of the SOURCE bank
+                        if (selectedBank) {
+                          setRadarContextBank({
+                            cert: String(selectedBank.CERT),
+                            name: selectedBank.NAME
+                          });
+                        }
+                        const data = await getBankFinancials(cert);
+                        if (data && data.length > 0) {
+                          setSelectedBank({
+                            CERT: cert,
+                            NAME: data[0].NAME || 'Selected Bank',
+                            CITY: data[0].CITY || '',
+                            STNAME: data[0].STALP || data[0].STNAME || ''
+                          });
+                          setView('benchmark');
+                        }
+                      }}
+                      onShowBrief={() => setShowMovers(true)}
+                    />
+                  </Suspense>
                 ) : (
                   <div className="max-w-4xl mx-auto space-y-8">
                     <div className={`bg-transparent relative ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
@@ -353,18 +370,20 @@ function App() {
 
           {/* Render the AI Intelligence Modal if triggered gracefully from anywhere */}
           {FEAT_MARKET_MOVERS && showMovers && selectedBank && (
-            <MoversSummaryModal
-              isOpen={showMovers}
-              onClose={() => setShowMovers(false)}
-              dataProvider={fdicService}
-              perspectiveBankName={selectedBank.NAME}
-              focusBankCert={String(selectedBank.CERT)}
-              segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
-              segmentLabel={benchmarks?.groupName || 'Peer Group'}
-              priorQuarter={PRIOR_QUARTER}
-              currentQuarter={CURRENT_QUARTER}
-              authRequired={FEAT_AUTH_REQUIRED}
-            />
+            <Suspense fallback={null}>
+              <MoversSummaryModal
+                isOpen={showMovers}
+                onClose={() => setShowMovers(false)}
+                dataProvider={fdicService}
+                perspectiveBankName={selectedBank.NAME}
+                focusBankCert={String(selectedBank.CERT)}
+                segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
+                segmentLabel={benchmarks?.groupName || 'Peer Group'}
+                priorQuarter={PRIOR_QUARTER}
+                currentQuarter={CURRENT_QUARTER}
+                authRequired={FEAT_AUTH_REQUIRED}
+              />
+            </Suspense>
           )}
 
           <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
