@@ -85,10 +85,44 @@ const getAssetGroupConfig = (assetSize) => {
  * @param {string} subjectState - The 2-letter state code of the subject bank (e.g. 'VA').
  * @returns {Promise<Object>} - The raw aggregate financial data for the peer group.
  */
+const BENCH_CACHE_VERSION = 'v1';
+const BENCH_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const _benchmarkCache = {
+    get(key) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return null;
+            const { ts, data } = JSON.parse(raw);
+            if (Date.now() - ts > BENCH_CACHE_TTL_MS) {
+                localStorage.removeItem(key);
+                return null;
+            }
+            return data;
+        } catch {
+            return null;
+        }
+    },
+    set(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+        } catch {
+            // localStorage may be full — fail silently, app still works
+        }
+    }
+};
+
 export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
     if (!assetSize) return null;
 
     const { filter: assetFilter, name: groupName } = getAssetGroupConfig(assetSize);
+
+    // #1 — Check localStorage cache first (24h TTL, versioned key)
+    const cacheKey = `fdic_bench_${BENCH_CACHE_VERSION}_${assetFilter}_${subjectState || 'all'}`;
+    const cached = _benchmarkCache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
 
     const fields = 'ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
     // Fetch a larger sample (N=500) to find enough neighbors
@@ -241,7 +275,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                 };
             });
 
-            return {
+            const result = {
                 ...totalRaw,
                 ...means, // Directly provide Means as the primary benchmark values
                 groupName,
@@ -277,6 +311,9 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     depositGrowth3Y: distributions.depositGrowth3Y.p75
                 }
             };
+            // Persist to localStorage cache before returning (#1)
+            _benchmarkCache.set(cacheKey, result);
+            return result;
         }
         return null;
     } catch (error) {

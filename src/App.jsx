@@ -33,6 +33,8 @@ const derivePriorQuarter = (reportDate) => {
 
 function App() {
   const [selectedBank, setSelectedBank] = useState(null);
+  const [allHistoricalKPIs, setAllHistoricalKPIs] = useState(null); // full 20-quarter array
+  const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(0); // 0 = latest (#2)
   const [financials, setFinancials] = useState(null);
   const [benchmarks, setBenchmarks] = useState(null);
   const [loadingFinancials, setLoadingFinancials] = useState(false);
@@ -42,7 +44,7 @@ function App() {
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
   const [isPresentMode, setIsPresentMode] = useState(false);
 
-  // Derived quarter labels — always in sync with live data, no manual updates needed
+  // Derived quarter labels — driven by the SELECTED quarter snapshot, not always index 0 (#2)
   const CURRENT_QUARTER = financials?.reportDate || null;
   const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
 
@@ -66,10 +68,20 @@ function App() {
     }
   }, [selectedBank]);
 
+  // #2 — When user changes the quarter dropdown, update the active financials snapshot
+  useEffect(() => {
+    if (allHistoricalKPIs && allHistoricalKPIs.length > 0) {
+      const snap = allHistoricalKPIs[selectedQuarterIdx];
+      snap.history = allHistoricalKPIs; // preserve history ref for trend indicators
+      setFinancials(snap);
+    }
+  }, [selectedQuarterIdx, allHistoricalKPIs]);
+
   useEffect(() => {
     if (selectedBank) {
       setLoadingFinancials(true);
       setErrorFinancials(null);
+      setSelectedQuarterIdx(0); // Reset to latest on new bank selection (#2)
 
       // Chain fetches: We need Bank Data first to get ASSET size for the Peer Group
       getBankFinancials(selectedBank.CERT)
@@ -77,6 +89,7 @@ function App() {
           if (bankData) {
             const historicalKPIs = calculateKPIs(bankData);
             const latestKPIs = historicalKPIs[0];
+            setAllHistoricalKPIs(historicalKPIs); // store full history for quarter selector (#2)
             setFinancials(latestKPIs);
             latestKPIs.history = historicalKPIs;
 
@@ -106,13 +119,14 @@ function App() {
         })
         .catch(err => {
           console.error(err);
-          // Only overwrite errorFinancials if it hasn't been set by the inner try/catch
           setErrorFinancials(prev => prev || "Failed to load financials.");
         })
         .finally(() => setLoadingFinancials(false));
     } else {
       setFinancials(null);
       setBenchmarks(null);
+      setAllHistoricalKPIs(null);
+      setSelectedQuarterIdx(0);
     }
   }, [selectedBank]);
 
@@ -278,10 +292,22 @@ function App() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 md:justify-end shrink-0">
-                          {financials?.reportDate && (
-                            <div className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl shadow-sm">
-                              <span className="text-[10px] font-bold uppercase tracking-wider block leading-none mb-1 text-slate-400">Latest Report</span>
-                              <span className="text-sm font-bold leading-none block">{financials.reportDate}</span>
+                          {/* #2 — Quarter selector: lets the user view a historical snapshot */}
+                          {allHistoricalKPIs && allHistoricalKPIs.length > 1 && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Report Period</span>
+                              <select
+                                value={selectedQuarterIdx}
+                                onChange={e => setSelectedQuarterIdx(Number(e.target.value))}
+                                className="text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm cursor-pointer hover:border-blue-300 transition-colors outline-none"
+                                aria-label="Select reporting quarter"
+                              >
+                                {allHistoricalKPIs.map((kpi, idx) => (
+                                  <option key={idx} value={idx}>
+                                    {kpi.reportDate}{idx === 0 ? ' (Latest)' : ''}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                           )}
 

@@ -427,9 +427,9 @@ const PitchbookPresentation = ({
     const activeSlide = slides[currentSlide];
 
     return (
-        <div className="fixed inset-0 z-[200] bg-[#e2e8f0] flex flex-col items-center justify-center font-sans">
+        <div className="pitchbook-root fixed inset-0 z-[200] bg-[#e2e8f0] flex flex-col items-center justify-center font-sans">
             {/* Top Navigation Frame (Outside the slide canvas) */}
-            <div className="absolute top-0 w-full flex items-center justify-between p-4 bg-slate-800 text-white shadow-md z-10">
+            <div className="pitchbook-nav absolute top-0 w-full flex items-center justify-between p-4 bg-slate-800 text-white shadow-md z-10">
                 <button
                     onClick={onClose}
                     aria-label="Close presentation" // #9
@@ -445,11 +445,23 @@ const PitchbookPresentation = ({
                     <span className="opacity-50">•</span>
                     <span>Use &larr; &rarr; to navigate</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                    {/* #5 — Save as PDF shortcut */}
+                    <button
+                        onClick={() => window.print()}
+                        aria-label="Save as PDF"
+                        title="Save as PDF (Ctrl+P)"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none bg-slate-700 hover:bg-emerald-700 text-slate-300 hover:text-white border border-slate-600 hover:border-emerald-500"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Save as PDF
+                    </button>
                     <button
                         onClick={handlePrev}
                         disabled={currentSlide === 0}
-                        aria-label="Previous slide" // #9
+                        aria-label="Previous slide"
                         className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                     >
                         Prev
@@ -457,7 +469,7 @@ const PitchbookPresentation = ({
                     <button
                         onClick={handleNext}
                         disabled={currentSlide === slides.length - 1}
-                        aria-label="Next slide" // #9
+                        aria-label="Next slide"
                         className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === slides.length - 1 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'}`}
                     >
                         Next
@@ -467,7 +479,7 @@ const PitchbookPresentation = ({
 
             {/* Formal 16:9 IB Slide Canvas */}
             <div
-                className="bg-white shadow-2xl relative flex flex-col overflow-hidden"
+                className="pitchbook-canvas bg-white shadow-2xl relative flex flex-col overflow-hidden"
                 style={{
                     width: '95vw',
                     maxWidth: '1600px',
