@@ -3,6 +3,7 @@ import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
 import { exportDashboardToPDF } from '../utils/pdfExport';
+import PrintContainer from './pdf/PrintContainer';
 
 const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
@@ -43,7 +44,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
         try {
             // Give React a tiny tick to ensure loaders show up
             await new Promise(resolve => setTimeout(resolve, 50));
-            await exportDashboardToPDF('dashboard-export-zone', `BankValue_${financials.raw?.NAME || 'Report'}.pdf`);
+            // Trigger capture of the hidden 16:9 slides instead of the visible UI
+            await exportDashboardToPDF(['pdf-slide-1', 'pdf-slide-2'], `BankValue_${financials.raw?.NAME || 'Report'}.pdf`);
         } catch (error) {
             console.error("Failed to export PDF:", error);
             alert("Error generating PDF. Please check the console.");
@@ -348,6 +350,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     />
                 </div>
             </div>
+
+            {/* Hidden PDF Export Slides */}
+            <PrintContainer financials={financials} benchmarks={benchmarks} />
         </div>
     );
 };
