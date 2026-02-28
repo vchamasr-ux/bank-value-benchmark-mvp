@@ -82,7 +82,7 @@ import { getProximityScore } from '../utils/stateMapping.js';
  * Determine the asset class group and filter string for peers.
  * @param {number} assetSize - Bank assets in thousands
  */
-const getAssetGroupConfig = (assetSize) => {
+export const getAssetGroupConfig = (assetSize) => {
     if (assetSize >= 250000000) return { filter: 'ASSET:[250000000 TO *]', name: '>$250B' }; // G-SIB
     if (assetSize >= 100000000) return { filter: 'ASSET:[100000000 TO 250000000]', name: '$100B-$250B' }; // Super Regional
     if (assetSize >= 50000000) return { filter: 'ASSET:[50000000 TO 100000000]', name: '$50B-$100B' };
@@ -92,245 +92,34 @@ const getAssetGroupConfig = (assetSize) => {
 };
 
 /**
- * Fetch aggregate benchmark data for the bank's Asset Peer Group via Sampling.
+ * Fetch aggregate benchmark data for the bank's Asset Peer Group via the API cache.
  * @param {number} assetSize - The bank's total assets (in thousands).
  * @param {string} subjectState - The 2-letter state code of the subject bank (e.g. 'VA').
- * @returns {Promise<Object>} - The raw aggregate financial data for the peer group.
+ * @returns {Promise<Object>} - The benchmark distributions and distributions.
  */
-const BENCH_CACHE_VERSION = 'v1';
-const BENCH_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-const _benchmarkCache = {
-    get(key) {
-        try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return null;
-            const { ts, data } = JSON.parse(raw);
-            if (Date.now() - ts > BENCH_CACHE_TTL_MS) {
-                localStorage.removeItem(key);
-                return null;
-            }
-            return data;
-        } catch {
-            return null;
-        }
-    },
-    set(key, data) {
-        try {
-            localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
-        } catch {
-            // localStorage may be full — fail silently, app still works
-        }
-    }
-};
-
 export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
     if (!assetSize) return null;
 
-    const { filter: assetFilter, name: groupName } = getAssetGroupConfig(assetSize);
-
-    // #1 — Check localStorage cache first (24h TTL, versioned key)
-    const cacheKey = `fdic_bench_${BENCH_CACHE_VERSION}_${assetFilter}_${subjectState || 'all'}`;
-    const cached = _benchmarkCache.get(cacheKey);
-    if (cached) {
-        return cached;
-    }
-
-    const fields = 'ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
-    // Fetch a larger sample (N=500) to find enough neighbors
-    const limit = 500;
-
-    // Using /financials to get actual list of banks
-    // Added sort_by=REPDTE to ensure we get 2025/latest data
-    const url = `${FDIC_FINANCIALS_URL}?filters=${encodeURIComponent(assetFilter)}%20AND%20ACTIVE:1&fields=${fields}&limit=${limit}&sort_by=REPDTE&sort_order=DESC&format=json`;
-
     try {
+        const queryParams = new URLSearchParams({
+            assetSize: String(assetSize),
+            ...(subjectState && { subjectState })
+        });
+
+        const url = `/api/benchmarks?${queryParams.toString()}`;
         const response = await fetch(url);
-        if (!response.ok) return null;
 
-        const json = await response.json();
-        if (json.data && json.data.length > 0) {
-            // Flatten to just the data objects
-            const rawCandidates = json.data.map(item => item.data);
-
-            // Deduplicate by CERT ID (keep only the first occurrence, which is latest due to sort)
-            const seenCerts = new Set();
-            const candidates = [];
-
-            for (const d of rawCandidates) {
-                // Ensure we have a CERT to check against
-                // If distinct banks somehow share a CERT (unlikely) or it's missing, we might skip.
-                // The API guarantees unique CERT for unique active institutions usually.
-                if (d.CERT && !seenCerts.has(d.CERT)) {
-                    seenCerts.add(d.CERT);
-                    candidates.push(d);
-                }
-            }
-
-            // Sort candidates by proximity to subjectState
-            if (subjectState) {
-                candidates.sort((a, b) => {
-                    const scoreA = getProximityScore(subjectState, a.STALP);
-                    const scoreB = getProximityScore(subjectState, b.STALP);
-                    return scoreA - scoreB;
-                });
-            }
-
-            // Slice top 20, but require a minimum sample of 4 for meaningful benchmarks
-            const peers = candidates.slice(0, 20);
-            if (peers.length < 4) {
-                console.warn(`Peer benchmark skipped: only ${peers.length} peers found for tier ${groupName} — insufficient for statistics.`);
-                return null;
-            }
-
-            // Fetch 3rd-year historical data for these 20 peers to calculate growth benchmarks
-            const peerCerts = peers.map(p => p.CERT).join(' OR ');
-            const histUrl = `https://banks.data.fdic.gov/api/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
-            let histMap = {};
-            try {
-                const histResponse = await fetch(histUrl);
-                if (histResponse.ok) {
-                    const histJson = await histResponse.json();
-                    histMap = (histJson.data || []).reduce((acc, item) => {
-                        acc[item.data.CERT] = item.data;
-                        return acc;
-                    }, {});
-                }
-            } catch (e) {
-                console.warn("Failed to fetch historical benchmarks, growth quartiles will be 0", e);
-            }
-
-            // Aggregate to handle potential data types, but we'll use Means for the KPIs
-            const totalRaw = peers.reduce((acc, d) => {
-                const hist = histMap[d.CERT];
-                // Only include in aggregate if we have baseline history to avoid inflation
-                const hasHist = !!hist;
-                return {
-                    ASSET: acc.ASSET + (parseFloat(d.ASSET) || 0),
-                    HIST_ASSET: acc.HIST_ASSET + (hasHist ? (parseFloat(hist.ASSET) || 0) : 0),
-                    NUMEMP: acc.NUMEMP + (parseFloat(d.NUMEMP) || 0),
-                    INTINC: acc.INTINC + (parseFloat(d.INTINC) || 0),
-                    INTEXP: acc.INTEXP + (parseFloat(d.INTEXP) || parseFloat(d.EINTEXP) || 0),
-                    NONII: acc.NONII + (parseFloat(d.NONII) || 0),
-                    NONIX: acc.NONIX + (parseFloat(d.NONIX) || 0),
-                    LNLSNET: acc.LNLSNET + (parseFloat(d.LNLSNET) || 0),
-                    HIST_LNLSNET: acc.HIST_LNLSNET + (hasHist ? (parseFloat(hist.LNLSNET) || 0) : 0),
-                    DEP: acc.DEP + (parseFloat(d.DEP) || 0),
-                    HIST_DEP: acc.HIST_DEP + (hasHist ? (parseFloat(hist.DEP) || 0) : 0),
-                    NETINC: acc.NETINC + (parseFloat(d.NETINC) || 0),
-                    EQ: acc.EQ + (parseFloat(d.EQ) || 0),
-                    NCLNLS: acc.NCLNLS + (parseFloat(d.NCLNLS) || 0),
-                    count: acc.count + 1
-                };
-            }, { ASSET: 0, HIST_ASSET: 0, NUMEMP: 0, INTINC: 0, INTEXP: 0, NONII: 0, NONIX: 0, LNLSNET: 0, HIST_LNLSNET: 0, DEP: 0, HIST_DEP: 0, NETINC: 0, EQ: 0, NCLNLS: 0, count: 0 });
-
-            // Initial aggregate growth for totals (weighted)
-            // (Removed unused calcCAGR helper from this scope)
-
-            // Extract peer bank details for the modal AND calculate distributions
-            const peerKPIs = [];
-            const peerBanks = peers.map(d => {
-                // Calculate KPIs for this specific bank to build distribution
-                const kpis = calculateKPIs(d);
-                if (kpis) {
-                    // Calculate growth KPIs if history exists
-                    const hist = histMap[d.CERT];
-                    if (hist) {
-                        kpis.assetGrowth3Y = calcCAGR(parseFloat(d.ASSET), parseFloat(hist.ASSET));
-                        kpis.loanGrowth3Y = calcCAGR(parseFloat(d.LNLSNET), parseFloat(hist.LNLSNET));
-                        kpis.depositGrowth3Y = calcCAGR(parseFloat(d.DEP), parseFloat(hist.DEP));
-                    }
-                    peerKPIs.push(kpis);
-                }
-
-                return {
-                    name: d.NAME,
-                    city: d.CITY,
-                    state: d.STNAME,
-                    stalp: d.STALP,
-                    asset: parseFloat(d.ASSET) || 0
-                };
-            });
-
-            // Helper to calculate percentiles
-            const getPercentile = (arr, p) => {
-                if (arr.length === 0) return 0;
-                const sorted = [...arr].sort((a, b) => a - b);
-                const index = (p / 100) * (sorted.length - 1);
-                const lower = Math.floor(index);
-                const upper = Math.ceil(index);
-                const weight = index - lower;
-                return sorted[lower] * (1 - weight) + sorted[upper] * weight;
-            };
-
-            // Metrics to calculate P25/P75 for
-            const metrics = [
-                'efficiencyRatio', 'netInterestMargin', 'costOfFunds',
-                'nonInterestIncomePercent', 'yieldOnLoans', 'assetsPerEmployee',
-                'returnOnEquity', 'returnOnAssets', 'nptlRatio',
-                'assetGrowth3Y', 'loanGrowth3Y', 'depositGrowth3Y'
-            ];
-            const distributions = {};
-            const means = {};
-
-            metrics.forEach(metric => {
-                // Parse values back to float because calculateKPIs returns strings
-                const values = peerKPIs.map(k => parseFloat(k[metric])).filter(v => !isNaN(v) && v !== null);
-
-                // Calculate Mean
-                const sum = values.reduce((a, b) => a + b, 0);
-                means[metric] = values.length > 0 ? (sum / values.length).toFixed(2) : "0.00";
-
-                distributions[metric] = {
-                    p25: getPercentile(values, 25).toFixed(2),
-                    p75: getPercentile(values, 75).toFixed(2)
-                };
-            });
-
-            const result = {
-                ...totalRaw,
-                ...means, // Directly provide Means as the primary benchmark values
-                groupName,
-                assetFilter, // Expose the actual asset filter string
-                sampleSize: totalRaw.count,
-                peerBanks,
-                p25: {
-                    efficiencyRatio: distributions.efficiencyRatio.p25,
-                    netInterestMargin: distributions.netInterestMargin.p25,
-                    costOfFunds: distributions.costOfFunds.p25,
-                    nonInterestIncomePercent: distributions.nonInterestIncomePercent.p25,
-                    yieldOnLoans: distributions.yieldOnLoans.p25,
-                    assetsPerEmployee: distributions.assetsPerEmployee.p25,
-                    returnOnEquity: distributions.returnOnEquity.p25,
-                    returnOnAssets: distributions.returnOnAssets.p25,
-                    nptlRatio: distributions.nptlRatio.p25,
-                    assetGrowth3Y: distributions.assetGrowth3Y.p25,
-                    loanGrowth3Y: distributions.loanGrowth3Y.p25,
-                    depositGrowth3Y: distributions.depositGrowth3Y.p25
-                },
-                p75: {
-                    efficiencyRatio: distributions.efficiencyRatio.p75,
-                    netInterestMargin: distributions.netInterestMargin.p75,
-                    costOfFunds: distributions.costOfFunds.p75,
-                    nonInterestIncomePercent: distributions.nonInterestIncomePercent.p75,
-                    yieldOnLoans: distributions.yieldOnLoans.p75,
-                    assetsPerEmployee: distributions.assetsPerEmployee.p75,
-                    returnOnEquity: distributions.returnOnEquity.p75,
-                    returnOnAssets: distributions.returnOnAssets.p75,
-                    nptlRatio: distributions.nptlRatio.p75,
-                    assetGrowth3Y: distributions.assetGrowth3Y.p75,
-                    loanGrowth3Y: distributions.loanGrowth3Y.p75,
-                    depositGrowth3Y: distributions.depositGrowth3Y.p75
-                }
-            };
-            // Persist to localStorage cache before returning (#1)
-            _benchmarkCache.set(cacheKey, result);
-            return result;
+        if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            throw new Error(errBody.error || `HTTP error! status: ${response.status}`);
         }
-        return null;
+
+        const data = await response.json();
+        return data;
+
     } catch (error) {
-        console.error("Failed to fetch peer benchmarks:", error);
-        throw new Error(`FDIC API benchmark connection failed: ${error.message}`);
+        console.error("Failed to fetch peer benchmarks from API:", error);
+        throw new Error(`CRITICAL: API benchmark connection failed: ${error.message}`);
     }
 };
 

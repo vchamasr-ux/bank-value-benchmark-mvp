@@ -47,8 +47,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     return (
         <div id="dashboard-export-zone" className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <h2 className="font-black text-blue-900 tracking-tight text-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0">
+                    <h2 className="font-black text-blue-900 tracking-tight text-2xl whitespace-nowrap">
                         Financial Health Scorecard
                     </h2>
                     <button
@@ -100,7 +100,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     )}
 
                     {benchmarks && benchmarks.groupName && (
-                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shrink-0">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Benchmark:</span>
                             <span className="text-sm font-bold text-slate-600">{benchmarks.groupName}</span>
                             {benchmarks.sampleSize && (
@@ -114,14 +114,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             )}
                         </div>
                     )}
-                    {financials.reportDate && (
-                        <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100" title="Data period from FDIC Call Reports">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-xs font-semibold text-emerald-700">Data as of {financials.reportDate} · FDIC</span>
-                        </div>
-                    )}
+                    {/* Removed Data as of FDIC badge from here, relocated to App.jsx bank header */}
                 </div>
             </div>
 
@@ -146,7 +139,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
 
 
             {/* Growth Performance (New) */}
-            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 mb-8">
                 <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5V2a1 1 0 112 0v5a1 1 0 01-1 1h-5z" clipRule="evenodd" />
@@ -157,36 +150,36 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
                     <GaugeChart
                         label="Asset Growth (3Y)"
-                        value={parseFloat(financials.assetGrowth3Y) || 0}
+                        value={financials.assetGrowth3Y != null ? parseFloat(financials.assetGrowth3Y) : null}
                         min={-10}
                         max={30}
-                        average={benchmarks ? parseFloat(benchmarks.assetGrowth3Y) : null}
-                        p25={benchmarks ? benchmarks.p25.assetGrowth3Y : null}
-                        p75={benchmarks ? benchmarks.p75.assetGrowth3Y : null}
+                        average={benchmarks && benchmarks.assetGrowth3Y != null ? parseFloat(benchmarks.assetGrowth3Y) : null}
+                        p25={benchmarks && benchmarks.p25 ? benchmarks.p25.assetGrowth3Y : null}
+                        p75={benchmarks && benchmarks.p75 ? benchmarks.p75.assetGrowth3Y : null}
                         suffix="%"
                         trend={financials.history}
                         metric="assetGrowth3Y"
                     />
                     <GaugeChart
                         label="Loan Growth (3Y)"
-                        value={parseFloat(financials.loanGrowth3Y) || 0}
+                        value={financials.loanGrowth3Y != null ? parseFloat(financials.loanGrowth3Y) : null}
                         min={-10}
                         max={30}
-                        average={benchmarks ? parseFloat(benchmarks.loanGrowth3Y) : null}
-                        p25={benchmarks ? benchmarks.p25.loanGrowth3Y : null}
-                        p75={benchmarks ? benchmarks.p75.loanGrowth3Y : null}
+                        average={benchmarks && benchmarks.loanGrowth3Y != null ? parseFloat(benchmarks.loanGrowth3Y) : null}
+                        p25={benchmarks && benchmarks.p25 ? benchmarks.p25.loanGrowth3Y : null}
+                        p75={benchmarks && benchmarks.p75 ? benchmarks.p75.loanGrowth3Y : null}
                         suffix="%"
                         trend={financials.history}
                         metric="loanGrowth3Y"
                     />
                     <GaugeChart
                         label="Deposit Growth (3Y)"
-                        value={parseFloat(financials.depositGrowth3Y) || 0}
+                        value={financials.depositGrowth3Y != null ? parseFloat(financials.depositGrowth3Y) : null}
                         min={-10}
                         max={30}
-                        average={benchmarks ? parseFloat(benchmarks.depositGrowth3Y) : null}
-                        p25={benchmarks ? benchmarks.p25.depositGrowth3Y : null}
-                        p75={benchmarks ? benchmarks.p75.depositGrowth3Y : null}
+                        average={benchmarks && benchmarks.depositGrowth3Y != null ? parseFloat(benchmarks.depositGrowth3Y) : null}
+                        p25={benchmarks && benchmarks.p25 ? benchmarks.p25.depositGrowth3Y : null}
+                        p75={benchmarks && benchmarks.p75 ? benchmarks.p75.depositGrowth3Y : null}
                         suffix="%"
                         trend={financials.history}
                         metric="depositGrowth3Y"
@@ -195,7 +188,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Operational Efficiency & Margin */}
-            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 mb-8">
                 <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -242,7 +235,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Revenue Generation & Productivity */}
-            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 mb-8">
                 <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
@@ -288,7 +281,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Returns & Asset Quality */}
-            <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
                 <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

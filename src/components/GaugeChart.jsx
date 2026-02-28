@@ -32,8 +32,8 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
     let totalVisualRange = visualMax - visualMin;
 
     const colors = inverse
-        ? ['#047857', '#d97706', '#be123c'] // Emerald -> Amber -> Rose
-        : ['#be123c', '#d97706', '#047857']; // Rose -> Amber -> Emerald
+        ? ['#10B981', '#F59E0B', '#F43F5E'] // Emerald 500, Amber 500, Rose 500
+        : ['#F43F5E', '#F59E0B', '#10B981']; // Rose 500, Amber 500, Emerald 500
 
     let ranges = [];
     let p25Angle = null;
@@ -127,16 +127,18 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
         return `${formattedNum}${suffix}`;
     };
 
+    const isAvailable = value !== undefined && value !== null && !isNaN(value);
+
     // Normalize value for the needle rotation
     // We must clamp the value to the visual range we defined, otherwise the needle spins 360
-    const clampedValue = Math.min(Math.max(value, visualMin), visualMax);
+    const clampedValue = isAvailable ? Math.min(Math.max(value, visualMin), visualMax) : visualMin;
     const range = visualMax - visualMin;
-    const percentage = (clampedValue - visualMin) / range;
+    const percentage = isAvailable && range ? (clampedValue - visualMin) / range : 0;
     const rotation = (percentage * 180) - 90;
 
     return (
-        <div ref={containerRef} className="flex flex-col items-center flex-1 w-full bg-white p-6 rounded-xl shadow-sm border border-slate-100 transition-all hover:shadow-md h-full relative z-10">
-            <div className="relative w-48 h-24">
+        <div ref={containerRef} className={`flex flex-col items-center flex-1 w-full bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 transition-all hover:shadow-md h-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
+            <div className="relative w-48 h-24 mt-2">
                 <PieChart width={192} height={96}>
                     <Pie
                         data={ranges}
@@ -144,7 +146,7 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                         cy="100%"
                         startAngle={180}
                         endAngle={0}
-                        innerRadius={60}
+                        innerRadius={72}
                         outerRadius={80}
                         paddingAngle={0}
                         dataKey="value"
@@ -201,24 +203,24 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
 
                 {/* Needle - sweeps from -90° (far left) to real rotation when isActive */}
                 <div
-                    className="absolute bottom-0 left-1/2 w-1 h-20 origin-bottom bg-gray-800 transition-transform duration-[1200ms] ease-out pointer-events-none"
+                    className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-slate-600' : 'bg-slate-300'}`}
                     style={{
                         transform: `translateX(-50%) rotate(${animated ? rotation : -90}deg)`
                     }}
                 ></div>
-                <div className="absolute bottom-0 left-1/2 w-4 h-4 -ml-2 -mb-2 rounded-full bg-gray-800 pointer-events-none"></div>
+                <div className={`absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-[5px] -mb-[5px] rounded-full pointer-events-none shadow-sm ${isAvailable ? 'bg-slate-700' : 'bg-slate-300'}`}></div>
             </div>
 
             <div className="text-center mt-2 w-full">
                 <Tooltip content={METRIC_DEFINITIONS[metric]} position="bottom">
                     <h3 className="text-sm font-medium text-gray-500 uppercase cursor-help hover:text-gray-800 transition-colors border-b border-dashed border-gray-300 inline-block p-1">{label}</h3>
                 </Tooltip>
-                <div className="flex justify-center items-center mt-1">
-                    <div className="text-2xl font-bold text-gray-800">
-                        {typeof value === 'number' ? value.toFixed(2) : value}{suffix}
+                <div className="flex justify-center items-center mt-2.5">
+                    <div className={`text-2xl font-extrabold tracking-tight ${isAvailable ? 'text-slate-800' : 'text-slate-400'}`}>
+                        {isAvailable ? `${typeof value === 'number' ? value.toFixed(2) : value}${suffix}` : 'N/A'}
                     </div>
                     {/* Render Subtle Trend Indicator if history is available */}
-                    {trend && metric && (
+                    {trend && metric && isAvailable && (
                         <TrendIndicator history={trend} metric={metric} inverse={inverse} />
                     )}
                 </div>
