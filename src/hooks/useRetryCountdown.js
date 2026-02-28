@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * Shared hook that manages the Gemini rate-limit retry countdown pattern.
@@ -19,6 +19,12 @@ const useRetryCountdown = (onRetry) => {
     const [retryCountdown, setRetryCountdown] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
 
+    // Always keep a ref to the latest onRetry to avoid stale closure when the
+    // countdown useEffect fires — the effect depends only on retryCountdown,
+    // not on onRetry, so without this ref it would call the first-render version.
+    const onRetryRef = useRef(onRetry);
+    useEffect(() => { onRetryRef.current = onRetry; });
+
     useEffect(() => {
         let interval;
         if (retryCountdown !== null && retryCountdown > 0) {
@@ -27,7 +33,7 @@ const useRetryCountdown = (onRetry) => {
                     if (prev <= 1) {
                         clearInterval(interval);
                         setRetryCount(prevCount => prevCount + 1);
-                        onRetry();
+                        onRetryRef.current(); // always calls the latest version
                         return null;
                     }
                     return prev - 1;

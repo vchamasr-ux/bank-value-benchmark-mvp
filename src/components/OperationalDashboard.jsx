@@ -186,8 +186,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={0}
                     max={30}
                     average={currentBenchmarks.vendorSpendPercent.average}
-                    p25={currentBenchmarks.vendorSpendPercent.topQuartile}
-                    p75={currentBenchmarks.vendorSpendPercent.bottomQuartile}
+                    p25={currentBenchmarks.vendorSpendPercent.bottomQuartile}
+                    p75={currentBenchmarks.vendorSpendPercent.topQuartile}
                     inverse={true}
                 />
                 <GaugeChart
@@ -196,8 +196,8 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     min={20}
                     max={80}
                     average={currentBenchmarks.avgAgeCustomer.average}
-                    p25={currentBenchmarks.avgAgeCustomer.topQuartile}
-                    p75={currentBenchmarks.avgAgeCustomer.bottomQuartile}
+                    p25={currentBenchmarks.avgAgeCustomer.bottomQuartile}
+                    p75={currentBenchmarks.avgAgeCustomer.topQuartile}
                     inverse={true}
                     suffix=""
                 />

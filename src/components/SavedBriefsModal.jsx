@@ -7,6 +7,7 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedBrief, setSelectedBrief] = useState(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
     useEffect(() => {
         if (isOpen && user) {
@@ -44,8 +45,15 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
 
     const handleDelete = async (briefId, e) => {
         e.stopPropagation();
-        if (!confirm("Are you sure you want to delete this brief?")) return;
 
+        // First click: show inline confirm
+        if (confirmDeleteId !== briefId) {
+            setConfirmDeleteId(briefId);
+            return;
+        }
+
+        // Second click: actually delete
+        setConfirmDeleteId(null);
         try {
             const response = await fetch('/api/briefs', {
                 method: 'DELETE',
@@ -66,7 +74,7 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
                 setSelectedBrief(null);
             }
         } catch (err) {
-            alert("Failed to delete brief: " + err.message);
+            setError("Failed to delete brief: " + err.message);
         }
     };
 
@@ -281,11 +289,28 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
                                                 {brief.type === 'market_movers' ? 'Radar' : 'Summary'}
                                             </span>
                                         </div>
-                                        <button onClick={(e) => handleDelete(brief.id, e)} className="text-gray-400 hover:text-red-500 transition-colors" title="Delete Brief">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                                        {confirmDeleteId === brief.id ? (
+                                            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                                <button
+                                                    onClick={(e) => handleDelete(brief.id, e)}
+                                                    className="text-xs font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded transition-colors"
+                                                >
+                                                    Confirm
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}
+                                                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button onClick={(e) => handleDelete(brief.id, e)} className="text-gray-400 hover:text-red-500 transition-colors" title="Delete Brief">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </div>
                                     <h4 className="font-bold text-gray-900 mt-2 truncate" title={brief.bankName}>{brief.bankName}</h4>
                                     <p className="text-xs text-gray-500 mt-1">

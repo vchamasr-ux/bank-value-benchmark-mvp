@@ -71,18 +71,11 @@ function App() {
                   return acc;
                 }, {});
 
+                // benchmarkData already contains accurate per-bank means (not aggregate totals)
+                // computed by getPeerGroupBenchmark — spread directly, no re-calculation needed.
                 setBenchmarks({
-                  ...calculateKPIs(benchmarkData),
-                  assetGrowth3Y: benchmarkData.assetGrowth3Y,
-                  loanGrowth3Y: benchmarkData.loanGrowth3Y,
-                  depositGrowth3Y: benchmarkData.depositGrowth3Y,
-                  groupName: benchmarkData.groupName,
-                  assetFilter: benchmarkData.assetFilter,
-                  sampleSize: benchmarkData.sampleSize,
-                  peerBanks: benchmarkData.peerBanks,
+                  ...benchmarkData,
                   peerStateCounts,
-                  p25: benchmarkData.p25,
-                  p75: benchmarkData.p75
                 });
               }
             } catch (benchmarkErr) {
