@@ -3,13 +3,17 @@ import GaugeChart from './GaugeChart';
 import MoversView from './MoversView';
 import StrategicPlannerTab from './StrategicPlannerTab';
 import Sparkline from './Sparkline';
+import { formatAssets } from '../utils/formatUtils';
+import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
 
 const PitchbookPresentation = ({
     selectedBank,
     financials,
     benchmarks,
     fdicService,
-    onClose
+    onClose,
+    priorQuarter = 'Q3 2025',
+    currentQuarter = 'Q4 2025',
 }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [aiSummaryHtml, setAiSummaryHtml] = useState(null);
@@ -55,7 +59,7 @@ const PitchbookPresentation = ({
         // Final fallback if nothing found
         if (bullets.length === 0) {
             bullets = [
-                `${selectedBank.NAME} holds $${(parseFloat(financials.raw.ASSET) / 1000000).toFixed(1)}B in total assets.`,
+                `${selectedBank.NAME} holds ${formatAssets(financials.raw.ASSET)} in total assets.`,
                 `The bank operates with an Efficiency Ratio of ${parseFloat(financials.efficiencyRatio).toFixed(1)}% compared to the peer average of ${getBenchmark('efficiencyRatio').toFixed(1)}%.`,
                 `Return on Average Assets (ROA) is tracking at ${parseFloat(financials.returnOnAssets).toFixed(2)}% against a benchmark of ${getBenchmark('returnOnAssets').toFixed(2)}%.`
             ];
@@ -194,94 +198,66 @@ const PitchbookPresentation = ({
             content: (
                 <div className="w-full h-full flex flex-col justify-center px-8">
                     <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8 justify-items-center content-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
-                        <GaugeChart
-                            label="Return on Equity"
-                            value={parseFloat(financials.returnOnEquity)}
-                            min={0}
-                            max={25}
-                            average={benchmarks ? parseFloat(benchmarks.returnOnEquity) : null}
-                            p25={benchmarks?.p25?.returnOnEquity}
-                            p75={benchmarks?.p75?.returnOnEquity}
-                            metric="returnOnEquity"
-                        />
-                        <GaugeChart
-                            label="Return on Assets"
-                            value={parseFloat(financials.returnOnAssets)}
-                            min={0}
-                            max={2.5}
-                            average={benchmarks ? parseFloat(benchmarks.returnOnAssets) : null}
-                            p25={benchmarks?.p25?.returnOnAssets}
-                            p75={benchmarks?.p75?.returnOnAssets}
-                            metric="returnOnAssets"
-                        />
-                        <GaugeChart
-                            label="Efficiency Ratio"
-                            value={parseFloat(financials.efficiencyRatio)}
-                            min={30}
-                            max={90}
-                            average={benchmarks ? parseFloat(benchmarks.efficiencyRatio) : null}
-                            p25={benchmarks?.p25?.efficiencyRatio}
-                            p75={benchmarks?.p75?.efficiencyRatio}
-                            inverse={true}
-                            metric="efficiencyRatio"
-                        />
-                        <GaugeChart
-                            label="Net Interest Margin"
-                            value={parseFloat(financials.netInterestMargin)}
-                            min={0}
-                            max={6}
-                            average={benchmarks ? parseFloat(benchmarks.netInterestMargin) : null}
-                            p25={benchmarks?.p25?.netInterestMargin}
-                            p75={benchmarks?.p75?.netInterestMargin}
-                            metric="netInterestMargin"
-                        />
-                        <GaugeChart
-                            label="Asset Growth (3Y)"
-                            value={parseFloat(financials.assetGrowth3Y) || 0}
-                            min={-10}
-                            max={30}
-                            average={benchmarks ? parseFloat(benchmarks.assetGrowth3Y) : null}
-                            p25={benchmarks ? benchmarks.p25.assetGrowth3Y : null}
-                            p75={benchmarks ? benchmarks.p75.assetGrowth3Y : null}
-                            suffix="%"
-                            metric="assetGrowth3Y"
-                        />
-                        <GaugeChart
-                            label="NPL Ratio"
-                            value={parseFloat(financials.nptlRatio)}
-                            min={0}
-                            max={5}
-                            average={benchmarks ? parseFloat(benchmarks.nptlRatio) : null}
-                            p25={benchmarks?.p25?.nptlRatio}
-                            p75={benchmarks?.p75?.nptlRatio}
-                            inverse={true}
-                            metric="nptlRatio"
-                        />
+                        {CORE_FINANCIAL_GAUGES.map(cfg => (
+                            <GaugeChart
+                                key={cfg.key}
+                                label={cfg.label}
+                                value={parseFloat(financials[cfg.key]) || 0}
+                                min={cfg.min}
+                                max={cfg.max}
+                                average={benchmarks ? parseFloat(benchmarks[cfg.key]) : null}
+                                p25={benchmarks?.p25?.[cfg.key]}
+                                p75={benchmarks?.p75?.[cfg.key]}
+                                inverse={cfg.inverse || false}
+                                suffix={cfg.suffix || '%'}
+                                metric={cfg.metric}
+                            />
+                        ))}
                     </div>
                 </div>
             )
         },
         {
-            id: 'radar',
+            id: 'radar-threats',
             actionTitle: "Market Positioning & Peer Distribution",
-            actionSubtitle: "Visualizing the bank's position amongst its direct competitors in the benchmark group.",
+            actionSubtitle: "Competitive outliers with the highest surprise score — deteriorating relative to the peer group.",
             content: (
-                <div className="w-full h-[100%] relative border border-slate-200 rounded p-4 bg-slate-50 shadow-inner overflow-y-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
-                    <div className="scale-[0.98] origin-top">
-                        {/* Re-use the MoversView but specifically in 'Scatter' block mode natively */}
-                        <MoversView
-                            dataProvider={fdicService}
-                            perspectiveBankName={selectedBank.NAME}
-                            focusBankCert={String(selectedBank.CERT)}
-                            segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
-                            segmentLabel={benchmarks?.groupName || 'Peer Group'}
-                            priorQuarter="Q3 2025"
-                            currentQuarter="Q4 2025"
-                            onDrillDown={() => { }} // Disable drilldown in presentation mode
-                            onShowBrief={() => { }}
-                            isPresentationMode={true} // New prop to limit rows and hide unnecessary UI
-                        />
-                    </div>
+                <div className="w-full h-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
+                    <MoversView
+                        dataProvider={fdicService}
+                        perspectiveBankName={selectedBank.NAME}
+                        focusBankCert={String(selectedBank.CERT)}
+                        segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
+                        segmentLabel={benchmarks?.groupName || 'Peer Group'}
+                        priorQuarter={priorQuarter}
+                        currentQuarter={currentQuarter}
+                        onDrillDown={() => { }}
+                        onShowBrief={() => { }}
+                        isPresentationMode={true}
+                        forcedTab="threats"
+                    />
+                </div>
+            )
+        },
+        {
+            id: 'radar-playbooks',
+            actionTitle: "Market Positioning & Peer Distribution",
+            actionSubtitle: "Competitive outliers with the highest surprise score — outperforming relative to the peer group.",
+            content: (
+                <div className="w-full h-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
+                    <MoversView
+                        dataProvider={fdicService}
+                        perspectiveBankName={selectedBank.NAME}
+                        focusBankCert={String(selectedBank.CERT)}
+                        segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
+                        segmentLabel={benchmarks?.groupName || 'Peer Group'}
+                        priorQuarter={priorQuarter}
+                        currentQuarter={currentQuarter}
+                        onDrillDown={() => { }}
+                        onShowBrief={() => { }}
+                        isPresentationMode={true}
+                        forcedTab="playbooks"
+                    />
                 </div>
             )
         },

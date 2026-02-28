@@ -60,7 +60,7 @@ export const getBankFinancials = async (certId) => {
 };
 
 
-import { calculateKPIs } from '../utils/kpiCalculator.js';
+import { calculateKPIs, calcCAGR } from '../utils/kpiCalculator.js';
 import { getProximityScore } from '../utils/stateMapping.js';
 
 /**
@@ -183,15 +183,9 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     // Calculate growth KPIs if history exists
                     const hist = histMap[d.CERT];
                     if (hist) {
-                        const calcCAGR = (curr, prev) => {
-                            const c = parseFloat(curr) || 0;
-                            const p = parseFloat(prev) || 0;
-                            if (p <= 0 || c <= 0) return 0;
-                            return (Math.pow(c / p, 1 / 3) - 1) * 100;
-                        };
-                        kpis.assetGrowth3Y = calcCAGR(d.ASSET, hist.ASSET).toFixed(2);
-                        kpis.loanGrowth3Y = calcCAGR(d.LNLSNET, hist.LNLSNET).toFixed(2);
-                        kpis.depositGrowth3Y = calcCAGR(d.DEP, hist.DEP).toFixed(2);
+                        kpis.assetGrowth3Y = calcCAGR(parseFloat(d.ASSET), parseFloat(hist.ASSET)).toFixed(2);
+                        kpis.loanGrowth3Y = calcCAGR(parseFloat(d.LNLSNET), parseFloat(hist.LNLSNET)).toFixed(2);
+                        kpis.depositGrowth3Y = calcCAGR(parseFloat(d.DEP), parseFloat(hist.DEP)).toFixed(2);
                     }
                     peerKPIs.push(kpis);
                 }
@@ -348,10 +342,9 @@ export const getBankKpis = async ({ cert, quarter }) => {
 
         let assetGrowth3Y = 0, loanGrowth3Y = 0, depositGrowth3Y = 0;
         if (baseRec) {
-            const calcCAGR = (c, p) => (p > 0 && c > 0) ? (Math.pow(c / p, 1 / 3) - 1) : 0;
-            assetGrowth3Y = calcCAGR(parseFloat(record.ASSET), parseFloat(baseRec.ASSET));
-            loanGrowth3Y = calcCAGR(parseFloat(record.LNLSNET), parseFloat(baseRec.LNLSNET));
-            depositGrowth3Y = calcCAGR(parseFloat(record.DEP), parseFloat(baseRec.DEP));
+            assetGrowth3Y = calcCAGR(parseFloat(record.ASSET), parseFloat(baseRec.ASSET)) / 100;
+            loanGrowth3Y = calcCAGR(parseFloat(record.LNLSNET), parseFloat(baseRec.LNLSNET)) / 100;
+            depositGrowth3Y = calcCAGR(parseFloat(record.DEP), parseFloat(baseRec.DEP)) / 100;
         }
 
         return {

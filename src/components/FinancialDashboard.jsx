@@ -4,6 +4,7 @@ import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
 import { exportDashboardToPDF } from '../utils/pdfExport';
 import PrintContainer from './pdf/PrintContainer';
+import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
 
 const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode }) => {
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
@@ -279,43 +280,28 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Returns & Asset Quality
+                    Returns &amp; Asset Quality
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
-                    <GaugeChart
-                        label="Return on Equity"
-                        value={parseFloat(financials.returnOnEquity)}
-                        min={0}
-                        max={25}
-                        average={benchmarks ? parseFloat(benchmarks.returnOnEquity) : null}
-                        p25={benchmarks?.p25?.returnOnEquity}
-                        p75={benchmarks?.p75?.returnOnEquity}
-                        trend={financials.history}
-                        metric="returnOnEquity"
-                    />
-                    <GaugeChart
-                        label="Return on Assets"
-                        value={parseFloat(financials.returnOnAssets)}
-                        min={0}
-                        max={2.5}
-                        average={benchmarks ? parseFloat(benchmarks.returnOnAssets) : null}
-                        p25={benchmarks?.p25?.returnOnAssets}
-                        p75={benchmarks?.p75?.returnOnAssets}
-                        trend={financials.history}
-                        metric="returnOnAssets"
-                    />
-                    <GaugeChart
-                        label="NPL Ratio"
-                        value={parseFloat(financials.nptlRatio)}
-                        min={0}
-                        max={5}
-                        average={benchmarks ? parseFloat(benchmarks.nptlRatio) : null}
-                        p25={benchmarks?.p25?.nptlRatio}
-                        p75={benchmarks?.p75?.nptlRatio}
-                        inverse={true}
-                        trend={financials.history}
-                        metric="nptlRatio"
-                    />
+                    {CORE_FINANCIAL_GAUGES
+                        .filter(g => ['returnOnEquity', 'returnOnAssets', 'nptlRatio'].includes(g.key))
+                        .map(cfg => (
+                            <GaugeChart
+                                key={cfg.key}
+                                label={cfg.label}
+                                value={parseFloat(financials[cfg.key])}
+                                min={cfg.min}
+                                max={cfg.max}
+                                average={benchmarks ? parseFloat(benchmarks[cfg.key]) : null}
+                                p25={benchmarks?.p25?.[cfg.key]}
+                                p75={benchmarks?.p75?.[cfg.key]}
+                                inverse={cfg.inverse || false}
+                                suffix={cfg.suffix || '%'}
+                                trend={financials.history}
+                                metric={cfg.metric}
+                            />
+                        ))
+                    }
                 </div>
             </div>
 

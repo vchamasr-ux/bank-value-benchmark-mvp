@@ -15,7 +15,7 @@ const KPI_SPECS = [
     { key: "npl_ratio", label: "NPL Ratio", better: "lower", type: "rate", metric_class: "core" },
 ];
 
-const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief, isPresentationMode = false }) => {
+const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief, isPresentationMode = false, forcedTab = null }) => {
     const [activeTab, setActiveTab] = useState('threats'); // 'threats' | 'playbooks'
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -114,7 +114,8 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
         );
     }
 
-    const currentList = activeTab === 'threats' ? moversData.threats : moversData.playbooks;
+    const resolvedTab = forcedTab || activeTab;
+    const currentList = resolvedTab === 'threats' ? moversData.threats : moversData.playbooks;
     const displayList = isPresentationMode ? currentList.slice(0, 3) : currentList;
 
     return (
@@ -130,20 +131,27 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                     <p className="text-slate-500 text-sm">Identifying outliers in {currentQuarter} vs {priorQuarter} </p>
                 </div>
 
-                <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
-                    <button
-                        onClick={() => setActiveTab('threats')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-                    >
-                        Market Threats ({moversData.threats.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('playbooks')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-                    >
-                        Growth Playbooks ({moversData.playbooks.length})
-                    </button>
-                </div>
+                {!forcedTab && (
+                    <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('threats')}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            Market Threats ({moversData.threats.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('playbooks')}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            Growth Playbooks ({moversData.playbooks.length})
+                        </button>
+                    </div>
+                )}
+                {forcedTab && (
+                    <div className={`px-4 py-2 rounded-lg text-sm font-black ${forcedTab === 'threats' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
+                        {forcedTab === 'threats' ? `⚠ Market Threats (${moversData.threats.length})` : `✦ Growth Playbooks (${moversData.playbooks.length})`}
+                    </div>
+                )}
             </div>
 
             {/* List */}

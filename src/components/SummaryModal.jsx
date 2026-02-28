@@ -123,6 +123,18 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
             const isDev = import.meta.env.DEV;
             const devApiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+            // Shared serializer — defined once, used by both dev and production paths
+            const getCircularReplacer = () => {
+                const seen = new WeakSet();
+                return (key, value) => {
+                    if (typeof value === "object" && value !== null) {
+                        if (seen.has(value)) return "[Circular]";
+                        seen.add(value);
+                    }
+                    return value;
+                };
+            };
+
             let textResult = "";
 
             if (isDev && devApiKey && !authRequired) {
@@ -132,19 +144,6 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
                 const bankName = financials?.name || financials?.raw?.NAME || 'the bank';
                 const bankLocation = financials?.raw?.CITY && financials?.raw?.STALP ? `${financials.raw.CITY}, ${financials.raw.STALP}` : '';
                 const promptData = { financials, benchmarks };
-
-                const getCircularReplacer = () => {
-                    const seen = new WeakSet();
-                    return (key, value) => {
-                        if (typeof value === "object" && value !== null) {
-                            if (seen.has(value)) {
-                                return "[Circular]";
-                            }
-                            seen.add(value);
-                        }
-                        return value;
-                    };
-                };
 
                 const prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}${bankLocation ? ` based in ${bankLocation}` : ''}. 
 CRITICAL CONTEXT: 
@@ -163,19 +162,6 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                 textResult = response.text();
             } else {
                 const url = `/api/insights`;
-
-                const getCircularReplacer = () => {
-                    const seen = new WeakSet();
-                    return (key, value) => {
-                        if (typeof value === "object" && value !== null) {
-                            if (seen.has(value)) {
-                                return "[Circular]";
-                            }
-                            seen.add(value);
-                        }
-                        return value;
-                    };
-                };
 
                 const response = await fetch(url, {
                     method: 'POST',

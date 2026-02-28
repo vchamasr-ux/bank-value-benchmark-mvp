@@ -75,14 +75,61 @@ _Last updated: February 2026 — reflects completed state of all phases._
 
 ---
 
-## Open / Future Work
+## Phase 8: Post-Launch UX Revisions ✅ _(February 2026)_
+- [x] Integrate Market Movers competitive radar as a modal overlay instead of a distinct split screen view.
+- [x] Fix tooltip rendering logic in `GaugeChart.jsx` so "Top Quartile" displays mathematically correct contextual descriptions for both standard and inverted ("lower is better") metrics.
+- [x] Add `LandingPage.jsx` as the pre-search entry experience.
+- [x] Add `FinancialDashboardSkeleton.jsx` loading placeholder.
+- [x] Add `Sparkline.jsx` reusable component for inline metric charts.
+- [x] Add `Tooltip.jsx` shared tooltip component.
+- [x] Add `UserProfileMenu.jsx` in app header (avatar, saved briefs access, logout).
+
+---
+
+## Phase 9: PDF Export ✅ _(February 2026)_
+- [x] Install `react-to-print`.
+- [x] Create `src/components/pdf/` directory.
+- [x] Build `PrintContainer.jsx` — off-screen hidden multi-slide print container.
+- [x] Build `Slide1_CoreMetrics.jsx` — core financial KPI gauges.
+- [x] Build `Slide2_Returns.jsx` — returns and yield metrics.
+- [x] Build `Slide3_ExecutiveSummary.jsx` — AI-generated executive summary page.
+- [x] Build `Slide4_PeerGroup.jsx` — peer group list and asset tier.
+- [x] Wire up "Export PDF" button in `FinancialDashboard.jsx` via `react-to-print`.
+- [x] Apply IB-standard 16:9 layout, confidentiality footer, and blue branding strip to all slides.
+
+---
+
+## Phase 10: Pitchbook Presentation Mode ✅ _(February 2026)_
+- [x] Create `PitchbookPresentation.jsx` — full-screen IB-style 5-slide deck.
+- [x] Slide 1: Cover slide (bank name, date, location).
+- [x] Slide 2: Strategic Summary with AI bullets + inline sparklines per insight.
+- [x] Slide 3: Core financial 6-gauge performance slide.
+- [x] Slide 4: Market Positioning via embedded `MoversView` (presentation mode, no drill-down).
+- [x] Slide 5: Forward-looking strategy via embedded `StrategicPlannerTab`.
+- [x] Keyboard navigation: Arrow keys / Space to advance, Escape to exit.
+- [x] Wire up "Pitchbook" launch button in `FinancialDashboard.jsx`.
+
+---
+
+## Phase 11: Save Briefs Feature ✅ _(February 2026)_
+- [x] Build `api/briefs.js` — GET / POST / DELETE endpoints backed by Vercel KV hashes.
+- [x] Add "Save Brief" button to `SummaryModal.jsx`.
+- [x] Add "Save Brief" button to `MoversSummaryModal.jsx`.
+- [x] Build `SavedBriefsModal.jsx` — lists all user briefs with delete and preview.
+- [x] Wire up "My Saved Briefs" entry point in `UserProfileMenu.jsx`.
+
+---
+
+## Phase 12: HTML Export ✅ _(February 2026)_
+- [x] Create `src/utils/exportHtmlBrief.js` — generates a standalone self-contained styled HTML file.
+- [x] Add "Export HTML Brief" button to `SummaryModal.jsx`.
+- [x] File is named `[bank]_Executive_Brief_[date].html` and auto-downloads.
+
+---
+
 ## Open / Future Work
 - [ ] Add in-memory (or `localStorage`) caching for FDIC peer KPI fetches to reduce API load.
 - [ ] Consider adding a quarterly date selector to use more recent FDIC baseline for 3Y growth.
 - [ ] Explore adding Option 3 (playbook mining / historical analog quarters) directly to the intelligence modal.
-
----
-
-## Phase 8: Post-Launch Revisions ✅ _(February 2026)_
-- [x] Integrate Market Movers competitive radar as a modal overlay instead of a distinct split screen view.
-- [x] Fix tooltip rendering logic in `GaugeChart.jsx` so "Top Quartile" displays mathematically correct contextual descriptions for both standard and inverted ("lower is better") metrics like Cost of Funds.
+- [ ] Unify PDF export and Pitchbook Presentation slides into a single source-of-truth slide definition.
+- [ ] Pitchbook Presentation: add a "Print / Save as PDF" shortcut from within presentation mode.

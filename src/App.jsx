@@ -7,8 +7,9 @@ import MoversView from './components/MoversView';
 import UserProfileMenu from './components/UserProfileMenu';
 import LandingPage from './components/LandingPage';
 import { calculateKPIs } from './utils/kpiCalculator';
-import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
+import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
+const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 import StrategicPlannerTab from './components/StrategicPlannerTab';
 import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
 import PitchbookPresentation from './components/PitchbookPresentation';
@@ -16,6 +17,10 @@ import PitchbookPresentation from './components/PitchbookPresentation';
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
 const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false'; // Default to true, allow explicit disable
+
+// Quarter labels — update here when the quarter rolls over
+const PRIOR_QUARTER = 'Q3 2025';
+const CURRENT_QUARTER = 'Q4 2025';
 
 function App() {
   const [selectedBank, setSelectedBank] = useState(null);
@@ -111,6 +116,8 @@ function App() {
           benchmarks={benchmarks}
           fdicService={fdicService}
           onClose={() => setIsPresentMode(false)}
+          priorQuarter={PRIOR_QUARTER}
+          currentQuarter={CURRENT_QUARTER}
         />
       ) : (
         <>
@@ -262,13 +269,7 @@ function App() {
                             <div className="px-5 py-2 bg-blue-50 border border-blue-100 text-blue-900 rounded-xl shadow-sm">
                               <span className="text-[10px] font-bold text-blue-500 block leading-none mb-1 uppercase tracking-wider">Total Assets</span>
                               <span className="text-lg font-black leading-none block tracking-tight">
-                                {(() => {
-                                  const asset = parseFloat(financials.raw.ASSET) * 1000;
-                                  if (asset >= 1e12) return `$${(asset / 1e12).toFixed(2)}T`;
-                                  if (asset >= 1e9) return `$${(asset / 1e9).toFixed(2)}B`;
-                                  if (asset >= 1e6) return `$${(asset / 1e6).toFixed(1)}M`;
-                                  return `$${asset.toLocaleString()}`;
-                                })()}
+                                {formatAssets(financials.raw.ASSET)}
                               </span>
                             </div>
                           )}
@@ -286,8 +287,8 @@ function App() {
                     focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
                     segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
                     segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
-                    priorQuarter="Q3 2025"
-                    currentQuarter="Q4 2025"
+                    priorQuarter={PRIOR_QUARTER}
+                    currentQuarter={CURRENT_QUARTER}
                     onDrillDown={async (cert) => {
                       // Maintain radar context of the SOURCE bank
                       if (selectedBank) {
@@ -367,8 +368,8 @@ function App() {
               focusBankCert={String(selectedBank.CERT)}
               segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
               segmentLabel={benchmarks?.groupName || 'Peer Group'}
-              priorQuarter="Q3 2025"
-              currentQuarter="Q4 2025"
+              priorQuarter={PRIOR_QUARTER}
+              currentQuarter={CURRENT_QUARTER}
               authRequired={FEAT_AUTH_REQUIRED}
             />
           )}

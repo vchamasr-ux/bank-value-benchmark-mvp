@@ -3,6 +3,17 @@
  * @param {Object} data - The raw data object from the API (ASSET, INTEXP, etc.)
  * @returns {Object} - An object containing formatted KPI values.
  */
+
+/**
+ * Pure CAGR calculator. current and prior must be in the same unit.
+ * Returns the CAGR as a percentage (e.g. 5.23 means 5.23%).
+ * Returns 0 if either value is non-positive.
+ */
+export const calcCAGR = (current, prior) => {
+    if (prior <= 0 || current <= 0) return 0;
+    return (Math.pow(current / prior, 1 / 3) - 1) * 100;
+};
+
 /**
  * Format YYYYMMDD to "Qx YYYY"
  */
@@ -128,17 +139,10 @@ const calculateKPIsInternal = (data, history = null) => {
         const twoYearAgo = history[8];
         const threeYearAgo = history[12];
 
-        // Overall 3Y CAGR (Gauge Value)
-        const calcCAGR = (curr, prev) => {
-            const c = hVal(latest, curr);
-            const p = hVal(threeYearAgo, prev);
-            if (p <= 0 || c <= 0) return 0;
-            return (Math.pow(c / p, 1 / 3) - 1) * 100;
-        };
-
-        assetGrowth3Y = calcCAGR('ASSET', 'ASSET').toFixed(2);
-        loanGrowth3Y = calcCAGR('LNLSNET', 'LNLSNET').toFixed(2);
-        depositGrowth3Y = calcCAGR('DEP', 'DEP').toFixed(2);
+        // Overall 3Y CAGR (Gauge Value) — uses shared calcCAGR utility
+        assetGrowth3Y = calcCAGR(hVal(latest, 'ASSET'), hVal(threeYearAgo, 'ASSET')).toFixed(2);
+        loanGrowth3Y = calcCAGR(hVal(latest, 'LNLSNET'), hVal(threeYearAgo, 'LNLSNET')).toFixed(2);
+        depositGrowth3Y = calcCAGR(hVal(latest, 'DEP'), hVal(threeYearAgo, 'DEP')).toFixed(2);
 
         // Annual YoY Points (Historical story for Sparkline)
         // Note: For trendlines to work, we attach these to the latest object 
