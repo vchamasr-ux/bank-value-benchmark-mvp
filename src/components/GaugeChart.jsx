@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import TrendIndicator from './TrendIndicator';
 import Tooltip from './Tooltip';
@@ -86,19 +86,36 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
 
 
 const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric, isActive = true }) => {
-    // Animate needle sweep: starts at far-left (-90°) and transitions to real rotation when active
+    // Animate needle sweep: starts at far-left (-90°) and transitions to real rotation when active/scrolled
     const [animated, setAnimated] = useState(false);
+    const containerRef = useRef(null);
+
     useEffect(() => {
-        if (isActive) {
+        if (!isActive) {
             setAnimated(false);
-            const raf = requestAnimationFrame(() => {
-                // Small delay so the CSS transition actually fires (needs a frame gap)
-                setTimeout(() => setAnimated(true), 50);
-            });
-            return () => cancelAnimationFrame(raf);
-        } else {
-            setAnimated(false);
+            return;
         }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setAnimated(false);
+                    requestAnimationFrame(() => {
+                        setTimeout(() => setAnimated(true), 50);
+                    });
+                    if (containerRef.current) {
+                        observer.unobserve(containerRef.current);
+                    }
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => observer.disconnect();
     }, [isActive]);
     // Calculate ranges and the visual bounds used for them
     const { ranges, visualMin, visualMax, p25Angle, p75Angle } = calculateGaugeRanges({ value, min, max, average, p25, p75, inverse });
@@ -118,7 +135,7 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
     const rotation = (percentage * 180) - 90;
 
     return (
-        <div className="flex flex-col items-center">
+        <div ref={containerRef} className="flex flex-col items-center flex-1 w-full bg-white p-6 rounded-xl shadow-sm border border-slate-100 transition-all hover:shadow-md h-full relative z-10">
             <div className="relative w-48 h-24">
                 <PieChart width={192} height={96}>
                     <Pie

@@ -1,8 +1,4 @@
-/**
- * Calculate Financial KPIs from raw FDIC Call Report data.
- * @param {Object} data - The raw data object from the API (ASSET, INTEXP, etc.)
- * @returns {Object} - An object containing formatted KPI values.
- */
+
 
 /**
  * Pure CAGR calculator. current and prior must be in the same unit.
@@ -60,14 +56,23 @@ const calculateKPIsInternal = (data, history = null) => {
     // Helper to parse string numbers to float, default to 0
     const val = (key) => parseFloat(data[key]) || 0;
 
+    // #1 — Annualize YTD income fields. FDIC reports cumulative YTD income (NETINC, INTINC, etc.).
+    // A Q1 report with 3 months of income divided by full-year assets yields ~4x understatement.
+    // Multiply all flow-based income/expense by (12 / monthsElapsed) to annualize.
+    const monthStr = String(data.REPDTE || '').substring(4, 6);
+    const monthsMap = { '03': 3, '06': 6, '09': 9, '12': 12 };
+    const monthsElapsed = monthsMap[monthStr] ?? 12;
+    const annFactor = 12 / monthsElapsed; // 1.0 for Q4, 4/3 for Q3, 2.0 for Q2, 4.0 for Q1
+
     const nonInterestExp = val('NONIX');
     const nonInterestInc = val('NONII');
     const interestExp = val('INTEXP') || val('EINTEXP');
-    const netInterestIncome = val('INTINC') - interestExp; // Calculated NIM
-    const totalAssets = val('ASSET'); // In thousands? FDIC usually reports in thousands.
-    const totalIncome = netInterestIncome + nonInterestInc;
+    const interestExpAnn = interestExp * annFactor;         // for Cost of Funds & NIM
+    const netInterestIncome = (val('INTINC') - interestExp) * annFactor; // annualized NIM base
+    const interestIncomeAnn = val('INTINC') * annFactor;   // for Yield on Loans
+    const totalAssets = val('ASSET');
+    const totalIncome = netInterestIncome + nonInterestInc * annFactor; // annualized revenue base
     const totalLoans = val('LNLSNET');
-    const interestIncome = val('INTINC');
     const numEmployees = val('NUMEMP');
 
     // 1. Efficiency Ratio
@@ -76,48 +81,50 @@ const calculateKPIsInternal = (data, history = null) => {
         efficiencyRatio = (nonInterestExp / totalIncome) * 100;
     }
 
-    // 2. Cost of Funds
+    // 2. Cost of Funds (annualized)
     let costOfFunds = 0;
     if (totalAssets > 0) {
-        costOfFunds = (interestExp / totalAssets) * 100;
+        costOfFunds = (interestExpAnn / totalAssets) * 100;
     }
 
-    // 3. Non-Interest Income %
+    // 3. Non-Interest Income % (ratio — no annualization needed; both sides are YTD flows)
     let nonInterestIncomePercent = 0;
     if (totalIncome > 0) {
-        nonInterestIncomePercent = (nonInterestInc / totalIncome) * 100;
+        nonInterestIncomePercent = ((nonInterestInc * annFactor) / totalIncome) * 100;
     }
 
-    // 4. Yield on Loans
+    // 4. Yield on Loans (annualized)
     let yieldOnLoans = 0;
     if (totalLoans > 0) {
-        yieldOnLoans = (interestIncome / totalLoans) * 100;
+        yieldOnLoans = (interestIncomeAnn / totalLoans) * 100;
     }
 
-    // 5. Net Interest Margin (NIM)
+    // 5. Net Interest Margin (NIM) — already annualized via netInterestIncome above
     let netInterestMargin = 0;
     if (totalAssets > 0) {
         netInterestMargin = (netInterestIncome / totalAssets) * 100;
     }
 
-    // 6. Assets per Employee
+    // 6. Assets per Employee ($M)
+    // totalAssets is in thousands. totalAssets / 1000 = totalAssets in Millions
     let assetsPerEmployee = 0;
     if (numEmployees > 0) {
-        assetsPerEmployee = (totalAssets * 1000) / numEmployees;
+        assetsPerEmployee = (totalAssets / 1000) / numEmployees;
     }
 
-    // 7. Return on Equity (ROE)
+    // 7. Return on Equity (ROE) — annualized
     let returnOnEquity = 0;
     const netIncome = val('NETINC');
+    const netIncomeAnn = netIncome * annFactor;
     const totalEquity = val('EQ');
     if (totalEquity > 0) {
-        returnOnEquity = (netIncome / totalEquity) * 100;
+        returnOnEquity = (netIncomeAnn / totalEquity) * 100;
     }
 
-    // 8. Return on Assets (ROA)
+    // 8. Return on Assets (ROA) — annualized
     let returnOnAssets = 0;
     if (totalAssets > 0) {
-        returnOnAssets = (netIncome / totalAssets) * 100;
+        returnOnAssets = (netIncomeAnn / totalAssets) * 100;
     }
 
     // 9. Non-Performing Loans (NPL) Ratio
@@ -137,8 +144,13 @@ const calculateKPIsInternal = (data, history = null) => {
         const hVal = (record, key) => parseFloat(record[key]) || 0;
         const latest = history[0];
         const oneYearAgo = history[4];
-        const twoYearAgo = history[8];
-        const threeYearAgo = history[12];
+        // #2 — Cap lookback to available history to avoid wrong-baseline bug
+        const threeYearIdx = Math.min(12, history.length - 1);
+        const twoYearAgo = history[Math.min(8, history.length - 1)];
+        const threeYearAgo = history[threeYearIdx];
+        if (threeYearIdx < 12) {
+            console.warn(`kpiCalculator: only ${history.length} quarters available — 3Y CAGR uses ${threeYearIdx}q lookback instead of 12.`);
+        }
 
         // Overall 3Y CAGR — plain numbers, formatted at render time
         assetGrowth3Y = calcCAGR(hVal(latest, 'ASSET'), hVal(threeYearAgo, 'ASSET'));
@@ -176,6 +188,7 @@ const calculateKPIsInternal = (data, history = null) => {
     return {
         reportDate: formatQuarter(data.REPDTE),
         // All KPI values are plain numbers — format with .toFixed() only at render time.
+        // Flow-based metrics (ROA, ROE, NIM, CoF, YoL) are annualized. (#1)
         efficiencyRatio,
         costOfFunds,
         nonInterestIncomePercent,
@@ -191,7 +204,7 @@ const calculateKPIsInternal = (data, history = null) => {
         annualGrowthHistory,
         raw: {
             ...data,
-            netInterestIncome
+            netInterestIncome // annualized
         }
     };
 };

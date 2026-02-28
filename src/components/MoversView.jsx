@@ -15,7 +15,7 @@ const KPI_SPECS = [
     { key: "npl_ratio", label: "NPL Ratio", better: "lower", type: "rate", metric_class: "core" },
 ];
 
-const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief, isPresentationMode = false, forcedTab = null }) => {
+const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief }) => {
     const [activeTab, setActiveTab] = useState('threats'); // 'threats' | 'playbooks'
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -114,14 +114,13 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
         );
     }
 
-    const resolvedTab = forcedTab || activeTab;
-    const currentList = resolvedTab === 'threats' ? moversData.threats : moversData.playbooks;
-    const displayList = isPresentationMode ? currentList.slice(0, 3) : currentList;
+    const currentList = activeTab === 'threats' ? moversData.threats : moversData.playbooks;
+    const displayList = currentList;
 
     return (
-        <div className={`animate-in fade-in slide-in-from-bottom-2 duration-500 ${isPresentationMode ? 'space-y-3' : 'space-y-6'}`}>
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
             {/* Header / Stats */}
-            <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white rounded-2xl border border-slate-200 shadow-sm ${isPresentationMode ? 'p-3' : 'p-6'}`}>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div>
                     <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-black uppercase tracking-wider mb-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
@@ -131,32 +130,25 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                     <p className="text-slate-500 text-sm">Identifying outliers in {currentQuarter} vs {priorQuarter} </p>
                 </div>
 
-                {!forcedTab && (
-                    <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
-                        <button
-                            onClick={() => setActiveTab('threats')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-rose-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-                        >
-                            Market Threats ({moversData.threats.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('playbooks')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-                        >
-                            Growth Playbooks ({moversData.playbooks.length})
-                        </button>
-                    </div>
-                )}
-                {forcedTab && (
-                    <div className={`px-4 py-2 rounded-lg text-sm font-black ${forcedTab === 'threats' ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}>
-                        {forcedTab === 'threats' ? `⚠ Market Threats (${moversData.threats.length})` : `✦ Growth Playbooks (${moversData.playbooks.length})`}
-                    </div>
-                )}
+                <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                    <button
+                        onClick={() => setActiveTab('threats')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-rose-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                    >
+                        Market Threats ({moversData.threats.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('playbooks')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                    >
+                        Growth Playbooks ({moversData.playbooks.length})
+                    </button>
+                </div>
             </div>
 
             {/* List */}
-            <div className={`grid grid-cols-1 lg:grid-cols-3 ${isPresentationMode ? 'gap-3' : 'gap-6'}`}>
-                <div className={`lg:col-span-2 ${isPresentationMode ? 'space-y-2' : 'space-y-4'}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-4">
                     {displayList.length === 0 ? (
                         <div className="bg-white p-20 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400">
                             No {activeTab} detected in this segment.
@@ -164,7 +156,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                     ) : (
                         displayList.map((m, idx) => (
                             <div key={m.cert} className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all">
-                                <div className={`flex justify-between items-start ${isPresentationMode ? 'p-3' : 'p-5'}`}>
+                                <div className="flex justify-between items-start p-5">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3">
                                             <span className={`text-xs font-black ${activeTab === 'threats' ? 'text-rose-700' : 'text-emerald-700'} bg-slate-100 w-6 h-6 flex items-center justify-center rounded-full`}>{idx + 1}</span>
@@ -178,9 +170,9 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                         <div className="mt-4 flex flex-wrap gap-4">
                                             {m.topDrivers.map((d, dIdx) => (
                                                 <div key={dIdx} className="flex flex-col">
-                                                    <span className={`text-slate-400 font-bold uppercase ${isPresentationMode ? 'text-[8px]' : 'text-[10px]'}`}>{d.spec.label}</span>
-                                                    <span className={`font-bold ${d.signedZ > 0 ? 'text-emerald-800' : 'text-rose-800'} ${isPresentationMode ? 'text-xs' : 'text-sm'}`}>
-                                                        {d.z > 0 ? '+' : ''}{d.z.toFixed(2)}σ <span className={`text-slate-400 font-medium ${isPresentationMode ? 'text-[8px]' : 'text-[10px]'}`}>({d.delta > 0 ? '+' : ''}{(d.delta * 100).toFixed(2)}%)</span>
+                                                    <span className="text-slate-400 font-bold uppercase text-[10px]">{d.spec.label}</span>
+                                                    <span className={`font-bold ${d.signedZ > 0 ? 'text-emerald-800' : 'text-rose-800'} text-sm`}>
+                                                        {d.z > 0 ? '+' : ''}{d.z.toFixed(2)}σ <span className="text-slate-400 font-medium text-[10px]">({d.delta > 0 ? '+' : ''}{(d.delta * 100).toFixed(2)}%)</span>
                                                     </span>
                                                 </div>
                                             ))}
@@ -199,43 +191,35 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                 </div>
 
                 {/* Sidebar */}
-                <div className={isPresentationMode ? 'space-y-3' : 'space-y-6'}>
-                    <div className={`bg-blue-900 rounded-2xl text-white shadow-xl ${isPresentationMode ? 'p-4' : 'p-6'}`}>
-                        <h3 className={`font-black mb-2 ${isPresentationMode ? 'text-base' : 'text-lg'}`}>AI Intelligence</h3>
-                        {isPresentationMode ? (
-                            <p className="text-blue-100 text-sm leading-relaxed">These market signals highlight competitive outliers based on standard deviation anomalies across key performance indicators.</p>
-                        ) : (
-                            <>
-                                <p className="text-blue-100 text-sm mb-6 leading-relaxed">Synthesize these market signals into a strategic brief for {perspectiveBankName}.</p>
-                                <button
-                                    className="w-full bg-white text-blue-900 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
-                                    onClick={onShowBrief}
-                                >
-                                    <span>🪄</span> Generate Strategic Brief
-                                </button>
-                            </>
-                        )}
+                <div className="space-y-6">
+                    <div className="bg-blue-900 rounded-2xl text-white shadow-xl p-6">
+                        <h3 className="font-black mb-2 text-lg">AI Intelligence</h3>
+                        <p className="text-blue-100 text-sm mb-6 leading-relaxed">Synthesize these market signals into a strategic brief for {perspectiveBankName}.</p>
+                        <button
+                            className="w-full bg-white text-blue-900 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                            onClick={onShowBrief}
+                        >
+                            <span>🪄</span> Generate Strategic Brief
+                        </button>
                     </div>
 
-                    {!isPresentationMode && (
-                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                            <h3 className="font-bold text-slate-900 mb-4 text-sm">How to read the Radar</h3>
-                            <div className="space-y-4">
-                                <div className="flex gap-3">
-                                    <span className="bg-slate-100 text-xs p-2 rounded-lg">σ</span>
-                                    <p className="text-xs text-slate-500 leading-relaxed">
-                                        <strong className="text-slate-700">Sigma Scopes:</strong> We measure performance volatility relative to the peer group. High sigma (&gt; 2) indicates a "Breakout" or "Breakdown".
-                                    </p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <span className="bg-slate-100 text-xs p-2 rounded-lg">⚡</span>
-                                    <p className="text-xs text-slate-500 leading-relaxed">
-                                        <strong className="text-slate-700">Surprise:</strong> Cumulative absolute volatility across {KPI_SPECS.length} KPIs. Higher surprise means a bank has fundamentally shifted its profile.
-                                    </p>
-                                </div>
+                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                        <h3 className="font-bold text-slate-900 mb-4 text-sm">How to read the Radar</h3>
+                        <div className="space-y-4">
+                            <div className="flex gap-3">
+                                <span className="bg-slate-100 text-xs p-2 rounded-lg">σ</span>
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    <strong className="text-slate-700">Sigma Scopes:</strong> We measure performance volatility relative to the peer group. High sigma (&gt; 2) indicates a "Breakout" or "Breakdown".
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <span className="bg-slate-100 text-xs p-2 rounded-lg">⚡</span>
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    <strong className="text-slate-700">Surprise:</strong> Cumulative absolute volatility across {KPI_SPECS.length} KPIs. Higher surprise means a bank has fundamentally shifted its profile.
+                                </p>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

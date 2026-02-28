@@ -12,6 +12,7 @@ const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 import StrategicPlannerTab from './components/StrategicPlannerTab';
 import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
 import PitchbookPresentation from './components/PitchbookPresentation';
+import { calculateKPIs } from './utils/kpiCalculator'; // #11 — was missing!
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
@@ -71,8 +72,12 @@ function App() {
   // #2 — When user changes the quarter dropdown, update the active financials snapshot
   useEffect(() => {
     if (allHistoricalKPIs && allHistoricalKPIs.length > 0) {
-      const snap = allHistoricalKPIs[selectedQuarterIdx];
-      snap.history = allHistoricalKPIs; // preserve history ref for trend indicators
+      // Spread to avoid mutating the cached KPI array item (#2)
+      // history starts at the selected index so trend sparklines show the right time window
+      const snap = {
+        ...allHistoricalKPIs[selectedQuarterIdx],
+        history: allHistoricalKPIs.slice(selectedQuarterIdx)
+      };
       setFinancials(snap);
     }
   }, [selectedQuarterIdx, allHistoricalKPIs]);
@@ -373,8 +378,6 @@ function App() {
                           <FinancialDashboard
                             financials={financials}
                             benchmarks={benchmarks}
-                            onShowMovers={() => { setView('movers'); }}
-                            showMoversButton={FEAT_MARKET_MOVERS}
                             authRequired={FEAT_AUTH_REQUIRED}
                             isPresentMode={isPresentMode}
                             setIsPresentMode={setIsPresentMode}

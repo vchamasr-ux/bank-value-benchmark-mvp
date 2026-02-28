@@ -9,6 +9,12 @@ const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
 export const searchBank = async (name) => {
     if (!name) return [];
 
+    const cacheKey = `fdic_search_${name.trim().toLowerCase()}`;
+    try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) return JSON.parse(cached);
+    } catch { /* ignore sessionStorage errors */ }
+
     // FDIC API requires specific filters string format
     // We search for ACTIVE institutions using the flexible 'search' parameter
     // and sort by ASSET DESC to prioritize the largest banks.
@@ -24,7 +30,13 @@ export const searchBank = async (name) => {
             throw new Error(`FDIC API Error: ${response.statusText}`);
         }
         const data = await response.json();
-        return data.data.map(item => item.data);
+        const results = data.data.map(item => item.data);
+
+        try {
+            sessionStorage.setItem(cacheKey, JSON.stringify(results));
+        } catch { /* ignore quota errors */ }
+
+        return results;
     } catch (error) {
         console.error("Failed to search banks:", error);
         throw error;

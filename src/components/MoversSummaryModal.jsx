@@ -293,13 +293,6 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                 }
             } else if (err.message.startsWith('DAILY_QUOTA:')) {
                 setError(err.message.replace('DAILY_QUOTA:', '').trim());
-            } else if (err.message && err.message.includes('429') && err.message.includes('quota')) {
-                if (retryCount >= 1) {
-                    setError("Daily AI quota reached. Please try again tomorrow.");
-                } else {
-                    setRetryFromError(err.message);
-                    setError(null);
-                }
             } else {
                 setError(err.message || 'Failed to generate brief');
             }

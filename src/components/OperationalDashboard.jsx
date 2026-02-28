@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GaugeChart from './GaugeChart';
 import benchmarkData from '../data/operationalBenchmarks.json';
 import { useAuth } from './auth/AuthContext';
@@ -10,12 +10,20 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
     // FDIC ASSET is in thousands. 10 Billion = 10,000,000
     const defaultPeerGroup = assetSize >= 10000000 ? 'regionalBank_over10B' : 'communityBank_under10B';
     const [selectedPeerGroup, setSelectedPeerGroup] = useState(defaultPeerGroup);
-    const [formData, setFormData] = useState({
-        digitalAdoptionRate: '',
-        digitalAccountOpening: '',
-        vendorSpendPercent: '',
-        avgAgeCustomer: '',
-        netPromoterScore: ''
+
+    // #6 Form data persistence via sessionStorage
+    const [formData, setFormData] = useState(() => {
+        try {
+            const saved = sessionStorage.getItem('opDashboardFormData');
+            if (saved) return JSON.parse(saved);
+        } catch { /* ignore */ }
+        return {
+            digitalAdoptionRate: '',
+            digitalAccountOpening: '',
+            vendorSpendPercent: '',
+            avgAgeCustomer: '',
+            netPromoterScore: ''
+        };
     });
 
     const [isUnlocked, setIsUnlocked] = useState(false);
@@ -23,6 +31,13 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
     const [formError, setFormError] = useState('');
 
     const currentBenchmarks = benchmarkData[selectedPeerGroup];
+
+    // Sync formData to sessionStorage immediately when it changes
+    useEffect(() => {
+        try {
+            sessionStorage.setItem('opDashboardFormData', JSON.stringify(formData));
+        } catch { /* ignore */ }
+    }, [formData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

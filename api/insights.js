@@ -11,6 +11,12 @@ export default async function handler(req, res) {
 
     const { financials, benchmarks, type, tapeStr, snapshotBlock, perspectiveBankName } = req.body;
 
+    // #10 — Validate type field; silently falling through causes wrong AI path on typo
+    const VALID_TYPES = ['market_movers', 'financial_summary', undefined];
+    if (!VALID_TYPES.includes(type)) {
+        return res.status(400).json({ error: `Invalid type: "${type}". Must be one of: market_movers, financial_summary.` });
+    }
+
     // Get identification from header
     const linkedinSub = req.headers['x-linkedin-sub'];
     const linkedinName = req.headers['x-linkedin-name'];
@@ -158,14 +164,48 @@ ${snapshotBlock}
 
         } else {
             // Default: financial_summary
-            const bankName = financials?.name || financials?.raw?.NAME || 'the bank';
-            const bankLocation = financials?.raw?.CITY && financials?.raw?.STALP ? `${financials.raw.CITY}, ${financials.raw.STALP}` : '';
-            const promptData = { financials, benchmarks };
+            // #5 — Project to curated KPI shape instead of sending the full financials object
+            // (which includes 20 quarters of raw history). Reduces token use and avoids context overflows.
+            const kpiSlim = financials ? {
+                reportDate: financials.reportDate,
+                efficiencyRatio: financials.efficiencyRatio,
+                netInterestMargin: financials.netInterestMargin,
+                costOfFunds: financials.costOfFunds,
+                returnOnAssets: financials.returnOnAssets,
+                returnOnEquity: financials.returnOnEquity,
+                nptlRatio: financials.nptlRatio,
+                yieldOnLoans: financials.yieldOnLoans,
+                assetGrowth3Y: financials.assetGrowth3Y,
+                loanGrowth3Y: financials.loanGrowth3Y,
+                depositGrowth3Y: financials.depositGrowth3Y,
+                raw: {
+                    NAME: financials.raw?.NAME,
+                    CITY: financials.raw?.CITY,
+                    STALP: financials.raw?.STALP,
+                    ASSET: financials.raw?.ASSET,
+                }
+            } : null;
+
+            const benchSlim = benchmarks ? {
+                groupName: benchmarks.groupName,
+                sampleSize: benchmarks.sampleSize,
+                efficiencyRatio: benchmarks.efficiencyRatio,
+                netInterestMargin: benchmarks.netInterestMargin,
+                costOfFunds: benchmarks.costOfFunds,
+                returnOnAssets: benchmarks.returnOnAssets,
+                returnOnEquity: benchmarks.returnOnEquity,
+                nptlRatio: benchmarks.nptlRatio,
+                yieldOnLoans: benchmarks.yieldOnLoans,
+                assetGrowth3Y: benchmarks.assetGrowth3Y,
+            } : null;
+
+            const promptData = { financials: kpiSlim, benchmarks: benchSlim };
 
             prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}${bankLocation ? ` based in ${bankLocation}` : ''}. 
 CRITICAL CONTEXT: 
 1. ALL absolute dollar values in the raw FDIC data are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Use Billion/Million terminology correctly.
 2. The benchmark data provides averages for a peer group. Focus on proportional metrics (ratios, margins, percentages).
+3. All flow-based KPIs (ROA, ROE, NIM, Cost of Funds, Yield on Loans) are already annualized.
 
 Provide a detailed, professional summary of their financial health.
 IMPORTANT: Start with a very brief (1-2 sentences) introductory overview about the bank itself based on your knowledge.

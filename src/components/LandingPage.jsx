@@ -1,6 +1,13 @@
 import React from 'react';
 import BankSearch from './BankSearch';
 
+// #7 — Centralised social proof stats. Update here when FDIC coverage or model changes.
+const STATS = [
+    { value: '4,700+', label: 'FDIC Banks Covered' },
+    { value: '20 Qtrs', label: 'of Call Report History' },
+    { value: 'Gemini 2.5', label: 'Flash AI Model' },
+];
+
 const LandingPage = ({ onBankSelect }) => {
     return (
         <div className="w-full">
@@ -42,18 +49,12 @@ const LandingPage = ({ onBankSelect }) => {
 
                     {/* Social proof stats bar */}
                     <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-px border border-white/10 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm divide-y sm:divide-y-0 sm:divide-x divide-white/10 max-w-2xl mx-auto">
-                        <div className="flex-1 px-8 py-4 text-center">
-                            <div className="text-2xl font-black text-white tracking-tight">4,700<span className="text-blue-400">+</span></div>
-                            <div className="text-xs text-slate-400 font-medium mt-0.5">FDIC Banks Covered</div>
-                        </div>
-                        <div className="flex-1 px-8 py-4 text-center">
-                            <div className="text-2xl font-black text-white tracking-tight">16 <span className="text-blue-400">Qtrs</span></div>
-                            <div className="text-xs text-slate-400 font-medium mt-0.5">of Call Report History</div>
-                        </div>
-                        <div className="flex-1 px-8 py-4 text-center">
-                            <div className="text-2xl font-black text-white tracking-tight">Gemini <span className="text-blue-400">2.5</span></div>
-                            <div className="text-xs text-slate-400 font-medium mt-0.5">AI Model</div>
-                        </div>
+                        {STATS.map(({ value, label }) => (
+                            <div key={label} className="flex-1 px-8 py-4 text-center">
+                                <div className="text-2xl font-black text-white tracking-tight">{value}</div>
+                                <div className="text-xs text-slate-400 font-medium mt-0.5">{label}</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>

@@ -144,8 +144,6 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 onSummaryGenerated={setAiSummary}
             />
 
-            {/* Geographic Distribution Map */}
-
 
             {/* Growth Performance (New) */}
             <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 mb-8">
@@ -276,12 +274,12 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     />
                     <GaugeChart
                         label="Assets / Employee ($M)"
-                        value={(parseFloat(financials.assetsPerEmployee) / 1000000).toFixed(1)}
+                        value={parseFloat(financials.assetsPerEmployee)}
                         min={0}
                         max={25}
-                        average={benchmarks?.assetsPerEmployee ? (parseFloat(benchmarks.assetsPerEmployee) / 1000000).toFixed(1) : null}
-                        p25={benchmarks?.p25?.assetsPerEmployee ? (parseFloat(benchmarks.p25.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
-                        p75={benchmarks?.p75?.assetsPerEmployee ? (parseFloat(benchmarks.p75.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
+                        average={benchmarks?.assetsPerEmployee ? parseFloat(benchmarks.assetsPerEmployee) : null}
+                        p25={benchmarks?.p25?.assetsPerEmployee ? parseFloat(benchmarks.p25.assetsPerEmployee) : undefined}
+                        p75={benchmarks?.p75?.assetsPerEmployee ? parseFloat(benchmarks.p75.assetsPerEmployee) : undefined}
                         suffix="M"
                         trend={financials.history}
                         metric="assetsPerEmployee"
