@@ -226,7 +226,7 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                         <strong>Disclaimer:</strong> This application is currently in its testing phase. Unlike the FDIC financial data on the main dashboard, which is sourced directly from regulatory Call Reports, operational metrics (such as digital adoption, account opening, and vendor spend averages) are not publicly filed by banks.
                     </p>
                     <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                        The peer group averages and quartile ranges displayed above are synthesized on a best-effort basis from aggregated 2025-2026 industry research reports, surveys, and consulting benchmarks aimed at community and regional banking institutions. They should be used for general comparison and directional guidance only, not as definitive financial advice.
+                        The peer group averages and quartile ranges displayed above are synthesized on a best-effort basis from aggregated 2024-2025 industry research reports, surveys, and consulting benchmarks aimed at community and regional banking institutions. They should be used for general comparison and directional guidance only, not as definitive financial advice.
                     </p>
                     <div className="text-[10px] text-slate-500">
                         <strong>Primary Data Sources (Aggregated 2024 Research):</strong>
