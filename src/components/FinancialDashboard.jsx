@@ -44,11 +44,6 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true }) => 
                                 N={benchmarks.sampleSize}
                             </button>
                         )}
-                        {benchmarks.reportDate && (
-                            <span className="text-[10px] font-bold text-slate-500 ml-2 border-l border-slate-200 pl-2">
-                                As-of: {benchmarks.reportDate}
-                            </span>
-                        )}
                     </div>
                 )}
             </div>

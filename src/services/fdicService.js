@@ -60,7 +60,7 @@ export const getBankFinancials = async (certId) => {
 };
 
 
-import { calculateKPIs, formatQuarter } from '../utils/kpiCalculator.js';
+import { calculateKPIs } from '../utils/kpiCalculator.js';
 import { getProximityScore } from '../utils/stateMapping.js';
 
 /**
@@ -87,7 +87,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
 
     const { filter: assetFilter, name: groupName } = getAssetGroupConfig(assetSize);
 
-    const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
+    const fields = 'ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
     // Fetch a larger sample (N=500) to find enough neighbors
     const limit = 500;
 
@@ -240,12 +240,9 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                 };
             });
 
-            const latestRepDte = peers.length > 0 ? peers[0].REPDTE : null;
-
             return {
                 ...totalRaw,
                 ...means, // Directly provide Means as the primary benchmark values
-                reportDate: latestRepDte ? formatQuarter(latestRepDte) : null,
                 groupName,
                 assetFilter, // Expose the actual asset filter string
                 sampleSize: totalRaw.count,

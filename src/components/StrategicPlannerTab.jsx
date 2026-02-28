@@ -600,9 +600,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
 
                             <div className="mb-6 flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-slate-200">
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Current {formatLabel(targetKpi)} {financials?.reportDate && <span className="lowercase font-normal"> (as-of {financials.reportDate})</span>}
-                                    </span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current {formatLabel(targetKpi)}</span>
                                     <span className="text-xl font-black text-slate-700">{currentValue.toFixed(2)}%</span>
                                 </div>
                                 <div className="flex flex-col items-center px-4">
@@ -614,9 +612,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                     </span>
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Target ({targetType.replace('_', ' ')}){benchmarks?.reportDate && <span className="lowercase font-normal"> (as-of {benchmarks.reportDate})</span>}
-                                    </span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target ({targetType.replace('_', ' ')})</span>
                                     <span className="text-xl font-black text-blue-900">{currentTarget.toFixed(2)}%</span>
                                 </div>
                             </div>
