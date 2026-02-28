@@ -41,6 +41,8 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
     const [error, setError] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
     const [retryCountdown, setRetryCountdown] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
     const { user } = useAuth();
@@ -392,6 +394,38 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
         setTimeout(() => setIsCopied(false), 2000);
     };
 
+    const handleSave = async () => {
+        if (!summary || !user) return;
+        setIsSaving(true);
+        try {
+            const response = await fetch('/api/briefs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-linkedin-sub': user.sub
+                },
+                body: JSON.stringify({
+                    bankName: perspectiveBankName || 'Selected Bank',
+                    type: 'market_movers',
+                    data: summary
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || response.statusText);
+            }
+
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save brief: " + err.message);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     const renderSummary = (data) => {
@@ -572,9 +606,23 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                 </div>
 
                 <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center px-8">
-                    <button onClick={handleCopy} disabled={!summary || isLoading} className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 disabled:opacity-50">
-                        {isCopied ? 'Copied!' : 'Copy Brief'}
-                    </button>
+                    <div className="flex gap-2">
+                        <button onClick={handleCopy} disabled={!summary || isLoading} className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 disabled:opacity-50">
+                            {isCopied ? 'Copied!' : 'Copy Brief'}
+                        </button>
+                        {summary && !isLoading && !error && (
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all ${saveSuccess
+                                    ? 'bg-green-100 text-green-700 border border-green-200'
+                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {saveSuccess ? 'Saved!' : isSaving ? 'Saving...' : 'Save Brief'}
+                            </button>
+                        )}
+                    </div>
                     <div className="flex gap-3">
                         <button onClick={generateMoversIntelligence} disabled={isLoading} className="px-5 py-2 bg-blue-50 border border-blue-100 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 disabled:opacity-50">
                             Regenerate

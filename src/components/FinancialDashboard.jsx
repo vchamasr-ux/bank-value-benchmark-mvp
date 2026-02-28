@@ -10,33 +10,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
 
-    // Listen for native Fullscreen exits (e.g., ESC key)
-    useEffect(() => {
-        const handleFullscreenChange = () => {
-            if (!document.fullscreenElement && isPresentMode) {
-                setIsPresentMode(false);
-            }
-        };
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    }, [isPresentMode, setIsPresentMode]);
-
-    const handlePresentLiveToggled = async () => {
-        try {
-            if (!isPresentMode) {
-                await document.documentElement.requestFullscreen();
-                setIsPresentMode(true);
-            } else {
-                if (document.fullscreenElement) {
-                    await document.exitFullscreen();
-                }
-                setIsPresentMode(false);
-            }
-        } catch (err) {
-            console.error("Fullscreen toggle failed", err);
-            // Fallback: just toggle the CSS state if native fullscreen fails
-            setIsPresentMode(!isPresentMode);
-        }
+    const handlePresentLiveToggled = () => {
+        setIsPresentMode(!isPresentMode);
     };
 
     const handleExportPDF = async () => {
@@ -61,55 +36,51 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
         <div id="dashboard-export-zone" className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <h2 className={`font-black text-blue-900 tracking-tight ${isPresentMode ? 'text-4xl' : 'text-2xl'}`}>
+                    <h2 className="font-black text-blue-900 tracking-tight text-2xl">
                         Financial Health Scorecard
                     </h2>
-                    {!isPresentMode && (
-                        <button
-                            onClick={() => setIsSummaryModalOpen(true)}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-300" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                            </svg>
-                            AI Summarize
-                        </button>
-                    )}
+                    <button
+                        onClick={() => setIsSummaryModalOpen(true)}
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                        </svg>
+                        AI Summarize
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {!isPresentMode && (
-                        <div className="flex border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-blue-300 bg-white items-center p-1">
-                            <button
-                                onClick={handlePresentLiveToggled}
-                                className="flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all whitespace-nowrap active:scale-95"
-                            >
+                    <div className="flex border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-blue-300 bg-white items-center p-1">
+                        <button
+                            onClick={handlePresentLiveToggled}
+                            className="flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all whitespace-nowrap active:scale-95"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span>Present Live</span>
+                        </button>
+                        <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                        <button
+                            onClick={handleExportPDF}
+                            disabled={isExporting}
+                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${isExporting
+                                ? 'text-slate-400 cursor-not-allowed'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+                                }`}
+                            title="Export PDF"
+                        >
+                            {isExporting ? (
+                                <div className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin"></div>
+                            ) : (
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                <span>Present Live</span>
-                            </button>
-                            <div className="w-px h-5 bg-slate-200 mx-1"></div>
-                            <button
-                                onClick={handleExportPDF}
-                                disabled={isExporting}
-                                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${isExporting
-                                    ? 'text-slate-400 cursor-not-allowed'
-                                    : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-                                    }`}
-                                title="Export PDF"
-                            >
-                                {isExporting ? (
-                                    <div className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin"></div>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                )}
-                                <span>PDF</span>
-                            </button>
-                        </div>
-                    )}
+                            )}
+                            <span>PDF</span>
+                        </button>
+                    </div>
 
                     {benchmarks && benchmarks.groupName && (
                         <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
@@ -117,8 +88,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             <span className="text-sm font-bold text-slate-600">{benchmarks.groupName}</span>
                             {benchmarks.sampleSize && (
                                 <button
-                                    onClick={() => !isPresentMode && setIsPeerModalOpen(true)}
-                                    className={`text-blue-600 font-bold ml-1 bg-blue-100/50 px-2 py-0.5 rounded text-xs transition-colors ${!isPresentMode ? 'hover:text-blue-800 cursor-pointer' : 'cursor-default'}`}
+                                    onClick={() => setIsPeerModalOpen(true)}
+                                    className="text-blue-600 font-bold ml-1 hover:text-blue-800 bg-blue-100/50 hover:bg-blue-100 px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
                                     title="View Peer Group List"
                                 >
                                     N={benchmarks.sampleSize}
@@ -128,19 +99,6 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     )}
                 </div>
             </div>
-
-            {isPresentMode && (
-                <button
-                    onClick={handlePresentLiveToggled}
-                    className="fixed bottom-8 right-8 z-[200] bg-slate-900 border border-slate-700 text-white shadow-2xl rounded-full px-6 py-3 font-bold flex items-center gap-2 hover:bg-slate-800 hover:scale-105 transition-all outline-none"
-                    title="Exit Presentation Mode (Esc)"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Exit Presentation
-                </button>
-            )}
 
             {/* Peer Group Details Modal */}
             <PeerGroupModal

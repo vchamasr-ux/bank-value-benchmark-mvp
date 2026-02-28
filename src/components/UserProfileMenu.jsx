@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
+import SavedBriefsModal from './SavedBriefsModal';
 
 const UserProfileMenu = () => {
     const { user, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
+    const [isBriefsModalOpen, setIsBriefsModalOpen] = useState(false);
     const menuRef = useRef(null);
 
     // Close dropdown when clicking outside
@@ -65,6 +67,19 @@ const UserProfileMenu = () => {
                     </div>
 
                     <div className="p-2 space-y-1">
+                        <button
+                            onClick={() => {
+                                setIsOpen(false);
+                                setIsBriefsModalOpen(true);
+                            }}
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-left"
+                        >
+                            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                            My Saved Briefs
+                        </button>
+
                         {user.profileUrl && (
                             <a
                                 href={user.profileUrl}
@@ -99,6 +114,8 @@ const UserProfileMenu = () => {
                     </div>
                 </div>
             )}
+
+            <SavedBriefsModal isOpen={isBriefsModalOpen} onClose={() => setIsBriefsModalOpen(false)} />
         </div>
     );
 };

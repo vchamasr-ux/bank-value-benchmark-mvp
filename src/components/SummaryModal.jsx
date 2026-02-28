@@ -9,6 +9,8 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [retryCountdown, setRetryCountdown] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
@@ -42,6 +44,38 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
         } catch (err) {
             console.error('Failed to generate export:', err);
             alert("Failed to generate export: " + err.message);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!summary || !user) return;
+        setIsSaving(true);
+        try {
+            const response = await fetch('/api/briefs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-linkedin-sub': user.sub
+                },
+                body: JSON.stringify({
+                    bankName: financials?.name || financials?.raw?.NAME || 'Selected Bank',
+                    type: 'financial_summary',
+                    data: summary
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || response.statusText);
+            }
+
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save brief: " + err.message);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -408,6 +442,31 @@ ${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
                                     Export HTML Brief
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    disabled={isSaving}
+                                    className={`px-4 py-2.5 rounded-lg text-sm font-bold focus:outline-none transition-all flex items-center gap-2 ${saveSuccess
+                                        ? 'bg-green-100 text-green-700 border border-green-200'
+                                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm'
+                                        }`}
+                                    title="Save Brief to Profile"
+                                >
+                                    {saveSuccess ? (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Saved!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                            </svg>
+                                            {isSaving ? 'Saving...' : 'Save Brief'}
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         )}

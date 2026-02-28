@@ -11,6 +11,7 @@ import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService
 import * as fdicService from './services/fdicService';
 import StrategicPlannerTab from './components/StrategicPlannerTab';
 import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
+import PitchbookPresentation from './components/PitchbookPresentation';
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
@@ -102,258 +103,266 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-      {/* Global Navigation Header */}
-      {!isPresentMode && (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-[100] shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-8">
-              <h1
-                className="text-lg sm:text-xl font-black text-blue-900 tracking-tight cursor-pointer shrink-0"
-                onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
-              >
-                BANK<span className="text-blue-600">VALUE</span>
-              </h1>
+      {/* If Present Mode is active, bypass the entire layout and just render the Pitchbook */}
+      {isPresentMode ? (
+        <PitchbookPresentation
+          selectedBank={selectedBank}
+          financials={financials}
+          benchmarks={benchmarks}
+          fdicService={fdicService}
+          onClose={() => setIsPresentMode(false)}
+        />
+      ) : (
+        <>
+          {/* Global Navigation Header */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-[100] shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-2 sm:gap-8">
+                <h1
+                  className="text-lg sm:text-xl font-black text-blue-900 tracking-tight cursor-pointer shrink-0"
+                  onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
+                >
+                  BANK<span className="text-blue-600">VALUE</span>
+                </h1>
 
-              <nav className="flex items-center gap-1 sm:gap-4">
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setView('benchmark')}
-                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'benchmark'
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                  >
-                    <span>Banks</span>
-                    <span className="text-[10px] opacity-70 font-medium tracking-tight">Performance Benchmarks</span>
-                  </button>
-                  <button
-                    onClick={() => setView('movers')}
-                    disabled={!selectedBank}
-                    title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
-                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'movers'
-                      ? 'bg-blue-50 text-blue-700'
-                      : !selectedBank
-                        ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                <nav className="flex items-center gap-1 sm:gap-4">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setView('benchmark')}
+                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'benchmark'
+                        ? 'bg-blue-50 text-blue-700'
                         : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                  >
-                    <span>Market Movers</span>
-                    <span className="text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
-                  </button>
-                  <button
-                    onClick={() => setView('planner')}
-                    disabled={!selectedBank}
-                    title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
-                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'planner'
-                      ? 'bg-blue-50 text-blue-700'
-                      : !selectedBank
-                        ? 'text-slate-300 opacity-40 cursor-not-allowed'
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                  >
-                    <span>What Would It Take?</span>
-                    <span className="text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
-                  </button>
-                </div>
+                    >
+                      <span>Banks</span>
+                      <span className="text-[10px] opacity-70 font-medium tracking-tight">Performance Benchmarks</span>
+                    </button>
+                    <button
+                      onClick={() => setView('movers')}
+                      disabled={!selectedBank}
+                      title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
+                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'movers'
+                        ? 'bg-blue-50 text-blue-700'
+                        : !selectedBank
+                          ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                    >
+                      <span>Market Movers</span>
+                      <span className="text-[10px] opacity-70 font-medium tracking-tight">Competitive Radar</span>
+                    </button>
+                    <button
+                      onClick={() => setView('planner')}
+                      disabled={!selectedBank}
+                      title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
+                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-start leading-none ${view === 'planner'
+                        ? 'bg-blue-50 text-blue-700'
+                        : !selectedBank
+                          ? 'text-slate-300 opacity-40 cursor-not-allowed'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                    >
+                      <span>What Would It Take?</span>
+                      <span className="text-[10px] opacity-70 font-medium tracking-tight">Strategic Planner</span>
+                    </button>
+                  </div>
 
-                {/* Authenticated User Menu */}
-                <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
-                  <UserProfileMenu />
-                </div>
-              </nav>
-            </div>
+                  {/* Authenticated User Menu */}
+                  <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
+                    <UserProfileMenu />
+                  </div>
+                </nav>
+              </div>
 
-            {selectedBank && view === 'benchmark' && (
               <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 ${radarContextBank ? 'border-blue-200 bg-blue-50/50' : ''}`}>
                 <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></span>
                 {selectedBank.NAME}
                 {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
               </div>
-            )}
-          </div>
-        </header>
-      )}
+            </div>
+          </header>
 
-      <main className={
-        isPresentMode
-          ? "w-full max-w-full min-h-screen bg-slate-50 relative p-4"
-          : (!selectedBank && view === 'benchmark') ? "w-full" : "max-w-7xl mx-auto px-4 py-8"
-      }>
-        {!selectedBank && view === 'benchmark' ? (
-          <LandingPage onBankSelect={(bank) => {
-            setRadarContextBank(null);
-            setSelectedBank(bank);
-          }} />
-        ) : (
-          <div className="space-y-8">
-            {/* Header Area For All Views */}
-            <div className="max-w-4xl mx-auto space-y-6">
-              {/* Contextual Back Button */}
-              {radarContextBank && (
-                <button
-                  onClick={async () => {
-                    const sourceCert = radarContextBank.cert;
-                    setRadarContextBank(null); // Clear context as we are going "home"
-                    const data = await getBankFinancials(sourceCert);
-                    if (data && data.length > 0) {
-                      setSelectedBank({
-                        CERT: sourceCert,
-                        NAME: data[0].NAME || 'Selected Bank',
-                        CITY: data[0].CITY || '',
-                        STNAME: data[0].STALP || ''
-                      });
-                      setView('movers');
-                    }
-                  }}
-                  className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-all bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 shadow-sm hover:shadow-md animate-in slide-in-from-left-2 duration-300"
-                >
-                  <span>&larr;</span> Back to {radarContextBank.name} Competitive Radar
-                </button>
-              )}
-
-              {/* Shared Bank Info Header */}
-              {selectedBank && (
-                <div className={`bg-white p-6 rounded-lg shadow-sm text-center relative overflow-hidden ${isPresentMode && view !== 'movers' ? 'mb-0' : 'mb-4 border border-slate-200'}`}>
-                  {radarContextBank && !isPresentMode && (
-                    <div className="absolute top-0 right-0 px-3 py-1 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-lg opacity-80">
-                      Peer Analysis Mode
-                    </div>
-                  )}
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedBank.NAME}</h2>
-                  <div className="flex flex-col items-center gap-1 mb-2">
-                    <p className="text-gray-600">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
-                    {financials?.reportDate && (
-                      <span className="text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-500 rounded uppercase tracking-wider">
-                        Latest Report: {financials.reportDate}
-                      </span>
-                    )}
-                  </div>
-
-                  {financials && financials.raw && (
-                    <div className="mb-4 inline-flex items-center bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 max-w-full">
-                      <span className="text-gray-500 font-medium mr-2 whitespace-nowrap">Total Assets:</span>
-                      <span className="text-lg sm:text-xl font-bold text-blue-900 truncate">
-                        {(() => {
-                          const asset = parseFloat(financials.raw.ASSET) * 1000;
-                          if (asset >= 1e12) return `$${(asset / 1e12).toFixed(2)}T`;
-                          if (asset >= 1e9) return `$${(asset / 1e9).toFixed(2)}B`;
-                          if (asset >= 1e6) return `$${(asset / 1e6).toFixed(1)}M`;
-                          return `$${asset.toLocaleString()}`;
-                        })()}
-                      </span>
-                    </div>
-                  )}
-
-                  {!isPresentMode && (
+          <main className={
+            isPresentMode
+              ? "w-full max-w-full min-h-screen bg-slate-50 relative p-4"
+              : (!selectedBank && view === 'benchmark') ? "w-full" : "max-w-7xl mx-auto px-4 py-8"
+          }>
+            {!selectedBank && view === 'benchmark' ? (
+              <LandingPage onBankSelect={(bank) => {
+                setRadarContextBank(null);
+                setSelectedBank(bank);
+              }} />
+            ) : (
+              <div className="space-y-8">
+                {/* Header Area For All Views */}
+                <div className="max-w-4xl mx-auto space-y-6">
+                  {/* Contextual Back Button */}
+                  {radarContextBank && (
                     <button
-                      onClick={() => { setSelectedBank(null); setView('benchmark'); }}
-                      className="mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium mt-2"
+                      onClick={async () => {
+                        const sourceCert = radarContextBank.cert;
+                        setRadarContextBank(null); // Clear context as we are going "home"
+                        const data = await getBankFinancials(sourceCert);
+                        if (data && data.length > 0) {
+                          setSelectedBank({
+                            CERT: sourceCert,
+                            NAME: data[0].NAME || 'Selected Bank',
+                            CITY: data[0].CITY || '',
+                            STNAME: data[0].STALP || ''
+                          });
+                          setView('movers');
+                        }
+                      }}
+                      className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-all bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 shadow-sm hover:shadow-md animate-in slide-in-from-left-2 duration-300"
                     >
-                      <span>&larr;</span> Search for another bank
+                      <span>&larr;</span> Back to {radarContextBank.name} Competitive Radar
                     </button>
                   )}
-                </div>
-              )}
-            </div>
 
-            {/* View Switching */}
-            {view === 'movers' ? (
-              <MoversView
-                dataProvider={fdicService}
-                perspectiveBankName={selectedBank?.NAME || 'Market'}
-                focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
-                segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
-                segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
-                priorQuarter="Q3 2025"
-                currentQuarter="Q4 2025"
-                onDrillDown={async (cert) => {
-                  // Maintain radar context of the SOURCE bank
-                  if (selectedBank) {
-                    setRadarContextBank({
-                      cert: String(selectedBank.CERT),
-                      name: selectedBank.NAME
-                    });
-                  }
-                  const data = await getBankFinancials(cert);
-                  if (data && data.length > 0) {
-                    setSelectedBank({
-                      CERT: cert,
-                      NAME: data[0].NAME || 'Selected Bank',
-                      CITY: data[0].CITY || '',
-                      STNAME: data[0].STALP || data[0].STNAME || ''
-                    });
-                    setView('benchmark');
-                  }
-                }}
-                onShowBrief={() => setShowMovers(true)}
-              />
-            ) : (
-              <div className="max-w-4xl mx-auto space-y-8">
-                <div className={`bg-transparent relative ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
-                  {loadingFinancials && view === 'benchmark' && (
-                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
-                      <FinancialDashboardSkeleton />
-                    </div>
-                  )}
-                  {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-6 rounded-lg text-center shadow-sm border border-red-100">{errorFinancials}</div>}
+                  {/* Shared Bank Info Header */}
+                  {selectedBank && (
+                    <div className={`bg-white p-6 rounded-lg shadow-sm text-center relative overflow-hidden ${isPresentMode && view !== 'movers' ? 'mb-0' : 'mb-4 border border-slate-200'}`}>
+                      {radarContextBank && !isPresentMode && (
+                        <div className="absolute top-0 right-0 px-3 py-1 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-lg opacity-80">
+                          Peer Analysis Mode
+                        </div>
+                      )}
+                      <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedBank.NAME}</h2>
+                      <div className="flex flex-col items-center gap-1 mb-2">
+                        <p className="text-gray-600">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
+                        {financials?.reportDate && (
+                          <span className="text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-500 rounded uppercase tracking-wider">
+                            Latest Report: {financials.reportDate}
+                          </span>
+                        )}
+                      </div>
 
-                  {financials && !loadingFinancials && view === 'benchmark' && (
-                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
-                      <FinancialDashboard
-                        financials={financials}
-                        benchmarks={benchmarks}
-                        onShowMovers={() => { setView('movers'); }}
-                        showMoversButton={FEAT_MARKET_MOVERS}
-                        authRequired={FEAT_AUTH_REQUIRED}
-                        isPresentMode={isPresentMode}
-                        setIsPresentMode={setIsPresentMode}
-                      />
-                    </div>
-                  )}
+                      {financials && financials.raw && (
+                        <div className="mb-4 inline-flex items-center bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 max-w-full">
+                          <span className="text-gray-500 font-medium mr-2 whitespace-nowrap">Total Assets:</span>
+                          <span className="text-lg sm:text-xl font-bold text-blue-900 truncate">
+                            {(() => {
+                              const asset = parseFloat(financials.raw.ASSET) * 1000;
+                              if (asset >= 1e12) return `$${(asset / 1e12).toFixed(2)}T`;
+                              if (asset >= 1e9) return `$${(asset / 1e9).toFixed(2)}B`;
+                              if (asset >= 1e6) return `$${(asset / 1e6).toFixed(1)}M`;
+                              return `$${asset.toLocaleString()}`;
+                            })()}
+                          </span>
+                        </div>
+                      )}
 
-                  {selectedBank && view === 'benchmark' && !loadingFinancials && (
-                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
-                      <OperationalDashboard
-                        key={selectedBank.CERT}
-                        assetSize={financials?.raw?.ASSET ? parseFloat(financials.raw.ASSET) : 0}
-                      />
-                    </div>
-                  )}
-
-                  {financials && !loadingFinancials && view === 'planner' && (
-                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
-                      <StrategicPlannerTab
-                        financials={financials}
-                        benchmarks={benchmarks}
-                      />
+                      {!isPresentMode && (
+                        <button
+                          onClick={() => { setSelectedBank(null); setView('benchmark'); }}
+                          className="mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium mt-2"
+                        >
+                          <span>&larr;</span> Search for another bank
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
+
+                {/* View Switching */}
+                {view === 'movers' ? (
+                  <MoversView
+                    dataProvider={fdicService}
+                    perspectiveBankName={selectedBank?.NAME || 'Market'}
+                    focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
+                    segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
+                    segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
+                    priorQuarter="Q3 2025"
+                    currentQuarter="Q4 2025"
+                    onDrillDown={async (cert) => {
+                      // Maintain radar context of the SOURCE bank
+                      if (selectedBank) {
+                        setRadarContextBank({
+                          cert: String(selectedBank.CERT),
+                          name: selectedBank.NAME
+                        });
+                      }
+                      const data = await getBankFinancials(cert);
+                      if (data && data.length > 0) {
+                        setSelectedBank({
+                          CERT: cert,
+                          NAME: data[0].NAME || 'Selected Bank',
+                          CITY: data[0].CITY || '',
+                          STNAME: data[0].STALP || data[0].STNAME || ''
+                        });
+                        setView('benchmark');
+                      }
+                    }}
+                    onShowBrief={() => setShowMovers(true)}
+                  />
+                ) : (
+                  <div className="max-w-4xl mx-auto space-y-8">
+                    <div className={`bg-transparent relative ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
+                      {loadingFinancials && view === 'benchmark' && (
+                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
+                          <FinancialDashboardSkeleton />
+                        </div>
+                      )}
+                      {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-6 rounded-lg text-center shadow-sm border border-red-100">{errorFinancials}</div>}
+
+                      {financials && !loadingFinancials && view === 'benchmark' && (
+                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
+                          <FinancialDashboard
+                            financials={financials}
+                            benchmarks={benchmarks}
+                            onShowMovers={() => { setView('movers'); }}
+                            showMoversButton={FEAT_MARKET_MOVERS}
+                            authRequired={FEAT_AUTH_REQUIRED}
+                            isPresentMode={isPresentMode}
+                            setIsPresentMode={setIsPresentMode}
+                          />
+                        </div>
+                      )}
+
+                      {selectedBank && view === 'benchmark' && !loadingFinancials && (
+                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
+                          <OperationalDashboard
+                            key={selectedBank.CERT}
+                            assetSize={financials?.raw?.ASSET ? parseFloat(financials.raw.ASSET) : 0}
+                          />
+                        </div>
+                      )}
+
+                      {financials && !loadingFinancials && view === 'planner' && (
+                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
+                          <StrategicPlannerTab
+                            financials={financials}
+                            benchmarks={benchmarks}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
-      </main>
-      {/* Render the AI Intelligence Modal if triggered gracefully from anywhere */}
-      {
-        FEAT_MARKET_MOVERS && showMovers && selectedBank && (
-          <MoversSummaryModal
-            isOpen={showMovers}
-            onClose={() => setShowMovers(false)}
-            dataProvider={fdicService}
-            perspectiveBankName={selectedBank.NAME}
-            focusBankCert={String(selectedBank.CERT)}
-            segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
-            segmentLabel={benchmarks?.groupName || 'Peer Group'}
-            priorQuarter="Q3 2025"
-            currentQuarter="Q4 2025"
-            authRequired={FEAT_AUTH_REQUIRED}
-          />
-        )
-      }
+          </main>
 
-      <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
-        © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}
-        <span title="Value Benchmark MVP is a proprietary tool. Unauthorized reproduction or distribution is prohibited.">™</span>
-      </footer>
-    </div >
+          {/* Render the AI Intelligence Modal if triggered gracefully from anywhere */}
+          {FEAT_MARKET_MOVERS && showMovers && selectedBank && (
+            <MoversSummaryModal
+              isOpen={showMovers}
+              onClose={() => setShowMovers(false)}
+              dataProvider={fdicService}
+              perspectiveBankName={selectedBank.NAME}
+              focusBankCert={String(selectedBank.CERT)}
+              segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
+              segmentLabel={benchmarks?.groupName || 'Peer Group'}
+              priorQuarter="Q3 2025"
+              currentQuarter="Q4 2025"
+              authRequired={FEAT_AUTH_REQUIRED}
+            />
+          )}
+
+          <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
+            © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}
+            <span title="Value Benchmark MVP is a proprietary tool. Unauthorized reproduction or distribution is prohibited.">™</span>
+          </footer>
+        </>
+      )}
+    </div>
   );
 }
 
