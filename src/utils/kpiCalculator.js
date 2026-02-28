@@ -6,7 +6,7 @@
 /**
  * Format YYYYMMDD to "Qx YYYY"
  */
-const formatQuarter = (dateString) => {
+export const formatQuarter = (dateString) => {
     if (!dateString) return 'Missing Date';
 
     // Check if it's already formatted 'Qx YYYY'
