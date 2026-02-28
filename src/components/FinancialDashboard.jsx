@@ -63,15 +63,12 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     {!isPresentMode && (
                         <button
                             onClick={handlePresentLiveToggled}
-                            className="flex flex-col items-center justify-center gap-1 border border-slate-300 hover:border-blue-500 hover:text-blue-700 text-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm bg-white shrink-0 group leading-none"
+                            className="flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all whitespace-nowrap active:scale-95"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform stroke-current text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <div className="text-center group-hover:text-blue-700">
-                                <span className="block">Present</span>
-                                <span className="block">Live</span>
-                            </div>
+                            <span>Present Live</span>
                         </button>
                     )}
 
