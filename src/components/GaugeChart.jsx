@@ -1,6 +1,16 @@
 import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import TrendIndicator from './TrendIndicator';
+import Tooltip from './Tooltip';
+
+const METRIC_DEFINITIONS = {
+    returnOnEquity: "Net Income divided by Average Total Equity. Measures how effectively management is using a company's assets to create profits.",
+    returnOnAssets: "Net Income divided by Average Total Assets. Shows how profitable a company is relative to its total assets.",
+    efficiencyRatio: "Non-Interest Expense divided by (Net Interest Income + Non-Interest Income). A lower number means better cost control.",
+    netInterestMargin: "(Interest Income - Interest Expense) divided by Average Earning Assets. Core indicator of lending profitability.",
+    assetGrowth3Y: "Compound Annual Growth Rate of Total Assets over the last 3 years.",
+    nptlRatio: "Non-Performing Loans divided by Total Loans. Indicates the quality of the loan portfolio (lower is better)."
+};
 
 // Helper for range calculations to support Testing
 const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, inverse = false }) => {
@@ -113,7 +123,7 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                             <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                     </Pie>
-                    <Tooltip
+                    <RechartsTooltip
                         wrapperStyle={{ zIndex: 100 }} // Ensure tooltip is on top
                         formatter={() => ''}
                         separator=""
@@ -169,8 +179,10 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
             </div>
 
             <div className="text-center mt-2 w-full">
-                <h3 className="text-sm font-medium text-gray-500 uppercase">{label}</h3>
-                <div className="flex justify-center items-center">
+                <Tooltip content={METRIC_DEFINITIONS[metric]} position="bottom">
+                    <h3 className="text-sm font-medium text-gray-500 uppercase cursor-help hover:text-gray-800 transition-colors border-b border-dashed border-gray-300 inline-block p-1">{label}</h3>
+                </Tooltip>
+                <div className="flex justify-center items-center mt-1">
                     <div className="text-2xl font-bold text-gray-800">
                         {typeof value === 'number' ? value.toFixed(2) : value}{suffix}
                     </div>

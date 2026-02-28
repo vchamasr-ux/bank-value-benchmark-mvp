@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GaugeChart from './GaugeChart';
 import MoversView from './MoversView';
 import StrategicPlannerTab from './StrategicPlannerTab';
+import Sparkline from './Sparkline';
 
 const PitchbookPresentation = ({
     selectedBank,
@@ -64,6 +65,59 @@ const PitchbookPresentation = ({
 
     const aiBullets = getAiBullets();
 
+    const matchBulletToMetric = (bullet) => {
+        const text = bullet.toLowerCase();
+        if (text.includes('efficiency ratio') || text.includes('efficiency')) {
+            return {
+                metric: 'Efficiency Ratio',
+                value: parseFloat(financials.efficiencyRatio),
+                average: getBenchmark('efficiencyRatio'),
+                min: 30, max: 90, inverse: true, suffix: '%'
+            };
+        }
+        if (text.includes('return on assets') || text.includes('roa ')) {
+            return {
+                metric: 'Return on Assets',
+                value: parseFloat(financials.returnOnAssets),
+                average: getBenchmark('returnOnAssets'),
+                min: 0, max: 2.5, inverse: false, suffix: '%'
+            };
+        }
+        if (text.includes('return on equity') || text.includes('roe ')) {
+            return {
+                metric: 'Return on Equity',
+                value: parseFloat(financials.returnOnEquity),
+                average: getBenchmark('returnOnEquity'),
+                min: 0, max: 25, inverse: false, suffix: '%'
+            };
+        }
+        if (text.includes('net interest margin') || text.includes('nim')) {
+            return {
+                metric: 'Net Interest Margin',
+                value: parseFloat(financials.netInterestMargin),
+                average: getBenchmark('netInterestMargin'),
+                min: 0, max: 6, inverse: false, suffix: '%'
+            };
+        }
+        if (text.includes('asset') && text.includes('growth')) {
+            return {
+                metric: 'Asset Growth (3Y)',
+                value: parseFloat(financials.assetGrowth3Y) || 0,
+                average: getBenchmark('assetGrowth3Y'),
+                min: -10, max: 30, inverse: false, suffix: '%'
+            };
+        }
+        if (text.includes('npl') || text.includes('non-performing')) {
+            return {
+                metric: 'NPL Ratio',
+                value: parseFloat(financials.nptlRatio) || 0,
+                average: getBenchmark('nptlRatio'),
+                min: 0, max: 5, inverse: true, suffix: '%'
+            };
+        }
+        return null;
+    };
+
     const slides = [
         {
             id: 'title',
@@ -102,17 +156,33 @@ const PitchbookPresentation = ({
             content: (
                 <div className="w-full h-full flex items-center justify-center px-12">
                     <div className="w-full space-y-8">
-                        {aiBullets.map((bullet, idx) => (
-                            <div key={idx} className={`flex items-start gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both delay-${(idx + 1) * 200}`}>
-                                <div className="w-12 h-12 rounded-sm bg-blue-900 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
-                                    <span className="text-white font-black text-xl">{idx + 1}</span>
+                        {aiBullets.map((bullet, idx) => {
+                            const matchedMetric = matchBulletToMetric(bullet);
+                            return (
+                                <div key={idx} className={`flex items-start gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both delay-${(idx + 1) * 200}`}>
+                                    <div className="w-12 h-12 rounded-sm bg-blue-900 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
+                                        <span className="text-white font-black text-xl">{idx + 1}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold text-blue-900 mb-1 uppercase tracking-wide">Key Insight {idx + 1}</h3>
+                                        <p className="text-lg text-slate-700 leading-relaxed font-medium">{bullet}</p>
+                                        {matchedMetric && (
+                                            <div className="mt-4 bg-slate-50 p-4 rounded border border-slate-200 inline-block w-full max-w-sm shadow-sm">
+                                                <Sparkline
+                                                    label={matchedMetric.metric}
+                                                    value={matchedMetric.value}
+                                                    average={matchedMetric.average}
+                                                    min={matchedMetric.min}
+                                                    max={matchedMetric.max}
+                                                    inverse={matchedMetric.inverse}
+                                                    suffix={matchedMetric.suffix}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-blue-900 mb-1 uppercase tracking-wide">Key Insight {idx + 1}</h3>
-                                    <p className="text-lg text-slate-700 leading-relaxed font-medium">{bullet}</p>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )
@@ -196,20 +266,22 @@ const PitchbookPresentation = ({
             actionTitle: "Market Positioning & Peer Distribution",
             actionSubtitle: "Visualizing the bank's position amongst its direct competitors in the benchmark group.",
             content: (
-                <div className="w-full h-full relative border border-slate-200 rounded p-4 bg-slate-50 shadow-inner overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
-                    {/* Re-use the MoversView but specifically in 'Scatter' block mode natively */}
-                    <MoversView
-                        dataProvider={fdicService}
-                        perspectiveBankName={selectedBank.NAME}
-                        focusBankCert={String(selectedBank.CERT)}
-                        segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
-                        segmentLabel={benchmarks?.groupName || 'Peer Group'}
-                        priorQuarter="Q3 2025"
-                        currentQuarter="Q4 2025"
-                        onDrillDown={() => { }} // Disable drilldown in presentation mode
-                        onShowBrief={() => { }}
-                        isPresentationMode={true} // New prop to hide headers inside MoversView
-                    />
+                <div className="w-full h-[100%] relative border border-slate-200 rounded p-4 bg-slate-50 shadow-inner overflow-y-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
+                    <div className="scale-[0.98] origin-top">
+                        {/* Re-use the MoversView but specifically in 'Scatter' block mode natively */}
+                        <MoversView
+                            dataProvider={fdicService}
+                            perspectiveBankName={selectedBank.NAME}
+                            focusBankCert={String(selectedBank.CERT)}
+                            segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
+                            segmentLabel={benchmarks?.groupName || 'Peer Group'}
+                            priorQuarter="Q3 2025"
+                            currentQuarter="Q4 2025"
+                            onDrillDown={() => { }} // Disable drilldown in presentation mode
+                            onShowBrief={() => { }}
+                            isPresentationMode={true} // New prop to limit rows and hide unnecessary UI
+                        />
+                    </div>
                 </div>
             )
         },

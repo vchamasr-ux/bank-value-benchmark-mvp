@@ -15,7 +15,7 @@ const KPI_SPECS = [
     { key: "npl_ratio", label: "NPL Ratio", better: "lower", type: "rate", metric_class: "core" },
 ];
 
-const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief }) => {
+const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief, isPresentationMode = false }) => {
     const [activeTab, setActiveTab] = useState('threats'); // 'threats' | 'playbooks'
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -115,6 +115,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
     }
 
     const currentList = activeTab === 'threats' ? moversData.threats : moversData.playbooks;
+    const displayList = isPresentationMode ? currentList.slice(0, 3) : currentList;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -148,12 +149,12 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
             {/* List */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                    {currentList.length === 0 ? (
+                    {displayList.length === 0 ? (
                         <div className="bg-white p-20 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400">
                             No {activeTab} detected in this segment.
                         </div>
                     ) : (
-                        currentList.map((m, idx) => (
+                        displayList.map((m, idx) => (
                             <div key={m.cert} className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all">
                                 <div className="p-5 flex justify-between items-start">
                                     <div className="flex-1">
@@ -193,14 +194,19 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                 <div className="space-y-6">
                     <div className="bg-blue-900 rounded-2xl p-6 text-white shadow-xl">
                         <h3 className="font-black text-lg mb-2">AI Intelligence</h3>
-                        <p className="text-blue-100 text-sm mb-6 leading-relaxed">Synthesize these market signals into a strategic brief for {perspectiveBankName}.</p>
-
-                        <button
-                            className="w-full bg-white text-blue-900 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
-                            onClick={onShowBrief}
-                        >
-                            <span>🪄</span> Generate Strategic Brief
-                        </button>
+                        {isPresentationMode ? (
+                            <p className="text-blue-100 text-sm leading-relaxed">These market signals highlight competitive outliers based on standard deviation anomalies across key performance indicators.</p>
+                        ) : (
+                            <>
+                                <p className="text-blue-100 text-sm mb-6 leading-relaxed">Synthesize these market signals into a strategic brief for {perspectiveBankName}.</p>
+                                <button
+                                    className="w-full bg-white text-blue-900 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                                    onClick={onShowBrief}
+                                >
+                                    <span>🪄</span> Generate Strategic Brief
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
