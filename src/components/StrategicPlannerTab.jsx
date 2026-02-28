@@ -22,7 +22,29 @@ const formatLabel = (key) => {
     return labels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
 };
 
-const ComboPathCard = ({ path, financials, deltaY }) => {
+const calculateCagr = (currentVal, newVal, years) => {
+    if (newVal === currentVal) return 0;
+
+    // Mathematical Workaround for Negative Start Values (e.g., Negative ROA)
+    // We cannot take the root of a negative ratio if currentVal is negative or crossing zero.
+    // Solution: Shift both values by an offset such that the starting value becomes undeniably positive.
+    // E.g., if ROA is -0.5 and target is 1.0, we shift by Math.abs(-0.5) + 1 = 1.5. 
+    // Start becomes 1.0, Target becomes 2.5. We then calculate CAGR on this "shifted growth path".
+    // This allows us to quantify the required rate of absolute value generation over the timeframe
+    // without crashing or returning NaN.
+    let base = parseFloat(currentVal);
+    let target = parseFloat(newVal);
+
+    if (base <= 0) {
+        const offset = Math.abs(base) + 1;
+        base += offset;
+        target += offset;
+    }
+
+    return (Math.pow(target / base, 1 / years) - 1) * 100;
+};
+
+const ComboPathCard = ({ path, financials, deltaY, timeHorizon }) => {
     // For combins, calculate total achieved Delta Y
     const totalAchievedDelta = path.moves.reduce((sum, move) => sum + (move.prescribedDelta * move.coef), 0);
     const percentOfGoal = deltaY !== 0 ? Math.min(100, Math.max(0, (totalAchievedDelta / deltaY) * 100)) : 100;
@@ -49,13 +71,18 @@ const ComboPathCard = ({ path, financials, deltaY }) => {
                     const newVal = currentVal + move.prescribedDelta;
                     return (
                         <div key={move.id} className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <div className="flex justify-between items-center text-slate-600 font-bold text-sm mb-2">
-                                <span>{formatLabel(move.id)}</span>
-                                <span className="text-blue-600">{move.prescribedDelta > 0 ? '+' : ''}{move.prescribedDelta.toFixed(2)} pts</span>
-                            </div>
-                            <div className="flex justify-between text-xs text-slate-400">
-                                <span>Current: {currentVal.toFixed(2)}%</span>
-                                <span>Target: {newVal.toFixed(2)}%</span>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex justify-between items-center text-slate-600 font-bold text-sm">
+                                    <span>{formatLabel(move.id)}</span>
+                                    <span className="text-blue-600">{move.prescribedDelta > 0 ? '+' : ''}{move.prescribedDelta.toFixed(2)} pts</span>
+                                </div>
+                                <div className="text-[11px] text-slate-500 font-medium bg-blue-50/50 px-2 py-1 rounded border border-blue-50">
+                                    Requires growing by <span className="font-bold text-blue-700">{calculateCagr(currentVal, newVal, timeHorizon).toFixed(2)}%</span> annually over {timeHorizon} years
+                                </div>
+                                <div className="flex justify-between text-[10px] uppercase font-bold text-slate-400 mt-1">
+                                    <span>Cur: {currentVal.toFixed(2)}%</span>
+                                    <span>Tgt: {newVal.toFixed(2)}%</span>
+                                </div>
                             </div>
                         </div>
                     )
@@ -73,7 +100,7 @@ const ComboPathCard = ({ path, financials, deltaY }) => {
     );
 };
 
-const SinglePathCard = ({ path, model, financials, deltaY }) => {
+const SinglePathCard = ({ path, model, financials, deltaY, timeHorizon }) => {
     const leverName = path.id;
     const coef = path.coef;
     const currentVal = parseFloat(financials[leverName]) || 0;
@@ -147,12 +174,17 @@ const SinglePathCard = ({ path, model, financials, deltaY }) => {
                     <div className={`h-2 rounded-full transition-all duration-300 ${percentOfGoal >= 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} style={{ width: `${Math.max(0, percentOfGoal)}%` }}></div>
                 </div>
 
-                <div className="flex justify-between items-center text-xs text-slate-500 font-bold">
+                <div className="flex justify-between items-center text-xs text-slate-500 font-bold border-b border-slate-100 pb-3 mb-2 border-dashed">
                     <span>Delta: {sliderDelta > 0 ? '+' : ''}{sliderDelta.toFixed(2)} pts</span>
                     <span>Achieves {percentOfGoal.toFixed(0)}% of Goal</span>
                 </div>
 
-                <div className="pt-4 mt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+                <div className="text-sm font-semibold text-blue-900 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 flex items-center justify-between">
+                    <span>Required Annual Growth:</span>
+                    <span className="font-black text-blue-700">{calculateCagr(currentVal, newLeverVal, timeHorizon).toFixed(2)}% <span className="text-xs text-blue-500 font-medium">/yr</span></span>
+                </div>
+
+                <div className="pt-2 mt-2 grid grid-cols-2 gap-2">
                     <div className={`text-[10px] font-black uppercase px-2 py-1.5 rounded flex flex-col justify-center items-center text-center ${confColor}`}>
                         <span className="opacity-70 mb-0.5">Confidence</span>
                         <span>{confidence}</span>
@@ -174,11 +206,11 @@ const SinglePathCard = ({ path, model, financials, deltaY }) => {
     );
 };
 
-const InteractivePathCard = ({ path, model, financials, deltaY }) => {
+const InteractivePathCard = ({ path, model, financials, deltaY, timeHorizon }) => {
     if (path.isCombo) {
-        return <ComboPathCard path={path} financials={financials} deltaY={deltaY} />;
+        return <ComboPathCard path={path} financials={financials} deltaY={deltaY} timeHorizon={timeHorizon} />;
     }
-    return <SinglePathCard path={path} model={model} financials={financials} deltaY={deltaY} />;
+    return <SinglePathCard path={path} model={model} financials={financials} deltaY={deltaY} timeHorizon={timeHorizon} />;
 };
 
 const StrategicPlannerTab = ({ financials, benchmarks }) => {
@@ -188,6 +220,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
 
     const [targetKpi, setTargetKpi] = useState('returnOnAssets');
     const [targetType, setTargetType] = useState('peer_median');
+    const [timeHorizon, setTimeHorizon] = useState(3);
 
     // Calculated State
     const [paths, setPaths] = useState([]);
@@ -570,6 +603,29 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                 </select>
                             </div>
 
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                    </svg>
+                                    Scenario Horizon
+                                </label>
+                                <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                                    {[1, 3, 5].map(years => (
+                                        <button
+                                            key={years}
+                                            onClick={() => setTimeHorizon(years)}
+                                            className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${timeHorizon === years
+                                                    ? 'bg-white text-blue-900 shadow-sm border border-slate-200'
+                                                    : 'text-slate-500 hover:text-blue-700'
+                                                }`}
+                                        >
+                                            {years} Yr{years > 1 ? 's' : ''}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -638,6 +694,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                             model={model}
                                             financials={financials}
                                             deltaY={gap}
+                                            timeHorizon={timeHorizon}
                                         />
                                     ))
                                 )}
