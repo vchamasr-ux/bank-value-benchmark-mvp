@@ -175,69 +175,41 @@ function App() {
           ? "w-full max-w-full min-h-screen bg-slate-50 relative p-4"
           : (!selectedBank && view === 'benchmark') ? "w-full" : "max-w-7xl mx-auto px-4 py-8"
       }>
-        {view === 'movers' ? (
-          <MoversView
-            dataProvider={fdicService}
-            perspectiveBankName={selectedBank?.NAME || 'Market'}
-            focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
-            segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
-            segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
-            priorQuarter="Q3 2025"
-            currentQuarter="Q4 2025"
-            onDrillDown={async (cert) => {
-              // Maintain radar context of the SOURCE bank
-              if (selectedBank) {
-                setRadarContextBank({
-                  cert: String(selectedBank.CERT),
-                  name: selectedBank.NAME
-                });
-              }
-              const data = await getBankFinancials(cert);
-              if (data && data.length > 0) {
-                setSelectedBank({
-                  CERT: cert,
-                  NAME: data[0].NAME || 'Selected Bank',
-                  CITY: data[0].CITY || '',
-                  STNAME: data[0].STALP || data[0].STNAME || ''
-                });
-                setView('benchmark');
-              }
-            }}
-            onShowBrief={() => setShowMovers(true)}
-          />
+        {!selectedBank && view === 'benchmark' ? (
+          <LandingPage onBankSelect={(bank) => {
+            setRadarContextBank(null);
+            setSelectedBank(bank);
+          }} />
         ) : (
           <div className="space-y-8">
-            {!selectedBank ? (
-              <LandingPage onBankSelect={(bank) => {
-                setRadarContextBank(null);
-                setSelectedBank(bank);
-              }} />
-            ) : (
-              <div className="max-w-4xl mx-auto space-y-8">
-                {/* Contextual Back Button */}
-                {radarContextBank && (
-                  <button
-                    onClick={async () => {
-                      const sourceCert = radarContextBank.cert;
-                      setRadarContextBank(null); // Clear context as we are going "home"
-                      const data = await getBankFinancials(sourceCert);
-                      if (data && data.length > 0) {
-                        setSelectedBank({
-                          CERT: sourceCert,
-                          NAME: data[0].NAME || 'Selected Bank',
-                          CITY: data[0].CITY || '',
-                          STNAME: data[0].STALP || ''
-                        });
-                        setView('movers');
-                      }
-                    }}
-                    className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-all bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 shadow-sm hover:shadow-md animate-in slide-in-from-left-2 duration-300"
-                  >
-                    <span>&larr;</span> Back to {radarContextBank.name} Competitive Radar
-                  </button>
-                )}
+            {/* Header Area For All Views */}
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Contextual Back Button */}
+              {radarContextBank && (
+                <button
+                  onClick={async () => {
+                    const sourceCert = radarContextBank.cert;
+                    setRadarContextBank(null); // Clear context as we are going "home"
+                    const data = await getBankFinancials(sourceCert);
+                    if (data && data.length > 0) {
+                      setSelectedBank({
+                        CERT: sourceCert,
+                        NAME: data[0].NAME || 'Selected Bank',
+                        CITY: data[0].CITY || '',
+                        STNAME: data[0].STALP || ''
+                      });
+                      setView('movers');
+                    }
+                  }}
+                  className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-all bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 shadow-sm hover:shadow-md animate-in slide-in-from-left-2 duration-300"
+                >
+                  <span>&larr;</span> Back to {radarContextBank.name} Competitive Radar
+                </button>
+              )}
 
-                <div className={`bg-white p-6 rounded-lg shadow-lg text-center relative overflow-hidden ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
+              {/* Shared Bank Info Header */}
+              {selectedBank && (
+                <div className={`bg-white p-6 rounded-lg shadow-sm text-center relative overflow-hidden ${isPresentMode && view !== 'movers' ? 'mb-0' : 'mb-4 border border-slate-200'}`}>
                   {radarContextBank && !isPresentMode && (
                     <div className="absolute top-0 right-0 px-3 py-1 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-lg opacity-80">
                       Peer Analysis Mode
@@ -271,39 +243,82 @@ function App() {
                   {!isPresentMode && (
                     <button
                       onClick={() => { setSelectedBank(null); setView('benchmark'); }}
-                      className="mb-8 mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium"
+                      className="mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium mt-2"
                     >
                       <span>&larr;</span> Search for another bank
                     </button>
                   )}
+                </div>
+              )}
+            </div>
 
-                  {loadingFinancials && <div className="text-blue-600 animate-pulse my-10">Loading Financial Data...</div>}
-                  {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-4 rounded">{errorFinancials}</div>}
+            {/* View Switching */}
+            {view === 'movers' ? (
+              <MoversView
+                dataProvider={fdicService}
+                perspectiveBankName={selectedBank?.NAME || 'Market'}
+                focusBankCert={selectedBank ? String(selectedBank.CERT) : null}
+                segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
+                segmentLabel={benchmarks?.groupName || 'Big Regionals ($50B - $250B)'}
+                priorQuarter="Q3 2025"
+                currentQuarter="Q4 2025"
+                onDrillDown={async (cert) => {
+                  // Maintain radar context of the SOURCE bank
+                  if (selectedBank) {
+                    setRadarContextBank({
+                      cert: String(selectedBank.CERT),
+                      name: selectedBank.NAME
+                    });
+                  }
+                  const data = await getBankFinancials(cert);
+                  if (data && data.length > 0) {
+                    setSelectedBank({
+                      CERT: cert,
+                      NAME: data[0].NAME || 'Selected Bank',
+                      CITY: data[0].CITY || '',
+                      STNAME: data[0].STALP || data[0].STNAME || ''
+                    });
+                    setView('benchmark');
+                  }
+                }}
+                onShowBrief={() => setShowMovers(true)}
+              />
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-8">
+                <div className={`bg-transparent relative ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
+                  {loadingFinancials && <div className="text-blue-600 animate-pulse my-10 bg-white p-6 rounded-lg text-center shadow-lg border border-slate-100">Loading Financial Data...</div>}
+                  {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-6 rounded-lg text-center shadow-sm border border-red-100">{errorFinancials}</div>}
 
                   {financials && !loadingFinancials && view === 'benchmark' && (
-                    <FinancialDashboard
-                      financials={financials}
-                      benchmarks={benchmarks}
-                      onShowMovers={() => { setView('movers'); }}
-                      showMoversButton={FEAT_MARKET_MOVERS}
-                      authRequired={FEAT_AUTH_REQUIRED}
-                      isPresentMode={isPresentMode}
-                      setIsPresentMode={setIsPresentMode}
-                    />
+                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
+                      <FinancialDashboard
+                        financials={financials}
+                        benchmarks={benchmarks}
+                        onShowMovers={() => { setView('movers'); }}
+                        showMoversButton={FEAT_MARKET_MOVERS}
+                        authRequired={FEAT_AUTH_REQUIRED}
+                        isPresentMode={isPresentMode}
+                        setIsPresentMode={setIsPresentMode}
+                      />
+                    </div>
                   )}
 
-                  {selectedBank && view === 'benchmark' && (
-                    <OperationalDashboard
-                      key={selectedBank.CERT}
-                      assetSize={financials?.raw?.ASSET ? parseFloat(financials.raw.ASSET) : 0}
-                    />
+                  {selectedBank && view === 'benchmark' && !loadingFinancials && (
+                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
+                      <OperationalDashboard
+                        key={selectedBank.CERT}
+                        assetSize={financials?.raw?.ASSET ? parseFloat(financials.raw.ASSET) : 0}
+                      />
+                    </div>
                   )}
 
                   {financials && !loadingFinancials && view === 'planner' && (
-                    <StrategicPlannerTab
-                      financials={financials}
-                      benchmarks={benchmarks}
-                    />
+                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
+                      <StrategicPlannerTab
+                        financials={financials}
+                        benchmarks={benchmarks}
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -311,28 +326,29 @@ function App() {
           </div>
         )}
       </main>
-
       {/* Render the AI Intelligence Modal if triggered gracefully from anywhere */}
-      {FEAT_MARKET_MOVERS && showMovers && selectedBank && (
-        <MoversSummaryModal
-          isOpen={showMovers}
-          onClose={() => setShowMovers(false)}
-          dataProvider={fdicService}
-          perspectiveBankName={selectedBank.NAME}
-          focusBankCert={String(selectedBank.CERT)}
-          segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
-          segmentLabel={benchmarks?.groupName || 'Peer Group'}
-          priorQuarter="Q3 2025"
-          currentQuarter="Q4 2025"
-          authRequired={FEAT_AUTH_REQUIRED}
-        />
-      )}
+      {
+        FEAT_MARKET_MOVERS && showMovers && selectedBank && (
+          <MoversSummaryModal
+            isOpen={showMovers}
+            onClose={() => setShowMovers(false)}
+            dataProvider={fdicService}
+            perspectiveBankName={selectedBank.NAME}
+            focusBankCert={String(selectedBank.CERT)}
+            segmentKey={benchmarks?.assetFilter || 'DYNAMIC'}
+            segmentLabel={benchmarks?.groupName || 'Peer Group'}
+            priorQuarter="Q3 2025"
+            currentQuarter="Q4 2025"
+            authRequired={FEAT_AUTH_REQUIRED}
+          />
+        )
+      }
 
       <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
         © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}
         <span title="Value Benchmark MVP is a proprietary tool. Unauthorized reproduction or distribution is prohibited.">™</span>
       </footer>
-    </div>
+    </div >
   );
 }
 
