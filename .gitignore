@@ -31,3 +31,8 @@ venv/
 .venv/
 __pycache__/
 *.pyc
+
+# Dev scratch / test runner files (not for source control)
+src/utils/test.js
+src/utils/test.mjs
+src/utils/exportHtmlBriefTest.js

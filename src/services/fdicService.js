@@ -312,7 +312,25 @@ export const listPeerBanks = async ({ segmentKey, focusCert }) => {
 };
 
 /**
- * Adapter for MoversSummaryModal to fetch specific KPIs for a bank/quarter.
+ * Adapter for MoversSummaryModal: fetches KPIs for a single bank at a specific quarter.
+ *
+ * ⚠️  UNIT CONTRACT — READ BEFORE REUSING:
+ * All rate-based KPI fields (nim, roa, roe, eff_ratio, cost_of_funds, loan_yield,
+ * non_int_income_pct, npl_ratio, *_growth_3y) are returned as DECIMAL fractions.
+ *   e.g. ROA of 1.2% is returned as 0.012 — NOT as 1.2.
+ *
+ * This is intentional: MoversSummaryModal computes basis-point deltas (delta * 10000)
+ * and Z-scores on these decimals, so the math expects the decimal representation.
+ *
+ * ❌ DO NOT pass these values directly to GaugeChart or StrategicPlannerTab —
+ *    those components expect kpiCalculator.js output format (percentages, not decimals).
+ *
+ * Raw balance sheet fields (raw_assets, raw_loans, raw_deposits, raw_revenue, raw_equity)
+ * are in FDIC thousands ($000s) — divide by 1000 for millions.
+ *
+ * @param {string} cert  - FDIC CERT number for the bank
+ * @param {string} quarter - Quarter string e.g. "Q4 2025"
+ * @returns {Promise<Object|null>} KPI payload (decimal units) or null if record not found
  */
 export const getBankKpis = async ({ cert, quarter }) => {
     // 1. Fetch historical record from FDIC based on string parsing (quarter is like "Q4 2025")
