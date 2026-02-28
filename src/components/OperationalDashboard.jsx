@@ -73,24 +73,6 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                             Enter your operational data to see how you stack up against industry peers.
                         </p>
 
-                        <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                            <span className="text-sm font-medium text-slate-700">Compare against:</span>
-                            <div className="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
-                                <button
-                                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${selectedPeerGroup === 'communityBank_under10B' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
-                                    onClick={() => setSelectedPeerGroup('communityBank_under10B')}
-                                >
-                                    Community Bank (&lt;$10B)
-                                </button>
-                                <button
-                                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${selectedPeerGroup === 'regionalBank_over10B' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
-                                    onClick={() => setSelectedPeerGroup('regionalBank_over10B')}
-                                >
-                                    Regional Bank (&gt;$10B)
-                                </button>
-                            </div>
-                        </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Digital Adoption Rate (%)</label>
