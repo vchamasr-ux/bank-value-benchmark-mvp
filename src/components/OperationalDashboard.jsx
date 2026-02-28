@@ -247,9 +247,9 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
                     <div className="text-[10px] text-slate-500">
                         <strong>Primary Data Sources (Aggregated 2025/2026):</strong>
                         <span className="ml-1">
-                            <a href="https://www.q2.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Q2 State of Commercial Banking</a>,
-                            <a href="https://www.csbs.org/community-bank-survey" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">CSBS Annual Survey of Community Banks</a>,
-                            <a href="https://www.alkami.com/report/data-telemetry-report/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">Alkami Telemetry Report</a>,
+                            <a href="https://www.q2.com/state-of-commercial-banking" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Q2 State of Commercial Banking</a>,
+                            <a href="https://www.csbs.org/2025-annual-survey-community-banks" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">CSBS Annual Survey of Community Banks</a>,
+                            <a href="https://www.alkami.com/resource/2024-telemetry-data-report-the-high-interest-rate-environment-and-its-impact-on-consumers-and-financial-institutions/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">Alkami Telemetry Report</a>,
                             <a href="https://www.questionpro.com/blog/nps-benchmarks/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-600 hover:underline">QuestionPro Benchmark Reports</a>.
                         </span>
                     </div>
