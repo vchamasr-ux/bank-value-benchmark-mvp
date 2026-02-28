@@ -10,6 +10,7 @@ import { calculateKPIs } from './utils/kpiCalculator';
 import { getBankFinancials, getPeerGroupBenchmark } from './services/fdicService';
 import * as fdicService from './services/fdicService';
 import StrategicPlannerTab from './components/StrategicPlannerTab';
+import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
@@ -286,7 +287,11 @@ function App() {
             ) : (
               <div className="max-w-4xl mx-auto space-y-8">
                 <div className={`bg-transparent relative ${isPresentMode ? 'min-h-[90vh]' : ''}`}>
-                  {loadingFinancials && <div className="text-blue-600 animate-pulse my-10 bg-white p-6 rounded-lg text-center shadow-lg border border-slate-100">Loading Financial Data...</div>}
+                  {loadingFinancials && view === 'benchmark' && (
+                    <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
+                      <FinancialDashboardSkeleton />
+                    </div>
+                  )}
                   {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-6 rounded-lg text-center shadow-sm border border-red-100">{errorFinancials}</div>}
 
                   {financials && !loadingFinancials && view === 'benchmark' && (
