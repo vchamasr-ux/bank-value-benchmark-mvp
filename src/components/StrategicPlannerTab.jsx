@@ -563,7 +563,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                 </div>
                 {model && (
                     <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                        Model Version: {model.schema_version} (as of {model.trained_on.asof})
+                        Model Version: {model.schema_version} (as of {new Date(model.trained_on.asof).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
                     </div>
                 )}
             </div>
@@ -616,8 +616,8 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                             key={years}
                                             onClick={() => setTimeHorizon(years)}
                                             className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${timeHorizon === years
-                                                    ? 'bg-white text-blue-900 shadow-sm border border-slate-200'
-                                                    : 'text-slate-500 hover:text-blue-700'
+                                                ? 'bg-white text-blue-900 shadow-sm border border-slate-200'
+                                                : 'text-slate-500 hover:text-blue-700'
                                                 }`}
                                         >
                                             {years} Yr{years > 1 ? 's' : ''}
@@ -668,7 +668,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                     </span>
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target ({targetType.replace('_', ' ')})</span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target ({targetType.replaceAll('_', ' ')})</span>
                                     <span className="text-xl font-black text-blue-900">{currentTarget.toFixed(2)}%</span>
                                 </div>
                             </div>

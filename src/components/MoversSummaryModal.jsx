@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import useRetryCountdown from '../hooks/useRetryCountdown';
 
 // --- KPI config: align keys to your existing KPI extraction ---
 const KPI_SPECS = [
@@ -43,9 +44,10 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [retryCountdown, setRetryCountdown] = useState(null);
-    const [retryCount, setRetryCount] = useState(0);
     const { user } = useAuth();
+
+    // Shared retry countdown hook — fires generateMoversIntelligence() automatically when countdown hits 0
+    const { retryCountdown, retryCount, setRetryFromError, resetRetry } = useRetryCountdown(() => generateMoversIntelligence());
 
     useEffect(() => {
         if (isOpen && !summary && !isLoading && !error && (user || !authRequired)) {
@@ -55,24 +57,6 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
         }
     }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen]);
 
-    useEffect(() => {
-        let interval;
-        if (retryCountdown !== null && retryCountdown > 0) {
-            interval = setInterval(() => {
-                setRetryCountdown((prev) => {
-                    if (prev <= 1) {
-                        clearInterval(interval);
-                        setRetryCountdown(null);
-                        setRetryCount(prevCount => prevCount + 1);
-                        generateMoversIntelligence();
-                        return null;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [retryCountdown]);
 
     const handleLoginSuccess = () => {
         setIsLoginModalOpen(false);
@@ -295,47 +279,26 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
             const analysisData = resData.data || null;
 
             setSummary(analysisData);
-            setRetryCount(0); // Reset retry tracker on success
+            resetRetry(); // Reset retry tracker on success
 
         } catch (err) {
             console.error("Movers Error:", err);
 
-            // Handle specific formatted errors from backend
             if (err.message.startsWith('RATE_LIMIT:')) {
                 if (retryCount >= 1) {
                     setError("Daily AI quota reached. Please try again tomorrow.");
-                    setRetryCountdown(null);
                 } else {
-                    const innerMsg = err.message.replace('RATE_LIMIT:', '').trim();
-                    const match = innerMsg.match(/retry in (\d+\.?\d*)s/);
-                    if (match && match[1]) {
-                        const seconds = Math.ceil(parseFloat(match[1]));
-                        setRetryCountdown(seconds);
-                        setError(null);
-                    } else {
-                        setRetryCountdown(60);
-                        setError(null);
-                    }
+                    setRetryFromError(err.message.replace('RATE_LIMIT:', '').trim());
+                    setError(null);
                 }
             } else if (err.message.startsWith('DAILY_QUOTA:')) {
                 setError(err.message.replace('DAILY_QUOTA:', '').trim());
-                setRetryCountdown(null);
-            }
-            // Handle raw Gemini SDK errors (when authRequired = false locally)
-            else if (err.message && err.message.includes('429') && err.message.includes('quota')) {
+            } else if (err.message && err.message.includes('429') && err.message.includes('quota')) {
                 if (retryCount >= 1) {
                     setError("Daily AI quota reached. Please try again tomorrow.");
-                    setRetryCountdown(null);
                 } else {
-                    const match = err.message.match(/retry in (\d+\.?\d*)s/);
-                    if (match && match[1]) {
-                        const seconds = Math.ceil(parseFloat(match[1]));
-                        setRetryCountdown(seconds);
-                        setError(null);
-                    } else {
-                        setRetryCountdown(60);
-                        setError(null);
-                    }
+                    setRetryFromError(err.message);
+                    setError(null);
                 }
             } else {
                 setError(err.message || 'Failed to generate brief');

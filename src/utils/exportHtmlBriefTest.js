@@ -1,15 +1,13 @@
 
 
-export const generateHtmlBriefString = (financials, benchmarks, aiSummary) => {
+const generateHtmlBriefString = (financials, benchmarks, aiSummary) => {
     // Fail loudly if no financials are loaded
     if (!financials || !benchmarks) {
         throw new Error("Cannot export brief: Core financial data is missing.");
     }
 
-    const reportDate = financials?.reportDate;
-    const name = financials?.raw?.NAME || financials?.name || 'Bank';
-    const assetSize = financials?.raw?.ASSET || financials?.assetSize || 0;
-    const peerGroupName = benchmarks?.groupName || "Peer Group";
+    const { reportDate, name, assetSize } = financials;
+    const peerGroupName = benchmarks.groupName || "Peer Group";
 
     // Format large numbers
     const formatB = (num) => `$${(num / 1000000).toFixed(2)}B`;
@@ -32,21 +30,21 @@ export const generateHtmlBriefString = (financials, benchmarks, aiSummary) => {
 
     // Core KPIs to display
     const coreMetrics = [
-        { label: 'Return on Assets (ROA)', key: 'returnOnAssets', inv: false },
-        { label: 'Return on Equity (ROE)', key: 'returnOnEquity', inv: false },
-        { label: 'Net Interest Margin (NIM)', key: 'netInterestMargin', inv: false },
+        { label: 'Return on Assets (ROA)', key: 'roa', inv: false },
+        { label: 'Return on Equity (ROE)', key: 'roe', inv: false },
+        { label: 'Net Interest Margin (NIM)', key: 'nim', inv: false },
         { label: 'Efficiency Ratio', key: 'efficiencyRatio', inv: true },
-        { label: 'Non-Interest Income %', key: 'nonInterestIncomePercent', inv: false },
-        { label: 'NPL Ratio', key: 'nptlRatio', inv: true },
-        { label: 'Yield on Loans', key: 'yieldOnLoans', inv: false },
+        { label: 'Non-Interest Income / Assets', key: 'nonInterestIncomeToAssets', inv: false },
+        { label: 'NPL Ratio', key: 'nplRatio', inv: true },
+        { label: 'Loan Yield', key: 'loanYield', inv: false },
         { label: 'Cost of Funds', key: 'costOfFunds', inv: true }
     ];
 
     // Generate Table Rows
     let tableRows = '';
     coreMetrics.forEach(metric => {
-        const bankVal = parseFloat(financials[metric.key]);
-        const peerAvg = benchmarks ? parseFloat(benchmarks[metric.key]) : undefined;
+        const bankVal = financials[metric.key];
+        const peerAvg = benchmarks[metric.key]?.average;
         const delta = (bankVal !== undefined && peerAvg !== undefined && !isNaN(bankVal) && !isNaN(peerAvg))
             ? bankVal - peerAvg
             : null;
@@ -207,3 +205,4 @@ export const generateHtmlBriefString = (financials, benchmarks, aiSummary) => {
 
     return htmlTemplate;
 };
+module.exports = { generateHtmlBriefString };

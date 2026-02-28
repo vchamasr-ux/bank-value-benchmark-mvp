@@ -37,7 +37,7 @@ const Slide4_PeerGroup = ({ benchmarks, bankName }) => {
                                 </span>
                             </div>
                             <span className="font-bold text-indigo-600 text-lg text-right shrink-0">
-                                ${(parseFloat(bank.assetSize) / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 })}B
+                                ${(parseFloat(bank.asset) / 1000000).toFixed(1)}B
                             </span>
                         </div>
                     ))}
