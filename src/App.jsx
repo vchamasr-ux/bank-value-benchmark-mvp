@@ -37,6 +37,7 @@ function App() {
       }
     } else {
       setRadarContextBank(null);
+      setView('benchmark');
     }
   }, [selectedBank]);
 
@@ -54,27 +55,32 @@ function App() {
             setFinancials(latestKPIs);
             latestKPIs.history = historicalKPIs;
 
-            const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
-            if (benchmarkData) {
-              const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
-                const st = peer.stalp;
-                acc[st] = (acc[st] || 0) + 1;
-                return acc;
-              }, {});
+            try {
+              const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
+              if (benchmarkData) {
+                const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
+                  const st = peer.stalp;
+                  acc[st] = (acc[st] || 0) + 1;
+                  return acc;
+                }, {});
 
-              setBenchmarks({
-                ...calculateKPIs(benchmarkData),
-                assetGrowth3Y: benchmarkData.assetGrowth3Y,
-                loanGrowth3Y: benchmarkData.loanGrowth3Y,
-                depositGrowth3Y: benchmarkData.depositGrowth3Y,
-                groupName: benchmarkData.groupName,
-                assetFilter: benchmarkData.assetFilter,
-                sampleSize: benchmarkData.sampleSize,
-                peerBanks: benchmarkData.peerBanks,
-                peerStateCounts,
-                p25: benchmarkData.p25,
-                p75: benchmarkData.p75
-              });
+                setBenchmarks({
+                  ...calculateKPIs(benchmarkData),
+                  assetGrowth3Y: benchmarkData.assetGrowth3Y,
+                  loanGrowth3Y: benchmarkData.loanGrowth3Y,
+                  depositGrowth3Y: benchmarkData.depositGrowth3Y,
+                  groupName: benchmarkData.groupName,
+                  assetFilter: benchmarkData.assetFilter,
+                  sampleSize: benchmarkData.sampleSize,
+                  peerBanks: benchmarkData.peerBanks,
+                  peerStateCounts,
+                  p25: benchmarkData.p25,
+                  p75: benchmarkData.p75
+                });
+              }
+            } catch (benchmarkErr) {
+              console.error("Benchmark fetch failed:", benchmarkErr);
+              setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks. FDIC API may be down.");
             }
           } else {
             setErrorFinancials("No recent financial data found.");
@@ -82,7 +88,8 @@ function App() {
         })
         .catch(err => {
           console.error(err);
-          setErrorFinancials("Failed to load financials.");
+          // Only overwrite errorFinancials if it hasn't been set by the inner try/catch
+          setErrorFinancials(prev => prev || "Failed to load financials.");
         })
         .finally(() => setLoadingFinancials(false));
     } else {
@@ -263,7 +270,7 @@ function App() {
 
                   {!isPresentMode && (
                     <button
-                      onClick={() => setSelectedBank(null)}
+                      onClick={() => { setSelectedBank(null); setView('benchmark'); }}
                       className="mb-8 mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium"
                     >
                       <span>&larr;</span> Search for another bank

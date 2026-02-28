@@ -280,7 +280,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
         return null;
     } catch (error) {
         console.error("Failed to fetch peer benchmarks:", error);
-        return null;
+        throw new Error(`FDIC API benchmark connection failed: ${error.message}`);
     }
 };
 
@@ -313,7 +313,7 @@ export const listPeerBanks = async ({ segmentKey, focusCert }) => {
         return peers;
     } catch (e) {
         console.error("listPeerBanks error:", e);
-        return [];
+        throw new Error(`FDIC API peer list connection failed: ${e.message}`);
     }
 };
 
@@ -376,6 +376,6 @@ export const getBankKpis = async ({ cert, quarter }) => {
 
     } catch (e) {
         console.error("getBankKpis failed:", e);
-        return null;
+        throw new Error(`FDIC API KPI connection failed: ${e.message}`);
     }
 };

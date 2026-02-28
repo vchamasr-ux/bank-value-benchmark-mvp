@@ -39,9 +39,6 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     if (!financials) return null;
 
     // Note: kpiCalculator returns strings. ParseFloat needed.
-    const getAvg = (key, fallback) => benchmarks ? parseFloat(benchmarks[key]) : fallback;
-    const getAvgAssets = () => benchmarks ? (parseFloat(benchmarks.assetsPerEmployee) / 1000000).toFixed(1) : 10;
-
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
@@ -142,7 +139,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.assetGrowth3Y) || 0}
                         min={-10}
                         max={30}
-                        average={benchmarks ? parseFloat(benchmarks.assetGrowth3Y) : 8.5}
+                        average={benchmarks ? parseFloat(benchmarks.assetGrowth3Y) : null}
                         p25={benchmarks ? benchmarks.p25.assetGrowth3Y : null}
                         p75={benchmarks ? benchmarks.p75.assetGrowth3Y : null}
                         suffix="%"
@@ -154,7 +151,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.loanGrowth3Y) || 0}
                         min={-10}
                         max={30}
-                        average={benchmarks ? parseFloat(benchmarks.loanGrowth3Y) : 7.2}
+                        average={benchmarks ? parseFloat(benchmarks.loanGrowth3Y) : null}
                         p25={benchmarks ? benchmarks.p25.loanGrowth3Y : null}
                         p75={benchmarks ? benchmarks.p75.loanGrowth3Y : null}
                         suffix="%"
@@ -166,7 +163,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.depositGrowth3Y) || 0}
                         min={-10}
                         max={30}
-                        average={benchmarks ? parseFloat(benchmarks.depositGrowth3Y) : 6.8}
+                        average={benchmarks ? parseFloat(benchmarks.depositGrowth3Y) : null}
                         p25={benchmarks ? benchmarks.p25.depositGrowth3Y : null}
                         p75={benchmarks ? benchmarks.p75.depositGrowth3Y : null}
                         suffix="%"
@@ -190,7 +187,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.efficiencyRatio)}
                         min={30}
                         max={90}
-                        average={getAvg('efficiencyRatio', 60)}
+                        average={benchmarks ? parseFloat(benchmarks.efficiencyRatio) : null}
                         p25={benchmarks?.p25?.efficiencyRatio}
                         p75={benchmarks?.p75?.efficiencyRatio}
                         inverse={true}
@@ -202,7 +199,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.netInterestMargin)}
                         min={0}
                         max={6}
-                        average={getAvg('netInterestMargin', 3.5)}
+                        average={benchmarks ? parseFloat(benchmarks.netInterestMargin) : null}
                         p25={benchmarks?.p25?.netInterestMargin}
                         p75={benchmarks?.p75?.netInterestMargin}
                         trend={financials.history}
@@ -213,7 +210,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.costOfFunds)}
                         min={0}
                         max={5}
-                        average={getAvg('costOfFunds', 2.5)}
+                        average={benchmarks ? parseFloat(benchmarks.costOfFunds) : null}
                         p25={benchmarks?.p25?.costOfFunds}
                         p75={benchmarks?.p75?.costOfFunds}
                         inverse={true}
@@ -237,7 +234,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.nonInterestIncomePercent)}
                         min={0}
                         max={40}
-                        average={getAvg('nonInterestIncomePercent', 20)}
+                        average={benchmarks ? parseFloat(benchmarks.nonInterestIncomePercent) : null}
                         p25={benchmarks?.p25?.nonInterestIncomePercent}
                         p75={benchmarks?.p75?.nonInterestIncomePercent}
                         trend={financials.history}
@@ -248,7 +245,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.yieldOnLoans)}
                         min={2}
                         max={10}
-                        average={getAvg('yieldOnLoans', 6)}
+                        average={benchmarks ? parseFloat(benchmarks.yieldOnLoans) : null}
                         p25={benchmarks?.p25?.yieldOnLoans}
                         p75={benchmarks?.p75?.yieldOnLoans}
                         trend={financials.history}
@@ -259,7 +256,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={(parseFloat(financials.assetsPerEmployee) / 1000000).toFixed(1)}
                         min={0}
                         max={25}
-                        average={getAvgAssets()}
+                        average={benchmarks?.assetsPerEmployee ? (parseFloat(benchmarks.assetsPerEmployee) / 1000000).toFixed(1) : null}
                         p25={benchmarks?.p25?.assetsPerEmployee ? (parseFloat(benchmarks.p25.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
                         p75={benchmarks?.p75?.assetsPerEmployee ? (parseFloat(benchmarks.p75.assetsPerEmployee) / 1000000).toFixed(1) : undefined}
                         suffix="M"
@@ -283,7 +280,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.returnOnEquity)}
                         min={0}
                         max={25}
-                        average={getAvg('returnOnEquity', 12)}
+                        average={benchmarks ? parseFloat(benchmarks.returnOnEquity) : null}
                         p25={benchmarks?.p25?.returnOnEquity}
                         p75={benchmarks?.p75?.returnOnEquity}
                         trend={financials.history}
@@ -294,7 +291,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.returnOnAssets)}
                         min={0}
                         max={2.5}
-                        average={getAvg('returnOnAssets', 1.1)}
+                        average={benchmarks ? parseFloat(benchmarks.returnOnAssets) : null}
                         p25={benchmarks?.p25?.returnOnAssets}
                         p75={benchmarks?.p75?.returnOnAssets}
                         trend={financials.history}
@@ -305,7 +302,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         value={parseFloat(financials.nptlRatio)}
                         min={0}
                         max={5}
-                        average={getAvg('nptlRatio', 0.75)}
+                        average={benchmarks ? parseFloat(benchmarks.nptlRatio) : null}
                         p25={benchmarks?.p25?.nptlRatio}
                         p75={benchmarks?.p75?.nptlRatio}
                         inverse={true}
