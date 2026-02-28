@@ -220,45 +220,60 @@ function App() {
 
                   {/* Shared Bank Info Header */}
                   {selectedBank && (
-                    <div className={`bg-white p-6 rounded-lg shadow-sm text-center relative overflow-hidden ${isPresentMode && view !== 'movers' ? 'mb-0' : 'mb-4 border border-slate-200'}`}>
-                      {radarContextBank && !isPresentMode && (
-                        <div className="absolute top-0 right-0 px-3 py-1 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-lg opacity-80">
-                          Peer Analysis Mode
-                        </div>
-                      )}
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedBank.NAME}</h2>
-                      <div className="flex flex-col items-center gap-1 mb-2">
-                        <p className="text-gray-600">{selectedBank.CITY}, {selectedBank.STNAME} (Cert: {selectedBank.CERT})</p>
-                        {financials?.reportDate && (
-                          <span className="text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-500 rounded uppercase tracking-wider">
-                            Latest Report: {financials.reportDate}
-                          </span>
-                        )}
-                      </div>
-
-                      {financials && financials.raw && (
-                        <div className="mb-4 inline-flex items-center bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 max-w-full">
-                          <span className="text-gray-500 font-medium mr-2 whitespace-nowrap">Total Assets:</span>
-                          <span className="text-lg sm:text-xl font-bold text-blue-900 truncate">
-                            {(() => {
-                              const asset = parseFloat(financials.raw.ASSET) * 1000;
-                              if (asset >= 1e12) return `$${(asset / 1e12).toFixed(2)}T`;
-                              if (asset >= 1e9) return `$${(asset / 1e9).toFixed(2)}B`;
-                              if (asset >= 1e6) return `$${(asset / 1e6).toFixed(1)}M`;
-                              return `$${asset.toLocaleString()}`;
-                            })()}
-                          </span>
-                        </div>
-                      )}
-
-                      {!isPresentMode && (
+                    <div className="mb-6 flex flex-col items-start px-2 mt-2">
+                      {/* Only show Back to Search if we are not in peer drilldown mode (has its own back button) */}
+                      {!isPresentMode && !radarContextBank && (
                         <button
                           onClick={() => { setSelectedBank(null); setView('benchmark'); }}
-                          className="mx-auto flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors font-medium mt-2"
+                          className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors mb-4 group"
                         >
-                          <span>&larr;</span> Search for another bank
+                          <span className="transform group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Search
                         </button>
                       )}
+
+                      <div className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div className="relative">
+                          {radarContextBank && !isPresentMode && (
+                            <div className="inline-block px-3 py-1 mb-2 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded shadow-sm opacity-90">
+                              Peer Analysis Mode
+                            </div>
+                          )}
+                          <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1.5">{selectedBank.NAME}</h2>
+                          <p className="text-slate-500 font-medium flex items-center gap-2 text-sm">
+                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {selectedBank.CITY}, {selectedBank.STNAME}
+                            <span className="text-slate-400 font-normal ml-1 shrink-0">|</span>
+                            <span className="text-slate-400 font-normal ml-1">Cert: {selectedBank.CERT}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 md:justify-end shrink-0">
+                          {financials?.reportDate && (
+                            <div className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl shadow-sm">
+                              <span className="text-[10px] font-bold uppercase tracking-wider block leading-none mb-1 text-slate-400">Latest Report</span>
+                              <span className="text-sm font-bold leading-none block">{financials.reportDate}</span>
+                            </div>
+                          )}
+
+                          {financials && financials.raw && (
+                            <div className="px-5 py-2 bg-blue-50 border border-blue-100 text-blue-900 rounded-xl shadow-sm">
+                              <span className="text-[10px] font-bold text-blue-500 block leading-none mb-1 uppercase tracking-wider">Total Assets</span>
+                              <span className="text-lg font-black leading-none block tracking-tight">
+                                {(() => {
+                                  const asset = parseFloat(financials.raw.ASSET) * 1000;
+                                  if (asset >= 1e12) return `$${(asset / 1e12).toFixed(2)}T`;
+                                  if (asset >= 1e9) return `$${(asset / 1e9).toFixed(2)}B`;
+                                  if (asset >= 1e6) return `$${(asset / 1e6).toFixed(1)}M`;
+                                  return `$${asset.toLocaleString()}`;
+                                })()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
