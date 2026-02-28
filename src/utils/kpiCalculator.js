@@ -131,6 +131,7 @@ const calculateKPIsInternal = (data, history = null) => {
     let assetGrowth3Y = null;
     let loanGrowth3Y = null;
     let depositGrowth3Y = null;
+    let annualGrowthHistory = null;
 
     if (history && history.length >= 13) {
         const hVal = (record, key) => parseFloat(record[key]) || 0;
@@ -139,16 +140,12 @@ const calculateKPIsInternal = (data, history = null) => {
         const twoYearAgo = history[8];
         const threeYearAgo = history[12];
 
-        // Overall 3Y CAGR (Gauge Value) — uses shared calcCAGR utility
-        assetGrowth3Y = calcCAGR(hVal(latest, 'ASSET'), hVal(threeYearAgo, 'ASSET')).toFixed(2);
-        loanGrowth3Y = calcCAGR(hVal(latest, 'LNLSNET'), hVal(threeYearAgo, 'LNLSNET')).toFixed(2);
-        depositGrowth3Y = calcCAGR(hVal(latest, 'DEP'), hVal(threeYearAgo, 'DEP')).toFixed(2);
+        // Overall 3Y CAGR — plain numbers, formatted at render time
+        assetGrowth3Y = calcCAGR(hVal(latest, 'ASSET'), hVal(threeYearAgo, 'ASSET'));
+        loanGrowth3Y = calcCAGR(hVal(latest, 'LNLSNET'), hVal(threeYearAgo, 'LNLSNET'));
+        depositGrowth3Y = calcCAGR(hVal(latest, 'DEP'), hVal(threeYearAgo, 'DEP'));
 
         // Annual YoY Points (Historical story for Sparkline)
-        // Note: For trendlines to work, we attach these to the latest object 
-        // using the existing metric names so TrendIndicator can find them if needed,
-        // OR we can create specialized historical points.
-        // Let's create annual YoY points: Year 1 (latest vs 1Y ago), Year 2 (1Y ago vs 2Y ago), Year 3 (2Y ago vs 3Y ago)
         const calcYoY = (currRec, prevRec, key) => {
             const c = hVal(currRec, key);
             const p = hVal(prevRec, key);
@@ -156,8 +153,8 @@ const calculateKPIsInternal = (data, history = null) => {
             return ((c / p) - 1) * 100;
         };
 
-        // Attach specialized history points for the trend component
-        data.annualGrowthHistory = {
+        // Returned in the result object — not mutating the input data
+        annualGrowthHistory = {
             assetGrowth3Y: [
                 calcYoY(latest, oneYearAgo, 'ASSET'),
                 calcYoY(oneYearAgo, twoYearAgo, 'ASSET'),
@@ -178,18 +175,20 @@ const calculateKPIsInternal = (data, history = null) => {
 
     return {
         reportDate: formatQuarter(data.REPDTE),
-        efficiencyRatio: efficiencyRatio.toFixed(2),
-        costOfFunds: costOfFunds.toFixed(2),
-        nonInterestIncomePercent: nonInterestIncomePercent.toFixed(2),
-        yieldOnLoans: yieldOnLoans.toFixed(2),
-        netInterestMargin: netInterestMargin.toFixed(2),
-        assetsPerEmployee: assetsPerEmployee.toFixed(0),
-        returnOnEquity: returnOnEquity.toFixed(2),
-        returnOnAssets: returnOnAssets.toFixed(2),
-        nptlRatio: nptlRatio.toFixed(2),
+        // All KPI values are plain numbers — format with .toFixed() only at render time.
+        efficiencyRatio,
+        costOfFunds,
+        nonInterestIncomePercent,
+        yieldOnLoans,
+        netInterestMargin,
+        assetsPerEmployee,
+        returnOnEquity,
+        returnOnAssets,
+        nptlRatio,
         assetGrowth3Y,
         loanGrowth3Y,
         depositGrowth3Y,
+        annualGrowthHistory,
         raw: {
             ...data,
             netInterestIncome

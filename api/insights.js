@@ -38,8 +38,8 @@ export default async function handler(req, res) {
     const today = `${y}-${m}-${d}`;
     const quotaKey = `quota:${linkedinSub}:${today}`;
 
-    const admins = (process.env.ADMIN_LINKEDIN_SUBS || '').split(',');
-    const isAdmin = admins.includes(linkedinSub) || linkedinName === 'Vincent Chamasrour';
+    const admins = (process.env.ADMIN_LINKEDIN_SUBS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const isAdmin = admins.includes(linkedinSub);
 
     if (!isAdmin) {
         try {

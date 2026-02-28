@@ -1,4 +1,5 @@
 const FDIC_API_BASE = 'https://banks.data.fdic.gov/api/institutions/';
+const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
 
 /**
  * Search for banks by name using the FDIC API.
@@ -39,7 +40,9 @@ export const getBankFinancials = async (certId) => {
     // Fetch historical reports (16 quarters for 4 years of context)
     const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP,NAME,CITY,STNAME';
 
-    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${certId}&fields=${fields}&limit=16&sort_by=REPDTE&sort_order=DESC&format=json`;
+    // Fetch 20 quarters (5 years) to give the 3Y CAGR calculation a safety buffer
+    // against any gaps in FDIC quarterly filings.
+    const url = `${FDIC_FINANCIALS_URL}?filters=CERT:${certId}&fields=${fields}&limit=20&sort_by=REPDTE&sort_order=DESC&format=json`;
 
     try {
         const response = await fetch(url);
@@ -93,7 +96,7 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
 
     // Using /financials to get actual list of banks
     // Added sort_by=REPDTE to ensure we get 2025/latest data
-    const url = `https://api.fdic.gov/banks/financials/?filters=${encodeURIComponent(assetFilter)}%20AND%20ACTIVE:1&fields=${fields}&limit=${limit}&sort_by=REPDTE&sort_order=DESC&format=json`;
+    const url = `${FDIC_FINANCIALS_URL}?filters=${encodeURIComponent(assetFilter)}%20AND%20ACTIVE:1&fields=${fields}&limit=${limit}&sort_by=REPDTE&sort_order=DESC&format=json`;
 
     try {
         const response = await fetch(url);
@@ -127,8 +130,12 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                 });
             }
 
-            // Slice top 20
+            // Slice top 20, but require a minimum sample of 4 for meaningful benchmarks
             const peers = candidates.slice(0, 20);
+            if (peers.length < 4) {
+                console.warn(`Peer benchmark skipped: only ${peers.length} peers found for tier ${groupName} — insufficient for statistics.`);
+                return null;
+            }
 
             // Fetch 3rd-year historical data for these 20 peers to calculate growth benchmarks
             const peerCerts = peers.map(p => p.CERT).join(' OR ');
@@ -183,9 +190,9 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
                     // Calculate growth KPIs if history exists
                     const hist = histMap[d.CERT];
                     if (hist) {
-                        kpis.assetGrowth3Y = calcCAGR(parseFloat(d.ASSET), parseFloat(hist.ASSET)).toFixed(2);
-                        kpis.loanGrowth3Y = calcCAGR(parseFloat(d.LNLSNET), parseFloat(hist.LNLSNET)).toFixed(2);
-                        kpis.depositGrowth3Y = calcCAGR(parseFloat(d.DEP), parseFloat(hist.DEP)).toFixed(2);
+                        kpis.assetGrowth3Y = calcCAGR(parseFloat(d.ASSET), parseFloat(hist.ASSET));
+                        kpis.loanGrowth3Y = calcCAGR(parseFloat(d.LNLSNET), parseFloat(hist.LNLSNET));
+                        kpis.depositGrowth3Y = calcCAGR(parseFloat(d.DEP), parseFloat(hist.DEP));
                     }
                     peerKPIs.push(kpis);
                 }

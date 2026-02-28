@@ -10,6 +10,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [exportError, setExportError] = useState(null);
     const [aiSummary, setAiSummary] = useState('');
 
     const handlePresentLiveToggled = () => {
@@ -18,6 +19,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
 
     const handleExportPDF = async () => {
         setIsExporting(true);
+        setExportError(null);
         try {
             // Give React a tiny tick to ensure loaders show up
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -33,7 +35,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             await exportDashboardToPDF(slidesToCapture, `BankValue_${financials.raw?.NAME || 'Report'}.pdf`);
         } catch (error) {
             console.error("Failed to export PDF:", error);
-            alert("Error generating PDF. Please check the console.");
+            setExportError("PDF export failed. Please try again.");
         } finally {
             setIsExporting(false);
         }
@@ -91,6 +93,11 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             <span>PDF</span>
                         </button>
                     </div>
+                    {exportError && (
+                        <span className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-lg animate-in fade-in duration-200">
+                            ⚠ {exportError}
+                        </span>
+                    )}
 
                     {benchmarks && benchmarks.groupName && (
                         <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">

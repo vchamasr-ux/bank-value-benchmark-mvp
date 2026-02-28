@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
+// Module-level cache: the tiered model JSON is static and only needs to be fetched once.
+let _cachedModelJson = null;
+
 const ALL_KPIS = [
     { id: 'returnOnAssets', label: 'Return on Assets (ROA)' },
     { id: 'netInterestMargin', label: 'Net Interest Margin (NIM)' },
@@ -232,12 +235,15 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
     useEffect(() => {
         const fetchModel = async () => {
             try {
-                // Fetch the V3 Tiered artifact
-                const response = await fetch('/models/whatwouldittake_tiered.json');
-                if (!response.ok) {
-                    throw new Error('V3 Tiered model artifact missing. Run offline training pipeline.');
+                // Use cached model JSON if available (avoids re-fetching on every bank switch)
+                if (!_cachedModelJson) {
+                    const response = await fetch('/models/whatwouldittake_tiered.json');
+                    if (!response.ok) {
+                        throw new Error('V3 Tiered model artifact missing. Run offline training pipeline.');
+                    }
+                    _cachedModelJson = await response.json();
                 }
-                const data = await response.json();
+                const data = _cachedModelJson;
 
                 // Validate schema version
                 if (data.schema_version !== "3.0") {

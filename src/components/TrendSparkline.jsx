@@ -5,24 +5,25 @@ const TrendSparkline = ({ data, metric, inverse }) => {
     if (!data || data.length < 2) return null;
 
     // Detect if we should use Annual YoY History (for 3Y Growth KPIs)
-    // The data[0] represents the latest record.
-    const isAnnual = data[0] && data[0].raw && data[0].raw.annualGrowthHistory;
+    // annualGrowthHistory lives on the top-level KPI object (set by kpiCalculator)
+    const annualHistory = data[0]?.annualGrowthHistory;
+    const isAnnual = annualHistory && annualHistory[metric];
     let chartData = [];
     let trendLabel = "4-Q Trend";
 
-    if (isAnnual && data[0].raw.annualGrowthHistory[metric]) {
-        const annualPoints = data[0].raw.annualGrowthHistory[metric]; // [newest, middle, oldest]
+    if (isAnnual) {
+        const annualPoints = annualHistory[metric]; // [newest, middle, oldest]
         trendLabel = "3-Y Annual Trend (YoY)";
         chartData = [...annualPoints].reverse().map((val, idx) => ({
             name: `Year ${idx + 1}`,
-            value: parseFloat(val) || 0
+            value: val || 0
         }));
     } else {
         trendLabel = "4-Q Trend";
         // Data is passed in DESC order (Newest First). Reverse for Chart (Oldest First).
         chartData = [...data].slice(0, 4).reverse().map(d => ({
             name: d.reportDate,
-            value: parseFloat(d[metric]) || 0
+            value: d[metric] || 0
         }));
     }
 
