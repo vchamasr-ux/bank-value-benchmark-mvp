@@ -18,6 +18,8 @@ const PitchbookPresentation = ({
     const [currentSlide, setCurrentSlide] = useState(0);
     const [direction, setDirection] = useState('forward'); // for directional transitions (#2)
     const [aiSummaryHtml, setAiSummaryHtml] = useState(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const presentationRef = React.useRef(null);
 
     const getBenchmark = (key) => benchmarks ? parseFloat(benchmarks[key]) : 0;
 
@@ -426,12 +428,27 @@ const PitchbookPresentation = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleNext, handlePrev, onClose]);
 
+    // Fullscreen Event Listener
+    useEffect(() => {
+        const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            presentationRef.current?.requestFullscreen().catch(err => console.error(err));
+        } else {
+            document.exitFullscreen().catch(err => console.error(err));
+        }
+    };
+
     const activeSlide = slides[currentSlide];
 
     return (
-        <div className="pitchbook-root fixed inset-0 z-[200] bg-[#e2e8f0] flex flex-col items-center justify-center font-sans">
+        <div ref={presentationRef} className="pitchbook-root fixed inset-0 z-[200] bg-[#e2e8f0] flex flex-col items-center justify-center font-sans">
             {/* SCREEN VIEW */}
-            <div className="screen-only w-full h-full flex flex-col items-center justify-center">
+            <div className="screen-only w-full h-full flex flex-col items-center justify-center pt-20 pb-4">
                 {/* Top Navigation Frame (Outside the slide canvas) */}
                 <div className="pitchbook-nav absolute top-0 w-full flex items-center justify-between p-4 bg-slate-800 text-white shadow-md z-10">
                     <button
@@ -461,6 +478,21 @@ const PitchbookPresentation = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                             Save as PDF
+                        </button>
+                        <button
+                            onClick={toggleFullscreen}
+                            aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none bg-slate-700 hover:bg-emerald-700 text-slate-300 hover:text-white border border-slate-600 hover:border-emerald-500"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {isFullscreen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M15 9V4.5M15 9h4.5M9 15v4.5M9 15H4.5M15 15v4.5M15 15h4.5" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                )}
+                            </svg>
+                            {isFullscreen ? "Exit Full" : "Full Screen"}
                         </button>
                         <button
                             onClick={handlePrev}
