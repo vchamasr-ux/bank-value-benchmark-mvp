@@ -30,6 +30,11 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server configuration error: Missing API Key" });
     }
 
+    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+        console.error("CRITICAL ERROR: KV_REST_API_URL or KV_REST_API_TOKEN is missing from environment.");
+        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing KV credentials.' });
+    }
+
     // 1. Quota Check (2 calls per day)
     // Key format: quota:linkedin_sub:YYYY-MM-DD (America/New_York)
     const nyDate = new Intl.DateTimeFormat('en-US', {

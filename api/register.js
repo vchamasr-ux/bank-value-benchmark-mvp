@@ -13,6 +13,11 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing required registration data' });
     }
 
+    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+        console.error("CRITICAL ERROR: KV_REST_API_URL or KV_REST_API_TOKEN is missing from environment.");
+        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing KV credentials.' });
+    }
+
     try {
         // 1. Check if we already notified for this user
         // Bypass for testing: If a special test header is present, we allow multiple notifications
@@ -70,7 +75,6 @@ export default async function handler(req, res) {
         return res.status(200).json({ message: 'Registration successful' });
     } catch (error) {
         console.error("Registration Notification Error:", error);
-        // Don't block the user if email production fails
-        return res.status(200).json({ message: 'Registration received with internal warning' });
+        return res.status(500).json({ error: 'Server error: Registration process failed' });
     }
 }

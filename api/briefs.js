@@ -7,6 +7,11 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Authentication required" });
     }
 
+    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+        console.error("CRITICAL ERROR: KV_REST_API_URL or KV_REST_API_TOKEN is missing from environment.");
+        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing KV credentials.' });
+    }
+
     const briefsKey = `briefs:${linkedinSub}`;
 
     // GET /api/briefs - Retrieve all saved briefs for the user
