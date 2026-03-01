@@ -7,12 +7,13 @@ import UserProfileMenu from './components/UserProfileMenu';
 import LandingPage from './components/LandingPage';
 import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
-import StrategicPlannerTab from './components/StrategicPlannerTab';
 import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
 import PitchbookPresentation from './components/PitchbookPresentation';
 import { calculateKPIs } from './utils/kpiCalculator';
 
+// Lazy-loaded heavy components — keeps main bundle lean and avoids Rollup TDZ issues
 const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
+const StrategicPlannerTab = lazy(() => import('./components/StrategicPlannerTab'));
 const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
@@ -442,10 +443,12 @@ function App() {
 
                       {financials && !loadingFinancials && view === 'planner' && (
                         <div className="w-full relative animate-fade-in-up">
-                          <StrategicPlannerTab
-                            financials={financials}
-                            benchmarks={benchmarks}
-                          />
+                          <Suspense fallback={<div className="flex justify-center items-center h-64 text-blue-400 animate-pulse font-bold">Loading Strategic Planner...</div>}>
+                            <StrategicPlannerTab
+                              financials={financials}
+                              benchmarks={benchmarks}
+                            />
+                          </Suspense>
                         </div>
                       )}
                     </div>
