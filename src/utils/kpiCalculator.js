@@ -35,23 +35,10 @@ const formatQuarter = (dateString) => {
     return `${q} ${year}`;
 };
 
-export const calculateKPIs = (data) => {
-    if (!data) return null;
-
-    // Handle array of historical data
-    // If it's an array, we calculate KPIs for each item.
-    // However, to calculate growth metrics (3Y), we need the context of the whole array.
-    if (Array.isArray(data)) {
-        // We map and pass the full array as second argument to help calculation if needed
-        return data.map((item, index, array) => {
-            // Pass the slice from current index to enable rolling 3Y metrics
-            return calculateKPIsInternal(item, array.slice(index));
-        });
-    }
-
-    return calculateKPIsInternal(data);
-};
-
+// NOTE: calculateKPIsInternal MUST be declared before calculateKPIs.
+// Both are `const` arrow functions (not hoisted), so declaration order matters.
+// Rollup/Vite minifies this to a single-letter variable (e.g. `x`), and if
+// calculateKPIs is evaluated first it will throw "Cannot access 'x' before initialization".
 const calculateKPIsInternal = (data, history = null) => {
     // Helper to parse string numbers to float, default to 0
     const val = (key) => parseFloat(data[key]) || 0;
@@ -207,4 +194,21 @@ const calculateKPIsInternal = (data, history = null) => {
             netInterestIncome // annualized
         }
     };
+};
+
+export const calculateKPIs = (data) => {
+    if (!data) return null;
+
+    // Handle array of historical data
+    // If it's an array, we calculate KPIs for each item.
+    // However, to calculate growth metrics (3Y), we need the context of the whole array.
+    if (Array.isArray(data)) {
+        // We map and pass the full array as second argument to help calculation if needed
+        return data.map((item, index, array) => {
+            // Pass the slice from current index to enable rolling 3Y metrics
+            return calculateKPIsInternal(item, array.slice(index));
+        });
+    }
+
+    return calculateKPIsInternal(data);
 };
