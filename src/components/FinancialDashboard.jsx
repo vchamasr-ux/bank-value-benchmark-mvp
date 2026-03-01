@@ -46,7 +46,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
 
     // Note: kpiCalculator returns strings. ParseFloat needed.
     return (
-        <div id="dashboard-export-zone" className="space-y-8">
+        <div id="dashboard-export-zone" className="space-y-8 overflow-x-hidden w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0">
                     <h2 className="font-extrabold text-white tracking-tight text-2xl whitespace-nowrap">

@@ -5,12 +5,19 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [callbackLoading, setCallbackLoading] = useState(false);
 
     useEffect(() => {
         // Check for existing session
         const storedUser = localStorage.getItem('auth_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch {
+                // Malformed localStorage — fail loudly by removing it and forcing re-auth
+                console.error('AuthContext: malformed auth_user in localStorage. Clearing and requiring re-login.');
+                localStorage.removeItem('auth_user');
+            }
         }
         setLoading(false);
 
@@ -21,10 +28,12 @@ export const AuthProvider = ({ children }) => {
             const state = urlParams.get('state');
 
             if (code && state) {
+                setCallbackLoading(true); // Block rendering while OAuth resolves
                 const savedState = localStorage.getItem('auth_state');
                 if (state !== savedState) {
                     console.error("Auth State Mismatch");
                     window.history.replaceState({}, document.title, window.location.pathname);
+                    setCallbackLoading(false);
                     return;
                 }
 
@@ -69,6 +78,8 @@ export const AuthProvider = ({ children }) => {
                 } catch (err) {
                     console.error("Auth Callback Error:", err);
                     window.history.replaceState({}, document.title, "/");
+                } finally {
+                    setCallbackLoading(false); // Always unblock, even on error
                 }
             }
         };
@@ -87,8 +98,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, logout, login }}>
-            {children}
+        <AuthContext.Provider value={{ user, loading, callbackLoading, logout, login }}>
+            {callbackLoading ? (
+                <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+                        <p className="text-slate-400 text-sm font-semibold tracking-wide">Completing sign-in…</p>
+                    </div>
+                </div>
+            ) : (
+                children
+            )}
         </AuthContext.Provider>
     );
 };

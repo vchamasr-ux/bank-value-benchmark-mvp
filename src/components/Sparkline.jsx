@@ -49,14 +49,14 @@ const Sparkline = ({ value, min = 0, max = 100, average, inverse = false, suffix
                     )}
                 </div>
                 <div className="text-sm font-black text-slate-800 whitespace-nowrap min-w-[3rem] text-right">
-                    {value}{suffix}
+                    {typeof value === 'number' ? value.toFixed(2) : value}{suffix}
                 </div>
             </div>
             {avgPercent !== null && (
                 <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase mt-0.5">
-                    <span>{min}{suffix}</span>
-                    <span>Peer Avg: {average}{suffix}</span>
-                    <span>{max}{suffix}</span>
+                    <span>{typeof min === 'number' ? min.toFixed(2) : min}{suffix}</span>
+                    <span>Peer Avg: {typeof average === 'number' ? average.toFixed(2) : average}{suffix}</span>
+                    <span>{typeof max === 'number' ? max.toFixed(2) : max}{suffix}</span>
                 </div>
             )}
         </div>
