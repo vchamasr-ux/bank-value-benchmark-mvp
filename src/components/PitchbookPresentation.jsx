@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GaugeChart from './GaugeChart';
 import MoversView from './MoversView';
-import StrategicPlannerTab from './StrategicPlannerTab';
 import Sparkline from './Sparkline';
 import { formatAssets } from '../utils/formatUtils';
 import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
