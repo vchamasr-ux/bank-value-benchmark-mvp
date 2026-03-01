@@ -137,7 +137,7 @@ function App() {
 
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+    <div className="min-h-screen font-sans selection:bg-blue-500/30">
       {/* If Present Mode is active, bypass the entire layout and just render the Pitchbook */}
       {isPresentMode ? (
         <PitchbookPresentation
@@ -152,14 +152,14 @@ function App() {
       ) : (
         <>
           {/* Global Navigation Header */}
-          <header className="bg-white border-b border-slate-200 sticky top-0 z-[100] shadow-sm">
+          <header className="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-[100] shadow-sm">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-8">
                 <h1
-                  className="text-lg sm:text-xl font-black text-blue-900 tracking-tight cursor-pointer shrink-0"
+                  className="text-lg sm:text-xl font-black text-white tracking-tight cursor-pointer shrink-0"
                   onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
                 >
-                  BANK<span className="text-blue-600">VALUE</span>
+                  BANK<span className="text-blue-500">VALUE</span>
                 </h1>
 
                 <nav className="flex items-center gap-1 sm:gap-4">
@@ -167,8 +167,8 @@ function App() {
                     <button
                       onClick={() => setView('benchmark')}
                       className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'benchmark'
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                        ? 'bg-blue-900/40 text-blue-300'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Benchmarks</span>
                     </button>
@@ -177,10 +177,10 @@ function App() {
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
                       className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'movers'
-                        ? 'bg-blue-50 text-blue-700'
+                        ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
-                          ? 'text-slate-300 opacity-40 cursor-not-allowed'
-                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                          ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Radar</span>
                     </button>
@@ -189,10 +189,10 @@ function App() {
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
                       className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'planner'
-                        ? 'bg-blue-50 text-blue-700'
+                        ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
-                          ? 'text-slate-300 opacity-40 cursor-not-allowed'
-                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                          ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Planner</span>
                     </button>
@@ -206,7 +206,7 @@ function App() {
                   {/* Back to Suite */}
                   <a
                     href="https://fdic-suite-landing.vercel.app"
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-slate-200 ml-2"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-2"
                     aria-label="Back to FDIC Intelligence Suite"
                   >
                     Suite Home
@@ -215,8 +215,8 @@ function App() {
               </div>
 
               {selectedBank && (
-                <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 ${radarContextBank ? 'border-blue-200 bg-blue-50/50' : ''}`}>
-                  <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></span>
+                <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-800/50 rounded-full text-xs font-bold text-slate-300 border border-slate-700/50 ${radarContextBank ? 'border-blue-500/50 bg-blue-900/30' : ''}`}>
+                  <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-400' : 'bg-emerald-400 animate-pulse'}`}></span>
                   {selectedBank.NAME}
                   {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
                 </div>
@@ -255,7 +255,7 @@ function App() {
                           setView('movers');
                         }
                       }}
-                      className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-all bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 shadow-sm hover:shadow-md animate-in slide-in-from-left-2 duration-300"
+                      className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-all bg-blue-900/30 px-4 py-2 rounded-xl border border-blue-500/30 shadow-sm hover:shadow-md animate-in slide-in-from-left-2 duration-300"
                     >
                       <span>&larr;</span> Back to {radarContextBank.name} Competitive Radar
                     </button>
@@ -268,7 +268,7 @@ function App() {
                       {!isPresentMode && !radarContextBank && (
                         <button
                           onClick={() => { setSelectedBank(null); setView('benchmark'); }}
-                          className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors mb-4 group"
+                          className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-blue-400 transition-colors mb-4 group"
                         >
                           <span className="transform group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Search
                         </button>
@@ -277,12 +277,12 @@ function App() {
                       <div className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div className="relative">
                           {radarContextBank && !isPresentMode && (
-                            <div className="inline-block px-3 py-1 mb-2 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded shadow-sm opacity-90">
+                            <div className="inline-block px-3 py-1 mb-2 bg-blue-600/20 border border-blue-500/30 text-blue-300 text-[10px] font-bold uppercase tracking-widest rounded shadow-[0_0_15px_rgba(59,130,246,0.1)]">
                               Peer Analysis Mode
                             </div>
                           )}
-                          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight mb-1.5">{selectedBank.NAME}</h2>
-                          <div className="flex flex-wrap items-center gap-3 mt-1 text-slate-500 text-sm">
+                          <h2 className="text-3xl font-bold text-white tracking-tight leading-tight mb-1.5">{selectedBank.NAME}</h2>
+                          <div className="flex flex-wrap items-center gap-3 mt-1 text-slate-400 text-sm">
                             <p className="font-medium flex items-center gap-2">
                               <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -294,11 +294,11 @@ function App() {
                             </p>
 
                             {CURRENT_QUARTER && (
-                              <div className="flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100" title="Data period from FDIC Call Reports">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <div className="flex items-center gap-1.5 bg-emerald-900/30 px-2 py-0.5 rounded border border-emerald-500/30" title="Data period from FDIC Call Reports">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">As of {CURRENT_QUARTER}</span>
+                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">As of {CURRENT_QUARTER}</span>
                               </div>
                             )}
                           </div>
@@ -308,11 +308,11 @@ function App() {
                           {/* #2 — Quarter selector: lets the user view a historical snapshot */}
                           {allHistoricalKPIs && allHistoricalKPIs.length > 1 && (
                             <div className="flex flex-col gap-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Report Period</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Report Period</span>
                               <select
                                 value={selectedQuarterIdx}
                                 onChange={e => setSelectedQuarterIdx(Number(e.target.value))}
-                                className="text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm cursor-pointer hover:border-blue-300 transition-colors outline-none"
+                                className="text-sm font-bold text-slate-200 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 shadow-sm cursor-pointer hover:border-slate-500 transition-colors outline-none"
                                 aria-label="Select reporting quarter"
                               >
                                 {allHistoricalKPIs.map((kpi, idx) => (
@@ -325,9 +325,9 @@ function App() {
                           )}
 
                           {financials && financials.raw && (
-                            <div className="px-5 py-2.5 bg-white border border-slate-200/80 text-blue-900 rounded-xl shadow-sm hover:shadow transition-shadow">
+                            <div className="px-5 py-2.5 bg-slate-900/40 backdrop-blur-md border border-slate-700/50 text-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.02)] ring-1 ring-white/5">
                               <span className="text-[10px] font-bold text-slate-400 block leading-none mb-1 uppercase tracking-wider">Total Assets</span>
-                              <span className="text-xl font-black leading-none block tracking-tight">
+                              <span className="text-xl font-bold leading-none block tracking-tight">
                                 {formatAssets(financials.raw.ASSET)}
                               </span>
                             </div>

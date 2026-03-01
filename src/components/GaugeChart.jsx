@@ -32,7 +32,7 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
     let totalVisualRange = visualMax - visualMin;
 
     const colors = inverse
-        ? ['#10B981', '#F59E0B', '#F43F5E'] // Emerald 500, Amber 500, Rose 500
+        ? ['#10B981', '#F59E0B', '#F43F5E'] // Emerald 500, Amber 500, Rose 500 (kept as these actually pop well on dark)
         : ['#F43F5E', '#F59E0B', '#10B981']; // Rose 500, Amber 500, Emerald 500
 
     let ranges = [];
@@ -137,7 +137,7 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
     const rotation = (percentage * 180) - 90;
 
     return (
-        <div ref={containerRef} className={`group flex flex-col items-center flex-1 w-full bg-white p-6 rounded-2xl shadow-soft border border-slate-200/50 transition-all duration-300 hover:shadow-premium hover:-translate-y-1 h-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
+        <div ref={containerRef} className={`group flex flex-col items-center flex-1 w-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
             <div className="relative w-48 h-24 mt-2">
                 <PieChart width={192} height={96}>
                     <defs>
@@ -169,10 +169,10 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                             if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                    <div className="bg-white p-2 border border-blue-100 shadow-xl rounded text-xs z-50">
+                                    <div className="bg-slate-800 p-2 border border-slate-600 shadow-xl rounded text-xs z-50 text-white">
                                         <span className="font-bold" style={{ color: data.color }}>{data.name}</span>
                                         {p25 && p75 && (
-                                            <div className="text-gray-500 mt-1">
+                                            <div className="text-slate-400 mt-1">
                                                 {data.type === 'low' ? `Below ${format(p25)}` : ''}
                                                 {data.type === 'mid' ? `${format(p25)} - ${format(p75)}` : ''}
                                                 {data.type === 'high' ? `Above ${format(p75)}` : ''}
@@ -208,20 +208,20 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
 
                 {/* Needle - sweeps from -90° (far left) to real rotation when isActive */}
                 <div
-                    className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-slate-600' : 'bg-slate-300'}`}
+                    className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-slate-200' : 'bg-slate-600'}`}
                     style={{
                         transform: `translateX(-50%) rotate(${animated ? rotation : -90}deg)`
                     }}
                 ></div>
-                <div className={`absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-[5px] -mb-[5px] rounded-full pointer-events-none shadow-sm ${isAvailable ? 'bg-slate-700' : 'bg-slate-300'}`}></div>
+                <div className={`absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-[5px] -mb-[5px] rounded-full pointer-events-none shadow-sm shadow-black/50 ${isAvailable ? 'bg-white' : 'bg-slate-500'}`}></div>
             </div>
 
             <div className="text-center mt-2 w-full">
                 <Tooltip content={METRIC_DEFINITIONS[metric]} position="bottom">
-                    <h3 className="text-sm font-medium text-gray-500 uppercase cursor-help hover:text-gray-800 transition-colors border-b border-dashed border-gray-300 inline-block p-1">{label}</h3>
+                    <h3 className="text-sm font-medium text-slate-400 uppercase cursor-help hover:text-white transition-colors inline-block p-1">{label}</h3>
                 </Tooltip>
-                <div className="flex justify-center items-center mt-2.5">
-                    <div className={`text-2xl font-extrabold tracking-tight ${isAvailable ? 'text-slate-800' : 'text-slate-400'}`}>
+                <div className="flex justify-center items-center mt-1">
+                    <div className={`text-2xl font-semibold tracking-tight ${isAvailable ? 'text-white' : 'text-slate-600'}`}>
                         {isAvailable ? `${typeof value === 'number' ? value.toFixed(2) : value}${suffix}` : 'N/A'}
                     </div>
                     {/* Render Subtle Trend Indicator if history is available */}
@@ -231,7 +231,7 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                 </div>
 
                 {(average !== undefined && average !== null) && (
-                    <div className="text-xs text-gray-400 mt-1 flex flex-col items-center w-full">
+                    <div className="text-xs text-slate-500 mt-1 flex flex-col items-center w-full">
                         <span className="font-semibold">Avg: {format(average)}</span>
                         {p25 != null && p75 != null && (() => {
                             const q1 = Number(p25), q3 = Number(p75), iqr = (q3 - q1) || 0.0001;

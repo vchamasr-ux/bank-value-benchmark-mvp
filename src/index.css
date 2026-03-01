@@ -29,6 +29,10 @@
         font-family: var(--font-sans);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        background-color: #020617;
+        /* tailwind slate-950 */
+        color: #cbd5e1;
+        /* tailwind slate-300 */
     }
 }
 

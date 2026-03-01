@@ -46,9 +46,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     // Note: kpiCalculator returns strings. ParseFloat needed.
     return (
         <div id="dashboard-export-zone" className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0">
-                    <h2 className="font-black text-blue-900 tracking-tight text-2xl whitespace-nowrap">
+                    <h2 className="font-extrabold text-white tracking-tight text-2xl whitespace-nowrap">
                         Financial Health Scorecard
                     </h2>
                     <button
@@ -63,23 +63,23 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="flex border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-blue-300 bg-white items-center p-1">
+                    <div className="flex border border-slate-700/50 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-slate-500 bg-slate-800/50 backdrop-blur-md items-center p-1">
                         <button
                             onClick={handlePresentLiveToggled}
-                            className="flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all whitespace-nowrap active:scale-95"
+                            className="flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-blue-900/40 text-blue-300 hover:bg-blue-800/60 transition-all whitespace-nowrap active:scale-95"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
                             <span>Present Live</span>
                         </button>
-                        <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                        <div className="w-px h-5 bg-slate-700 mx-1"></div>
                         <button
                             onClick={handleExportPDF}
                             disabled={isExporting}
                             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${isExporting
-                                ? 'text-slate-400 cursor-not-allowed'
-                                : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+                                ? 'text-slate-600 cursor-not-allowed'
+                                : 'text-slate-400 hover:bg-slate-700 hover:text-white'
                                 }`}
                             title="Export PDF"
                         >
@@ -100,9 +100,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     )}
 
                     {benchmarks && benchmarks.groupName && (
-                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shrink-0">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Benchmark:</span>
-                            <span className="text-sm font-bold text-slate-600">{benchmarks.groupName}</span>
+                        <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50 shrink-0">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark:</span>
+                            <span className="text-sm font-bold text-slate-300">{benchmarks.groupName}</span>
                             {benchmarks.sampleSize && (
                                 <button
                                     onClick={() => setIsPeerModalOpen(true)}
@@ -139,9 +139,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
 
 
             {/* Growth Performance (New) */}
-            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200/50 mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+            <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-700/50 ring-1 ring-white/5 mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <h3 className="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5V2a1 1 0 112 0v5a1 1 0 01-1 1h-5z" clipRule="evenodd" />
                         <path d="M2.293 12.293a1 1 0 011.414 0L11 4.586 15.586 9H13a1 1 0 110-2h5v5a1 1 0 11-2 0V9.414l-5.293 5.293a1 1 0 01-1.414 0L6 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L5.293 10 9 13.707l5.586-5.586L13 9.414V11a1 1 0 11-2 0v-5a1 1 0 011-1h5a1 1 0 110 2h-2.586l4.293 4.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0L6 11.414l-3.707 3.707a1 1 0 01-1.414-1.414l4.414-4.414L2.293 12.293z" />
                     </svg>
@@ -188,9 +188,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Operational Efficiency & Margin */}
-            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200/50 mb-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+            <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-700/50 ring-1 ring-white/5 mb-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                <h3 className="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                     </svg>
                     Operational Efficiency & Margin
@@ -235,9 +235,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Revenue Generation & Productivity */}
-            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200/50 mb-8 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+            <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-700/50 ring-1 ring-white/5 mb-8 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                <h3 className="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                     </svg>
                     Revenue Generation & Productivity
@@ -281,9 +281,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Returns & Asset Quality */}
-            <div className="bg-white p-6 rounded-2xl shadow-soft border border-slate-200/50 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-                <h3 className="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+            <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-700/50 ring-1 ring-white/5 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                <h3 className="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Returns &amp; Asset Quality
