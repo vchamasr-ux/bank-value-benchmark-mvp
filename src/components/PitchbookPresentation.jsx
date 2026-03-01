@@ -266,8 +266,8 @@ const PitchbookPresentation = ({
             actionSubtitle: "A distilled view of the most critical financial health and profitability indicators against the benchmark.",
             source: `Source: FDIC Call Report Data, ${currentQuarter}; Peer Group: ${benchmarks?.groupName || 'Segment'}`,  // #1
             content: (
-                <div className="w-full h-full flex flex-col justify-center px-8 gap-4">
-                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-y-8 gap-x-8 justify-items-center content-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
+                <div className="w-full h-full flex flex-col justify-start pt-6 px-8 gap-4 overflow-hidden">
+                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-8 justify-items-center content-start animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
                         {CORE_FINANCIAL_GAUGES.map(cfg => (
                             <GaugeChart
                                 key={cfg.key}
@@ -282,6 +282,7 @@ const PitchbookPresentation = ({
                                 suffix={cfg.suffix || '%'}
                                 metric={cfg.metric}
                                 isActive={currentSlide === 5} // #6 needle sweep
+                                isLightMode={true}
                             />
                         ))}
                     </div>
@@ -392,6 +393,7 @@ const PitchbookPresentation = ({
                         <StrategicPlannerTab
                             financials={financials}
                             benchmarks={benchmarks}
+                            isPresentationMode={true}
                         />
                     </div>
                 </div>
@@ -428,130 +430,187 @@ const PitchbookPresentation = ({
 
     return (
         <div className="pitchbook-root fixed inset-0 z-[200] bg-[#e2e8f0] flex flex-col items-center justify-center font-sans">
-            {/* Top Navigation Frame (Outside the slide canvas) */}
-            <div className="pitchbook-nav absolute top-0 w-full flex items-center justify-between p-4 bg-slate-800 text-white shadow-md z-10">
-                <button
-                    onClick={onClose}
-                    aria-label="Close presentation" // #9
-                    className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-white/20 px-4 py-2 rounded outline-none"
-                >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Close Presentation
-                </button>
-                <div className="absolute left-1/2 transform -translate-x-1/2 text-slate-400 text-xs font-bold tracking-widest uppercase flex items-center gap-2">
-                    <span>Slide {currentSlide + 1} of {slides.length}</span>
-                    <span className="opacity-50">•</span>
-                    <span>Use &larr; &rarr; to navigate</span>
-                </div>
-                <div className="flex gap-2 items-center">
-                    {/* #5 — Save as PDF shortcut */}
+            {/* SCREEN VIEW */}
+            <div className="screen-only w-full h-full flex flex-col items-center justify-center">
+                {/* Top Navigation Frame (Outside the slide canvas) */}
+                <div className="pitchbook-nav absolute top-0 w-full flex items-center justify-between p-4 bg-slate-800 text-white shadow-md z-10">
                     <button
-                        onClick={() => window.print()}
-                        aria-label="Save as PDF"
-                        title="Save as PDF (Ctrl+P)"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none bg-slate-700 hover:bg-emerald-700 text-slate-300 hover:text-white border border-slate-600 hover:border-emerald-500"
+                        onClick={onClose}
+                        aria-label="Close presentation" // #9
+                        className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-white/20 px-4 py-2 rounded outline-none"
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        Save as PDF
+                        Close Presentation
                     </button>
-                    <button
-                        onClick={handlePrev}
-                        disabled={currentSlide === 0}
-                        aria-label="Previous slide"
-                        className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                    <div className="absolute left-1/2 transform -translate-x-1/2 text-slate-400 text-xs font-bold tracking-widest uppercase flex items-center gap-2">
+                        <span>Slide {currentSlide + 1} of {slides.length}</span>
+                        <span className="opacity-50">•</span>
+                        <span>Use &larr; &rarr; to navigate</span>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                        {/* #5 — Save as PDF shortcut */}
+                        <button
+                            onClick={() => window.print()}
+                            aria-label="Save as PDF"
+                            title="Save as PDF (Ctrl+P)"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none bg-slate-700 hover:bg-emerald-700 text-slate-300 hover:text-white border border-slate-600 hover:border-emerald-500"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Save as PDF
+                        </button>
+                        <button
+                            onClick={handlePrev}
+                            disabled={currentSlide === 0}
+                            aria-label="Previous slide"
+                            className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                        >
+                            Prev
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            disabled={currentSlide === slides.length - 1}
+                            aria-label="Next slide"
+                            className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === slides.length - 1 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'}`}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                {/* Formal 16:9 IB Slide Canvas */}
+                <div
+                    className="pitchbook-canvas bg-white shadow-2xl relative flex flex-col overflow-hidden screen-only"
+                    style={{
+                        width: '95vw',
+                        maxWidth: '1600px',
+                        aspectRatio: '16/9',
+                        maxHeight: '90vh' // Ensure it doesn't overflow vertically on small screens
+                    }}
+                >
+                    {/* #10 — thin progress bar at the very top edge of the canvas */}
+                    <div className="absolute top-0 left-0 h-0.5 bg-blue-200 w-full z-30">
+                        <div
+                            className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                            style={{ width: `${((currentSlide) / (slides.length - 1)) * 100}%` }}
+                        />
+                    </div>
+                    {!activeSlide.isCover && !activeSlide.isDivider && (
+                        <div className="w-full px-10 pt-8 pb-4 border-b-2 border-slate-800 flex justify-between items-end flex-shrink-0 animate-in fade-in duration-300">
+                            <div className="max-w-4xl">
+                                <h2 className="text-3xl font-black text-blue-900 tracking-tight leading-tight">
+                                    {activeSlide.actionTitle}
+                                </h2>
+                                {activeSlide.actionSubtitle && (
+                                    <p className="text-slate-500 font-medium text-lg mt-1 tracking-wide">
+                                        {activeSlide.actionSubtitle}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="text-right">
+                                <div className="text-lg font-black text-slate-300 uppercase tracking-widest leading-none text-right">
+                                    Bank<span className="text-blue-300">Value</span>
+                                </div>
+                                <div className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 text-right">
+                                    Performance Benchmarks
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Main Body Content */}
+                    <div
+                        // #2 — directional transitions: forward slides in from right, back from left
+                        key={currentSlide}
+                        className={`flex-1 w-full relative overflow-hidden animate-in fade-in duration-400 fill-mode-both ${direction === 'forward' ? 'slide-in-from-right-6' : 'slide-in-from-left-6'
+                            } ${activeSlide.isDivider ? '' : 'p-10 bg-white'}`}
                     >
-                        Prev
-                    </button>
-                    <button
-                        onClick={handleNext}
-                        disabled={currentSlide === slides.length - 1}
-                        aria-label="Next slide"
-                        className={`px-4 py-1.5 rounded text-sm font-bold transition-colors outline-none ${currentSlide === slides.length - 1 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'}`}
-                    >
-                        Next
-                    </button>
+                        {/* #11 — page number on divider slides */}
+                        {activeSlide.isDivider && (
+                            <div className="absolute bottom-4 right-8 text-white/30 text-xs font-bold tracking-widest">
+                                {currentSlide + 1} / {slides.length}
+                            </div>
+                        )}
+                        {activeSlide.content}
+                    </div>
+
+                    {/* Mandatory IB Footer */}
+                    <div className="w-full px-10 py-4 border-t border-slate-200 flex justify-between items-end flex-shrink-0 bg-white z-20">
+                        <div>
+                            {activeSlide.source && (
+                                <div className="text-[9px] font-serif font-medium italic text-slate-500 mb-1.5">
+                                    {activeSlide.source}
+                                </div>
+                            )}
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                                STRICTLY CONFIDENTIAL — DO NOT DISTRIBUTE OR COPY
+                            </div>
+                        </div>
+                        <div className="text-xs font-bold text-slate-500">
+                            {selectedBank.NAME}
+                        </div>
+                    </div>
+
+                    {/* Branding Stripe */}
+                    <div className="w-full h-1.5 bg-blue-900 absolute bottom-0 left-0 z-30"></div>
                 </div>
             </div>
 
-            {/* Formal 16:9 IB Slide Canvas */}
-            <div
-                className="pitchbook-canvas bg-white shadow-2xl relative flex flex-col overflow-hidden"
-                style={{
-                    width: '95vw',
-                    maxWidth: '1600px',
-                    aspectRatio: '16/9',
-                    maxHeight: '90vh' // Ensure it doesn't overflow vertically on small screens
-                }}
-            >
-                {/* #10 — thin progress bar at the very top edge of the canvas */}
-                <div className="absolute top-0 left-0 h-0.5 bg-blue-200 w-full z-30">
-                    <div
-                        className="h-full bg-blue-600 transition-all duration-500 ease-out"
-                        style={{ width: `${((currentSlide) / (slides.length - 1)) * 100}%` }}
-                    />
-                </div>
-                {!activeSlide.isCover && !activeSlide.isDivider && (
-                    <div className="w-full px-10 pt-8 pb-4 border-b-2 border-slate-800 flex justify-between items-end flex-shrink-0 animate-in fade-in duration-300">
-                        <div className="max-w-4xl">
-                            <h2 className="text-3xl font-black text-blue-900 tracking-tight leading-tight">
-                                {activeSlide.actionTitle}
-                            </h2>
-                            {activeSlide.actionSubtitle && (
-                                <p className="text-slate-500 font-medium text-lg mt-1 tracking-wide">
-                                    {activeSlide.actionSubtitle}
-                                </p>
-                            )}
-                        </div>
-                        <div className="text-right">
-                            <div className="text-lg font-black text-slate-300 uppercase tracking-widest leading-none text-right">
-                                Bank<span className="text-blue-300">Value</span>
-                            </div>
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 text-right">
-                                Performance Benchmarks
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Main Body Content */}
-                <div
-                    // #2 — directional transitions: forward slides in from right, back from left
-                    key={currentSlide}
-                    className={`flex-1 w-full relative overflow-hidden animate-in fade-in duration-400 fill-mode-both ${direction === 'forward' ? 'slide-in-from-right-6' : 'slide-in-from-left-6'
-                        } ${activeSlide.isDivider ? '' : 'p-10 bg-white'}`}
-                >
-                    {/* #11 — page number on divider slides */}
-                    {activeSlide.isDivider && (
-                        <div className="absolute bottom-4 right-8 text-white/30 text-xs font-bold tracking-widest">
-                            {currentSlide + 1} / {slides.length}
-                        </div>
-                    )}
-                    {activeSlide.content}
-                </div>
-
-                {/* Mandatory IB Footer */}
-                <div className="w-full px-10 py-4 border-t border-slate-200 flex justify-between items-end flex-shrink-0 bg-white z-20">
-                    <div>
-                        {activeSlide.source && (
-                            <div className="text-[9px] font-serif font-medium italic text-slate-500 mb-1.5">
-                                {activeSlide.source}
+            {/* PRINT VIEW (Render all slides for Save as PDF) */}
+            <div className="print-only">
+                {slides.map((slide, printIdx) => (
+                    <div key={`print-slide-${printIdx}`} className="pitchbook-print-slide bg-white relative flex flex-col overflow-hidden">
+                        {!slide.isCover && !slide.isDivider && (
+                            <div className="w-full px-10 pt-8 pb-4 border-b-2 border-slate-800 flex justify-between items-end flex-shrink-0">
+                                <div className="max-w-4xl">
+                                    <h2 className="text-3xl font-black text-blue-900 tracking-tight leading-tight">
+                                        {slide.actionTitle}
+                                    </h2>
+                                    {slide.actionSubtitle && (
+                                        <p className="text-slate-500 font-medium text-lg mt-1 tracking-wide">
+                                            {slide.actionSubtitle}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-lg font-black text-slate-300 uppercase tracking-widest leading-none text-right">
+                                        Bank<span className="text-blue-300">Value</span>
+                                    </div>
+                                    <div className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 text-right">
+                                        Performance Benchmarks
+                                    </div>
+                                </div>
                             </div>
                         )}
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                            STRICTLY CONFIDENTIAL — DO NOT DISTRIBUTE OR COPY
+                        <div className={`flex-1 w-full relative overflow-hidden ${slide.isDivider ? '' : 'p-10 bg-white'}`}>
+                            {slide.content}
                         </div>
+                        <div className="w-full px-10 py-4 border-t border-slate-200 flex justify-between items-end flex-shrink-0 bg-white z-20">
+                            <div>
+                                {slide.source && (
+                                    <div className="text-[9px] font-serif font-medium italic text-slate-500 mb-1.5">
+                                        {slide.source}
+                                    </div>
+                                )}
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                                    STRICTLY CONFIDENTIAL — DO NOT DISTRIBUTE OR COPY
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-xs font-bold text-slate-500 mb-1">
+                                    {selectedBank.NAME}
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-bold tracking-widest">
+                                    {printIdx + 1} / {slides.length}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="w-full h-1.5 bg-blue-900 absolute bottom-0 left-0 z-30"></div>
                     </div>
-                    <div className="text-xs font-bold text-slate-500">
-                        {selectedBank.NAME}
-                    </div>
-                </div>
-
-                {/* Branding Stripe */}
-                <div className="w-full h-1.5 bg-blue-900 absolute bottom-0 left-0 z-30"></div>
+                ))}
             </div>
         </div>
     );

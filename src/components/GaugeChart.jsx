@@ -85,7 +85,7 @@ const calculateGaugeRanges = ({ min = 0, max = 100, average, p25, p75, inverse =
 };
 
 
-const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric, isActive = true }) => {
+const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric, isActive = true, isLightMode = false }) => {
     // Animate needle sweep: starts at far-left (-90°) and transitions to real rotation when active/scrolled
     const [animated, setAnimated] = useState(false);
     const containerRef = useRef(null);
@@ -146,7 +146,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
             {/* Label has been moved down below the gauge in the mock, or we can keep it subtle above */}
             <div className="text-center w-full mb-1">
                 <Tooltip content={METRIC_DEFINITIONS[metric]} position="top">
-                    <h3 className="text-sm font-semibold text-slate-300 uppercase cursor-help hover:text-white transition-colors inline-block p-1 tracking-wider">{label}</h3>
+                    <h3 className={`text-sm font-semibold uppercase cursor-help transition-colors inline-block p-1 tracking-wider ${isLightMode ? 'text-slate-400 hover:text-slate-800' : 'text-slate-300 hover:text-white'}`}>{label}</h3>
                 </Tooltip>
             </div>
 
@@ -233,17 +233,17 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
 
                 {/* Main Needle */}
                 <div
-                    className={`absolute bottom-0 left-1/2 w-[4px] h-[70px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]' : 'bg-slate-500'}`}
+                    className={`absolute bottom-0 left-1/2 w-[4px] h-[70px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? (isLightMode ? 'bg-slate-800 shadow' : 'bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]') : 'bg-slate-500'}`}
                     style={{
                         transform: `translateX(-50%) rotate(${animated ? rotation : -90}deg)`
                     }}
                 ></div>
-                <div className={`absolute bottom-[-1px] left-1/2 w-[18px] h-[18px] -ml-[9px] -mb-[9px] rounded-full pointer-events-none border-[3px] border-[#0B1120] ${isAvailable ? 'bg-white shadow-[0_0_15px_rgba(255,255,255,1)]' : 'bg-slate-500'}`}></div>
+                <div className={`absolute bottom-[-1px] left-1/2 w-[18px] h-[18px] -ml-[9px] -mb-[9px] rounded-full pointer-events-none border-[3px] border-[#0B1120] ${isAvailable ? (isLightMode ? 'bg-slate-800' : 'bg-white shadow-[0_0_15px_rgba(255,255,255,1)]') : 'bg-slate-500'}`}></div>
             </div>
 
             <div className="text-center mt-2 w-full">
                 <div className="flex justify-center items-center mt-1">
-                    <div className={`text-3xl font-extrabold tracking-wide drop-shadow-sm ${isAvailable ? 'text-white' : 'text-slate-600'}`} style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
+                    <div className={`text-3xl font-extrabold tracking-wide ${isAvailable ? (isLightMode ? 'text-slate-800' : 'text-white drop-shadow-sm') : 'text-slate-600'}`} style={isLightMode ? {} : { textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
                         {isAvailable ? `${typeof value === 'number' ? value.toFixed(2) : value}${suffix}` : 'N/A'}
                     </div>
                     {/* Render Subtle Trend Indicator if history is available */}

@@ -15,8 +15,8 @@ const KPI_SPECS = [
     { key: "npl_ratio", label: "NPL Ratio", better: "lower", type: "rate", metric_class: "core" },
 ];
 
-const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief }) => {
-    const [activeTab, setActiveTab] = useState('threats'); // 'threats' | 'playbooks'
+const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief, isPresentationMode, forcedTab }) => {
+    const [activeTab, setActiveTab] = useState(forcedTab || 'threats'); // 'threats' | 'playbooks'
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [moversData, setMoversData] = useState({ threats: [], playbooks: [], tape: "" });
@@ -87,6 +87,10 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
         fetchAndAnalyze();
     }, [segmentKey, currentQuarter, fetchAndAnalyze]);
 
+    useEffect(() => {
+        if (forcedTab) setActiveTab(forcedTab);
+    }, [forcedTab]);
+
     const handleDrillDown = (cert) => {
         if (onDrillDown) onDrillDown(cert);
     };
@@ -119,32 +123,34 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
-            {/* Header / Stats */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <div>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-black uppercase tracking-wider mb-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-                        RADAR ACTIVE: {segmentLabel}
+            {/* Header / Stats - HIDDEN IN PRESENTATION MODE */}
+            {!isPresentationMode && (
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-black uppercase tracking-wider mb-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                            RADAR ACTIVE: {segmentLabel}
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 leading-tight">Competitive Radar</h2>
+                        <p className="text-slate-500 text-sm">Identifying outliers in {currentQuarter} vs {priorQuarter} </p>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 leading-tight">Competitive Radar</h2>
-                    <p className="text-slate-500 text-sm">Identifying outliers in {currentQuarter} vs {priorQuarter} </p>
-                </div>
 
-                <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
-                    <button
-                        onClick={() => setActiveTab('threats')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-rose-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-                    >
-                        Market Threats ({moversData.threats.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('playbooks')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-                    >
-                        Growth Playbooks ({moversData.playbooks.length})
-                    </button>
+                    <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('threats')}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-white text-rose-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            Market Threats ({moversData.threats.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('playbooks')}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            Growth Playbooks ({moversData.playbooks.length})
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* List */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

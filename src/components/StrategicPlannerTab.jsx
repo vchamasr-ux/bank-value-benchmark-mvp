@@ -216,7 +216,7 @@ const InteractivePathCard = ({ path, model, financials, deltaY, timeHorizon }) =
     return <SinglePathCard path={path} model={model} financials={financials} deltaY={deltaY} timeHorizon={timeHorizon} />;
 };
 
-const StrategicPlannerTab = ({ financials, benchmarks }) => {
+const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => {
     const [model, setModel] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -558,21 +558,23 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
     // Stub UI for V1 Layout
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <h2 className="text-2xl font-black text-blue-900 tracking-tight">
-                        What Would It Take?
-                    </h2>
-                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-1 rounded text-xs font-bold shadow-sm uppercase tracking-wider">
-                        Scenario Engine
-                    </span>
-                </div>
-                {model && (
-                    <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                        Model Version: {model.schema_version} (as of {new Date(model.trained_on.asof).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
+            {!isPresentationMode && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <h2 className="text-2xl font-black text-blue-900 tracking-tight">
+                            What Would It Take?
+                        </h2>
+                        <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-1 rounded text-xs font-bold shadow-sm uppercase tracking-wider">
+                            Scenario Engine
+                        </span>
                     </div>
-                )}
-            </div>
+                    {model && (
+                        <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                            Model Version: {model.schema_version} (as of {new Date(model.trained_on.asof).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 {/* Left Column: Target Selector */}
