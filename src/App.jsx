@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import BankSearch from './components/BankSearch';
 import FinancialDashboard from './components/FinancialDashboard';
 import OperationalDashboard from './components/OperationalDashboard';
-const MoversView = lazy(() => import('./components/MoversView'));
+import MoversView from './components/MoversView';
 const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
 import UserProfileMenu from './components/UserProfileMenu';
 import LandingPage from './components/LandingPage';
