@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateHtmlBriefString } from '../utils/exportHtmlBrief';
 import useRetryCountdown from '../hooks/useRetryCountdown';
 
@@ -104,9 +103,6 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
         setIsLoading(true);
         setError(null);
         try {
-            const isDev = import.meta.env.DEV;
-            const devApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
             // Shared serializer — defined once, used by both dev and production paths
             const getCircularReplacer = () => {
                 const seen = new WeakSet();
@@ -121,63 +117,37 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
 
             let textResult = "";
 
-            if (isDev && devApiKey && !authRequired) {
-                const genAI = new GoogleGenerativeAI(devApiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            const url = `/api/insights`;
 
-                const bankName = financials?.name || financials?.raw?.NAME || 'the bank';
-                const bankLocation = financials?.raw?.CITY && financials?.raw?.STALP ? `${financials.raw.CITY}, ${financials.raw.STALP}` : '';
-                const promptData = { financials, benchmarks };
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-linkedin-sub': user?.sub || 'anonymous',
+                    'x-linkedin-name': user?.name || ''
+                },
+                body: JSON.stringify({
+                    financials,
+                    benchmarks
+                }, getCircularReplacer())
+            });
 
-                const prompt = `You are a financial analyst. Analyze the following financial and benchmark data for ${bankName}${bankLocation ? ` based in ${bankLocation}` : ''}. 
-CRITICAL CONTEXT: 
-1. ALL absolute dollar values in the raw FDIC data are denominated in THOUSANDS of US Dollars ($000s). For example, "3800000" means $3.8 Billion. Use Billion/Million terminology correctly.
-2. The benchmark data provides averages for a peer group. Focus on proportional metrics (ratios, margins, percentages).
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = errorData.error || response.statusText;
 
-Provide a detailed, professional summary of their financial health.
-IMPORTANT: Start with a very brief (1-2 sentences) introductory overview about the bank itself based on your knowledge.
-Highlight strengths and weaknesses compared to the peer group. Use Markdown formatting.
-
-Data:
-${JSON.stringify(promptData, getCircularReplacer(), 2)}`;
-
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                textResult = response.text();
-            } else {
-                const url = `/api/insights`;
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-linkedin-sub': user?.sub || 'anonymous',
-                        'x-linkedin-name': user?.name || ''
-                    },
-                    body: JSON.stringify({
-                        financials,
-                        benchmarks
-                    }, getCircularReplacer())
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    const errorMsg = errorData.error || response.statusText;
-
-                    if (response.status === 429) {
-                        // Check if this is a daily quota or a rate limit
-                        if (errorMsg.toLowerCase().includes('daily quota')) {
-                            throw new Error("DAILY_QUOTA: Daily AI quota reached (2/2). Try again tomorrow.");
-                        }
-                        // Otherwise it's likely a Gemini rate limit (retryable)
-                        throw new Error(`RATE_LIMIT: ${errorMsg}`);
+                if (response.status === 429) {
+                    // Check if this is a daily quota or a rate limit
+                    if (errorMsg.toLowerCase().includes('daily quota')) {
+                        throw new Error("DAILY_QUOTA: Daily AI quota reached (2/2). Try again tomorrow.");
                     }
-                    throw new Error(errorMsg || "Failed to generate summary");
+                    // Otherwise it's likely a Gemini rate limit (retryable)
+                    throw new Error(`RATE_LIMIT: ${errorMsg}`);
                 }
-                const data = await response.json();
-                textResult = data.text || "No summary generated.";
+                throw new Error(errorMsg || "Failed to generate summary");
             }
-
+            const data = await response.json();
+            textResult = data.text || "No summary generated.";
             setSummary(textResult);
             if (onSummaryGenerated && textResult) {
                 onSummaryGenerated(textResult);

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import useRetryCountdown from '../hooks/useRetryCountdown';
 
 // --- KPI config: align keys to your existing KPI extraction ---
