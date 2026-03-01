@@ -2,7 +2,7 @@ import { kv } from "@vercel/kv";
 import { calculateKPIs, calcCAGR } from "../src/utils/kpiCalculator.js";
 import { getProximityScore } from "../src/utils/stateMapping.js";
 
-const FDIC_FINANCIALS_URL = 'https://banks.data.fdic.gov/api/financials/';
+const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
 
 const getAssetGroupConfig = (assetSize) => {
     if (assetSize >= 250000000) return { filter: 'ASSET:[250000000 TO *]', name: '>$250B' }; // G-SIB
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
 
         // Fetch historical data
         const peerCerts = peers.map(p => p.CERT).join(' OR ');
-        const histUrl = `https://banks.data.fdic.gov/api/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
+        const histUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
         let histMap = {};
         try {
             const histResponse = await fetch(histUrl);

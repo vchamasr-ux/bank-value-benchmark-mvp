@@ -1,5 +1,5 @@
-const FDIC_API_BASE = 'https://banks.data.fdic.gov/api/institutions/';
-const FDIC_FINANCIALS_URL = 'https://banks.data.fdic.gov/api/financials/';
+const FDIC_API_BASE = 'https://api.fdic.gov/banks/institutions/';
+const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
 
 /**
  * Search for banks by name using the FDIC API.
@@ -128,10 +128,10 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
  */
 export const listPeerBanks = async ({ segmentKey }) => {
     const fields = 'NAME,CITY,STNAME,STALP,CERT';
-    let url = `https://banks.data.fdic.gov/api/institutions/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+    let url = `https://api.fdic.gov/banks/institutions/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
 
     if (segmentKey && segmentKey.includes('ASSET:')) {
-        url = `https://banks.data.fdic.gov/api/institutions/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+        url = `https://api.fdic.gov/banks/institutions/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
     }
 
     try {
@@ -184,7 +184,7 @@ export const getBankKpis = async ({ cert, quarter }) => {
     const repDte = `${parts[1]}${dteMap[parts[0]]}`;
 
     const fields = 'REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,STALP,NAME,CITY,STNAME';
-    const url = `https://banks.data.fdic.gov/api/financials/?filters=CERT:${cert}%20AND%20REPDTE:${repDte}&fields=${fields}&limit=1&format=json`;
+    const url = `https://api.fdic.gov/banks/financials/?filters=CERT:${cert}%20AND%20REPDTE:${repDte}&fields=${fields}&limit=1&format=json`;
 
     try {
         const response = await fetch(url);
@@ -195,7 +195,7 @@ export const getBankKpis = async ({ cert, quarter }) => {
 
         // 2. Fetch baseline for Growth KPIs
         const baseYear = parseInt(parts[1]) - 3;
-        const baseUrl = `https://banks.data.fdic.gov/api/financials/?filters=CERT:${cert}%20AND%20REPDTE:${baseYear}${dteMap[parts[0]]}&fields=ASSET,DEP,LNLSNET&limit=1&format=json`;
+        const baseUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:${cert}%20AND%20REPDTE:${baseYear}${dteMap[parts[0]]}&fields=ASSET,DEP,LNLSNET&limit=1&format=json`;
         const baseRes = await fetch(baseUrl);
         const baseJson = baseRes.ok ? await baseRes.json() : { data: [] };
         const baseRec = baseJson.data?.[0]?.data;
