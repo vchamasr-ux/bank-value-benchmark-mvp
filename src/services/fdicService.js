@@ -1,3 +1,5 @@
+import { calculateKPIs, calcCAGR } from '../utils/kpiCalculator.js';
+
 const FDIC_API_BASE = 'https://api.fdic.gov/banks/institutions/';
 const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
 
@@ -73,9 +75,6 @@ export const getBankFinancials = async (certId) => {
         throw error;
     }
 };
-
-
-import { calculateKPIs, calcCAGR } from '../utils/kpiCalculator.js';
 
 /**
  * Determine the asset class group and filter string for peers.

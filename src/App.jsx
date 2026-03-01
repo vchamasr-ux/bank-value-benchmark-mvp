@@ -3,16 +3,17 @@ import BankSearch from './components/BankSearch';
 import FinancialDashboard from './components/FinancialDashboard';
 import OperationalDashboard from './components/OperationalDashboard';
 import MoversView from './components/MoversView';
-const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
 import UserProfileMenu from './components/UserProfileMenu';
 import LandingPage from './components/LandingPage';
 import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
-const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 import StrategicPlannerTab from './components/StrategicPlannerTab';
 import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
 import PitchbookPresentation from './components/PitchbookPresentation';
-import { calculateKPIs } from './utils/kpiCalculator'; // #11 — was missing!
+import { calculateKPIs } from './utils/kpiCalculator';
+
+const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
+const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
