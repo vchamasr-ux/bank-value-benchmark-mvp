@@ -82,19 +82,6 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
         }
     };
 
-    useEffect(() => {
-        if (isOpen && !summary && !isLoading && !error && (user || !authRequired)) {
-            generateSummary();
-        } else if (isOpen && !user && !isLoginModalOpen && authRequired) {
-            setIsLoginModalOpen(true);
-        }
-    }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen, generateSummary]);
-
-    const handleLoginSuccess = () => {
-        setIsLoginModalOpen(false);
-        generateSummary();
-    };
-
     const generateSummary = useCallback(async () => {
         if (!user && authRequired) {
             setIsLoginModalOpen(true);
@@ -173,6 +160,19 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
             setIsLoading(false);
         }
     }, [user, financials, benchmarks, authRequired, retryCount, resetRetry, setRetryFromError, onSummaryGenerated]);
+
+    useEffect(() => {
+        if (isOpen && !summary && !isLoading && !error && (user || !authRequired)) {
+            generateSummary();
+        } else if (isOpen && !user && !isLoginModalOpen && authRequired) {
+            setIsLoginModalOpen(true);
+        }
+    }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen, generateSummary]);
+
+    const handleLoginSuccess = () => {
+        setIsLoginModalOpen(false);
+        generateSummary();
+    };
 
     if (!isOpen) return null;
 

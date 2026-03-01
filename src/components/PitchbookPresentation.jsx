@@ -281,7 +281,7 @@ const PitchbookPresentation = ({
                                 inverse={cfg.inverse || false}
                                 suffix={cfg.suffix || '%'}
                                 metric={cfg.metric}
-                                isActive={slides[currentSlide]?.id === 'financial'} // #6 needle sweep
+                                isActive={currentSlide === 5} // #6 needle sweep
                             />
                         ))}
                     </div>
