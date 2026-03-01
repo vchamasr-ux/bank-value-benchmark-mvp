@@ -382,7 +382,7 @@ function App() {
                       {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-6 rounded-lg text-center shadow-sm border border-red-100">{errorFinancials}</div>}
 
                       {financials && !loadingFinancials && view === 'benchmark' && (
-                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
+                        <div className="w-full relative animate-fade-in-up" style={{ animationDelay: '0ms' }}>
                           <FinancialDashboard
                             financials={financials}
                             benchmarks={benchmarks}
@@ -394,7 +394,7 @@ function App() {
                       )}
 
                       {selectedBank && view === 'benchmark' && !loadingFinancials && (
-                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden mt-8">
+                        <div className="w-full relative mt-12 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
                           <OperationalDashboard
                             key={selectedBank.CERT}
                             assetSize={financials?.raw?.ASSET ? parseFloat(financials.raw.ASSET) : 0}
@@ -403,7 +403,7 @@ function App() {
                       )}
 
                       {financials && !loadingFinancials && view === 'planner' && (
-                        <div className="bg-white p-6 rounded-lg shadow-lg relative overflow-hidden">
+                        <div className="w-full relative animate-fade-in-up">
                           <StrategicPlannerTab
                             financials={financials}
                             benchmarks={benchmarks}

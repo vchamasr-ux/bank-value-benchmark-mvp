@@ -137,9 +137,14 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
     const rotation = (percentage * 180) - 90;
 
     return (
-        <div ref={containerRef} className={`flex flex-col items-center flex-1 w-full bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 transition-all hover:shadow-md h-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
+        <div ref={containerRef} className={`group flex flex-col items-center flex-1 w-full bg-white p-6 rounded-2xl shadow-soft border border-slate-200/50 transition-all duration-300 hover:shadow-premium hover:-translate-y-1 h-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
             <div className="relative w-48 h-24 mt-2">
                 <PieChart width={192} height={96}>
+                    <defs>
+                        <filter id="gauge-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.15" floodColor="#0f172a" />
+                        </filter>
+                    </defs>
                     <Pie
                         data={ranges}
                         cx="50%"
@@ -153,7 +158,7 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                         stroke="none"
                     >
                         {ranges.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'url(#gauge-shadow)' }} />
                         ))}
                     </Pie>
                     <RechartsTooltip
