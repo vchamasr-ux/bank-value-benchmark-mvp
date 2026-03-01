@@ -6,7 +6,8 @@ import { exportDashboardToPDF } from '../utils/pdfExport';
 import PrintContainer from './pdf/PrintContainer';
 import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
 
-const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode }) => {
+const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, loadingSecondary }) => {
+
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -114,6 +115,45 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             )}
                         </div>
                     )}
+
+                    {benchmarks && benchmarks.peerBanks && !isPresentMode && (
+                        <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50 shrink-0">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Compare:</span>
+                            {loadingSecondary ? (
+                                <span className="text-sm text-slate-400 font-bold">Loading...</span>
+                            ) : (
+                                <select
+                                    value={secondaryBank ? (secondaryBank.CERT || secondaryBank.cert) : ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (!val) {
+                                            if (setSecondaryBank) setSecondaryBank(null);
+                                        } else {
+                                            const peer = benchmarks.peerBanks.find(p => String(p.cert) === String(val) || String(p.CERT) === String(val));
+                                            if (peer && setSecondaryBank) {
+                                                setSecondaryBank({
+                                                    CERT: peer.cert || peer.CERT,
+                                                    NAME: peer.name || peer.NAME,
+                                                    CITY: peer.city || peer.CITY,
+                                                    STNAME: peer.state || peer.STNAME,
+                                                    STALP: peer.stalp || peer.STALP,
+                                                });
+                                            }
+                                        }
+                                    }}
+                                    className="bg-transparent text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors outline-none cursor-pointer max-w-[200px] truncate"
+                                    title="Select a peer bank to compare side-by-side"
+                                >
+                                    <option value="" className="bg-slate-800 text-slate-300">None</option>
+                                    {benchmarks.peerBanks.map(peer => (
+                                        <option key={peer.cert || peer.CERT} value={peer.cert || peer.CERT} className="bg-slate-800 text-slate-300">
+                                            {peer.name || peer.NAME}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
                     {/* Removed Data as of FDIC badge from here, relocated to App.jsx bank header */}
                 </div>
             </div>
@@ -151,6 +191,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Asset Growth (3Y)"
                         value={financials.assetGrowth3Y != null ? parseFloat(financials.assetGrowth3Y) : null}
+                        secondaryValue={secondaryFinancials?.assetGrowth3Y != null ? parseFloat(secondaryFinancials.assetGrowth3Y) : null}
                         min={-10}
                         max={30}
                         average={benchmarks && benchmarks.assetGrowth3Y != null ? parseFloat(benchmarks.assetGrowth3Y) : null}
@@ -163,6 +204,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Loan Growth (3Y)"
                         value={financials.loanGrowth3Y != null ? parseFloat(financials.loanGrowth3Y) : null}
+                        secondaryValue={secondaryFinancials?.loanGrowth3Y != null ? parseFloat(secondaryFinancials.loanGrowth3Y) : null}
                         min={-10}
                         max={30}
                         average={benchmarks && benchmarks.loanGrowth3Y != null ? parseFloat(benchmarks.loanGrowth3Y) : null}
@@ -175,6 +217,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Deposit Growth (3Y)"
                         value={financials.depositGrowth3Y != null ? parseFloat(financials.depositGrowth3Y) : null}
+                        secondaryValue={secondaryFinancials?.depositGrowth3Y != null ? parseFloat(secondaryFinancials.depositGrowth3Y) : null}
                         min={-10}
                         max={30}
                         average={benchmarks && benchmarks.depositGrowth3Y != null ? parseFloat(benchmarks.depositGrowth3Y) : null}
@@ -199,6 +242,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Efficiency Ratio"
                         value={parseFloat(financials.efficiencyRatio)}
+                        secondaryValue={secondaryFinancials ? parseFloat(secondaryFinancials.efficiencyRatio) : null}
                         min={30}
                         max={90}
                         average={benchmarks ? parseFloat(benchmarks.efficiencyRatio) : null}
@@ -211,6 +255,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Net Interest Margin"
                         value={parseFloat(financials.netInterestMargin)}
+                        secondaryValue={secondaryFinancials ? parseFloat(secondaryFinancials.netInterestMargin) : null}
                         min={0}
                         max={6}
                         average={benchmarks ? parseFloat(benchmarks.netInterestMargin) : null}
@@ -222,6 +267,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Cost of Funds"
                         value={parseFloat(financials.costOfFunds)}
+                        secondaryValue={secondaryFinancials ? parseFloat(secondaryFinancials.costOfFunds) : null}
                         min={0}
                         max={5}
                         average={benchmarks ? parseFloat(benchmarks.costOfFunds) : null}
@@ -246,6 +292,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Non-Interest Income"
                         value={parseFloat(financials.nonInterestIncomePercent)}
+                        secondaryValue={secondaryFinancials ? parseFloat(secondaryFinancials.nonInterestIncomePercent) : null}
                         min={0}
                         max={40}
                         average={benchmarks ? parseFloat(benchmarks.nonInterestIncomePercent) : null}
@@ -257,6 +304,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Yield on Loans"
                         value={parseFloat(financials.yieldOnLoans)}
+                        secondaryValue={secondaryFinancials ? parseFloat(secondaryFinancials.yieldOnLoans) : null}
                         min={2}
                         max={10}
                         average={benchmarks ? parseFloat(benchmarks.yieldOnLoans) : null}
@@ -268,6 +316,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     <GaugeChart
                         label="Assets / Employee ($M)"
                         value={parseFloat(financials.assetsPerEmployee)}
+                        secondaryValue={secondaryFinancials?.assetsPerEmployee != null ? parseFloat(secondaryFinancials.assetsPerEmployee) : null}
                         min={0}
                         max={25}
                         average={benchmarks?.assetsPerEmployee ? parseFloat(benchmarks.assetsPerEmployee) : null}
@@ -296,6 +345,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                                 key={cfg.key}
                                 label={cfg.label}
                                 value={parseFloat(financials[cfg.key])}
+                                secondaryValue={secondaryFinancials ? parseFloat(secondaryFinancials[cfg.key]) : null}
                                 min={cfg.min}
                                 max={cfg.max}
                                 average={benchmarks ? parseFloat(benchmarks[cfg.key]) : null}

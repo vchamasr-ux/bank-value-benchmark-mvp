@@ -45,6 +45,11 @@ function App() {
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
   const [isPresentMode, setIsPresentMode] = useState(false);
 
+  const [secondaryBank, setSecondaryBank] = useState(null);
+  const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);
+  const [secondaryFinancials, setSecondaryFinancials] = useState(null);
+  const [loadingSecondary, setLoadingSecondary] = useState(false);
+
   // Derived quarter labels — driven by the SELECTED quarter snapshot, not always index 0 (#2)
   const CURRENT_QUARTER = financials?.reportDate || null;
   const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
@@ -66,6 +71,9 @@ function App() {
     if (!selectedBank) {
       setRadarContextBank(null);
       setView('benchmark');
+      setSecondaryBank(null);
+      setSecondaryFinancials(null);
+      setAllSecondaryHistoricalKPIs(null);
     }
   }, [selectedBank]);
 
@@ -81,6 +89,19 @@ function App() {
       setFinancials(snap);
     }
   }, [selectedQuarterIdx, allHistoricalKPIs]);
+
+  useEffect(() => {
+    if (allSecondaryHistoricalKPIs && allSecondaryHistoricalKPIs.length > 0) {
+      const snap = {
+        ...allSecondaryHistoricalKPIs[selectedQuarterIdx],
+        history: allSecondaryHistoricalKPIs.slice(selectedQuarterIdx)
+      };
+      setSecondaryFinancials(snap);
+    } else {
+      setSecondaryFinancials(null);
+    }
+  }, [selectedQuarterIdx, allSecondaryHistoricalKPIs]);
+
 
   useEffect(() => {
     if (selectedBank) {
@@ -134,6 +155,38 @@ function App() {
       setSelectedQuarterIdx(0);
     }
   }, [selectedBank]);
+
+  useEffect(() => {
+    if (secondaryBank) {
+      setLoadingSecondary(true);
+      getBankFinancials(secondaryBank.CERT)
+        .then((bankData) => {
+          if (bankData && bankData.length > 0) {
+            const historicalKPIs = calculateKPIs(bankData);
+            setAllSecondaryHistoricalKPIs(historicalKPIs);
+            // Snap to selected quarter, same as primary bank
+            const snap = {
+              ...historicalKPIs[selectedQuarterIdx],
+              history: historicalKPIs.slice(selectedQuarterIdx)
+            };
+            setSecondaryFinancials(snap);
+          } else {
+            setSecondaryFinancials(null);
+            setAllSecondaryHistoricalKPIs(null);
+          }
+        })
+        .catch(err => {
+          console.error("Secondary bank fetch failed:", err);
+          setSecondaryFinancials(null);
+          setAllSecondaryHistoricalKPIs(null);
+        })
+        .finally(() => setLoadingSecondary(false));
+    } else {
+      setSecondaryFinancials(null);
+      setAllSecondaryHistoricalKPIs(null);
+    }
+  }, [secondaryBank]);  // Only re-fetch if CERT changes, not on quarter change
+
 
 
   return (
@@ -389,6 +442,10 @@ function App() {
                             authRequired={FEAT_AUTH_REQUIRED}
                             isPresentMode={isPresentMode}
                             setIsPresentMode={setIsPresentMode}
+                            secondaryBank={secondaryBank}
+                            setSecondaryBank={setSecondaryBank}
+                            secondaryFinancials={secondaryFinancials}
+                            loadingSecondary={loadingSecondary}
                           />
                         </div>
                       )}

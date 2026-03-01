@@ -85,7 +85,7 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
 };
 
 
-const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric, isActive = true }) => {
+const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average, p25, p75, inverse = false, suffix = "%", trend, metric, isActive = true }) => {
     // Animate needle sweep: starts at far-left (-90°) and transitions to real rotation when active/scrolled
     const [animated, setAnimated] = useState(false);
     const containerRef = useRef(null);
@@ -135,6 +135,11 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
     const range = visualMax - visualMin;
     const percentage = isAvailable && range ? (clampedValue - visualMin) / range : 0;
     const rotation = (percentage * 180) - 90;
+
+    const isSecondaryAvailable = secondaryValue !== undefined && secondaryValue !== null && !isNaN(secondaryValue);
+    const clampedSecondaryValue = isSecondaryAvailable ? Math.min(Math.max(secondaryValue, visualMin), visualMax) : visualMin;
+    const secondaryPercentage = isSecondaryAvailable && range ? (clampedSecondaryValue - visualMin) / range : 0;
+    const secondaryRotation = (secondaryPercentage * 180) - 90;
 
     return (
         <div ref={containerRef} className={`group flex flex-col items-center flex-1 w-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
@@ -206,7 +211,20 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                     ></div>
                 )}
 
-                {/* Needle - sweeps from -90° (far left) to real rotation when isActive */}
+                {/* Secondary Needle - rendered before primary so it sits slightly underneath */}
+                {isSecondaryAvailable && (
+                    <>
+                        <div
+                            className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full bg-purple-500 opacity-90`}
+                            style={{
+                                transform: `translateX(-50%) rotate(${animated ? secondaryRotation : -90}deg)`
+                            }}
+                        ></div>
+                        <div className={`absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-[5px] -mb-[5px] rounded-full pointer-events-none shadow-sm shadow-black/50 bg-purple-600`}></div>
+                    </>
+                )}
+
+                {/* Main Needle - sweeps from -90° (far left) to real rotation when isActive */}
                 <div
                     className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-slate-200' : 'bg-slate-600'}`}
                     style={{
@@ -229,6 +247,17 @@ const GaugeChart = ({ value, min = 0, max = 100, label, average, p25, p75, inver
                         <TrendIndicator history={trend} metric={metric} inverse={inverse} />
                     )}
                 </div>
+
+                {/* Secondary Value Display */}
+                {isSecondaryAvailable && (
+                    <div className="flex items-center justify-center gap-1.5 mt-0.5" title="Secondary comparison bank value">
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        <span className="text-sm font-bold text-purple-400">
+                            {typeof secondaryValue === 'number' ? secondaryValue.toFixed(2) : secondaryValue}{suffix}
+                        </span>
+                    </div>
+                )}
+
 
                 {(average !== undefined && average !== null) && (
                     <div className="text-xs text-slate-500 mt-1 flex flex-col items-center w-full">
