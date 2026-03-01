@@ -12,7 +12,7 @@ The **Bank Value Benchmark** is a React-based single-page application (SPA) desi
 - **Pitchbook Presentation Mode**: Full-screen 5-slide IB-style deck with keyboard navigation, embedding gauges, market movers, and AI insights.
 - **PDF Export**: `react-to-print` pipeline producing a 4-slide print-ready professional report.
 - **HTML Brief Export**: Standalone self-contained `.html` executive brief, auto-downloaded from the browser.
-- **Saved Briefs**: Save, view, and delete AI-generated financial summaries and competitive briefs, stored persistently per user in Vercel KV.
+- **Saved Briefs**: Save, view, and delete AI-generated financial summaries and competitive briefs, stored persistently per user in Redis.
 - **Geographic & Branch Overlap Mapping**: Visualizes branch footprints for M&A target analysis.
 
 ## Tech Stack
@@ -44,7 +44,7 @@ The **Bank Value Benchmark** is a React-based single-page application (SPA) desi
    Create a `.env.local` file in the root directory. Required:
    - `GEMINI_API_KEY` — Server-side Gemini key
    - `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` — LinkedIn OAuth credentials
-   - `KV_URL` — Vercel KV (Redis) connection URL
+   - `REDIS_URL` — Redis connection URL
    - `VITE_GEMINI_API_KEY` — _(local dev only)_ Client-side Gemini key for dev without auth
    - `ADMIN_LINKEDIN_SUBS` — _(optional)_ Comma-separated sub IDs for unlimited quota
    - `RESEND_API_KEY` — _(optional)_ For registration email notifications

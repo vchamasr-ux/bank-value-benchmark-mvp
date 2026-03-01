@@ -1,5 +1,7 @@
 
-import { kv } from "@vercel/kv";
+import { Redis } from 'ioredis';
+
+const kv = new Redis(process.env.REDIS_URL);
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -30,9 +32,9 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server configuration error: Missing API Key" });
     }
 
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-        console.error("CRITICAL ERROR: KV_REST_API_URL or KV_REST_API_TOKEN is missing from environment.");
-        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing KV credentials.' });
+    if (!process.env.REDIS_URL) {
+        console.error("CRITICAL ERROR: REDIS_URL is missing from environment.");
+        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing REDIS_URL credentials.' });
     }
 
     // 1. Quota Check (2 calls per day)

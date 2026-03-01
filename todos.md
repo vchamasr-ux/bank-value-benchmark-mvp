@@ -62,7 +62,7 @@ _Last updated: February 2026 — reflects completed state of all phases._
 - [x] Implement LinkedIn OAuth 2.0 Login.
 - [x] Create `AuthContext` and `LoginModal`.
 - [x] Build serverless proxy endpoints in `api/`.
-- [x] Implement **Vercel KV Daily Quotas** (2 calls/day for standard users).
+- [x] Implement **Redis Daily Quotas** (2 calls/day for standard users).
 - [x] Add User Registration flow with admin notification.
 
 ---
@@ -112,7 +112,7 @@ _Last updated: February 2026 — reflects completed state of all phases._
 ---
 
 ## Phase 11: Save Briefs Feature ✅ _(February 2026)_
-- [x] Build `api/briefs.js` — GET / POST / DELETE endpoints backed by Vercel KV hashes.
+- [x] Build `api/briefs.js` — GET / POST / DELETE endpoints backed by Redis hashes.
 - [x] Add "Save Brief" button to `SummaryModal.jsx`.
 - [x] Add "Save Brief" button to `MoversSummaryModal.jsx`.
 - [x] Build `SavedBriefsModal.jsx` — lists all user briefs with delete and preview.

@@ -18,9 +18,9 @@ _Last updated: February 2026 — reflects current built state._
 
 **Data Source C (AI Layer):** Gemini API (`gemini-2.5-flash`) via serverless proxy (`/api/insights.js`).
 
-**Authentication:** LinkedIn OAuth2 (Authorization Code Flow) + Vercel KV for quota persistence.
+**Authentication:** LinkedIn OAuth2 (Authorization Code Flow) + Redis for quota persistence.
 
-**Storage:** Vercel KV (Redis) for daily AI quotas and saved AI briefs.
+**Storage:** Redis for daily AI quotas and saved AI briefs.
 
 **State Management:** Component-local React state + `AuthContext` for user session.
 
@@ -44,7 +44,7 @@ Standard Single Page Application (SPA) — no multiple routes.
 - **PDF Export**: `react-to-print` (hidden off-screen `PrintContainer`)
 - **Backend (Serverless)**:
   - Vercel Serverless Functions (`api/*.js`)
-  - **Vercel KV**: Redis-based storage for user registration, daily quotas, and saved AI briefs.
+  - **Redis**: Redis-based storage for user registration, daily quotas, and saved AI briefs.
 - **Identity**: LinkedIn OAuth 2.0
 - **AI**: Google Gemini 2.5 Flash
 
@@ -68,7 +68,7 @@ Unlock operational gauges by submitting your own bank's data.
 One-click Gemini narrative (Summary Modal) and competitive radar (Market Movers Modal). Both utilize `gemini-2.5-flash` to synthesize complex FDIC tape data into actionable strategic insights.
 
 ### Phase 6: Authentication & Quota Control
-Implemented LinkedIn Login to gate AI features and managed a daily quota using Vercel KV.
+Implemented LinkedIn Login to gate AI features and managed a daily quota using Redis.
 
 ### Phase 7–8: UX Polish
 Landing page, dashboard skeleton, shared components (`Tooltip`, `Sparkline`), user profile menu, gauge tooltip corrections.
@@ -80,7 +80,7 @@ Landing page, dashboard skeleton, shared components (`Tooltip`, `Sparkline`), us
 5-slide full-screen IB deck. Keyboard navigation. Reuses `MoversView` + `StrategicPlannerTab` in scaled embed mode. Pulls AI insights from `localStorage` cache.
 
 ### Phase 11: Save Briefs
-`api/briefs.js` (GET/POST/DELETE via Vercel KV), "Save Brief" added to `SummaryModal` and `MoversSummaryModal`, `SavedBriefsModal` accessible from the user profile menu.
+`api/briefs.js` (GET/POST/DELETE via Redis), "Save Brief" added to `SummaryModal` and `MoversSummaryModal`, `SavedBriefsModal` accessible from the user profile menu.
 
 ### Phase 12: HTML Export
 `exportHtmlBrief.js` utility generates a self-contained styled `.html` file from AI summary + financials data, auto-downloaded by the browser.
@@ -92,12 +92,12 @@ Landing page, dashboard skeleton, shared components (`Tooltip`, `Sparkline`), us
 1. **Initiate**: User clicks "Login with LinkedIn" → redirects to LinkedIn with `state` and `code_challenge`.
 2. **Callback**: LinkedIn redirects back to `/` with a `code`.
 3. **Exchange**: `AuthContext` sends the code to `/api/auth/linkedin`.
-4. **Registration**: Server function checks Vercel KV for existing registration; if new, prompts for profile/consent and notifies admin via `/api/register`.
+4. **Registration**: Server function checks Redis for existing registration; if new, prompts for profile/consent and notifies admin via `/api/register`.
 5. **Session**: User data is saved in `localStorage` and React state.
 
 ---
 
-## Quota Management (Vercel KV)
+## Quota Management (Redis)
 
 - **Key Strategy**: `quota:<linkedin_sub>:<YYYY-MM-DD>`
 - **Logic**: Every request to `/api/insights` increments the daily key. If `count >= 2`, returns 429.
@@ -106,7 +106,7 @@ Landing page, dashboard skeleton, shared components (`Tooltip`, `Sparkline`), us
 
 ---
 
-## Saved Briefs (Vercel KV)
+## Saved Briefs (Redis)
 
 - **Key Strategy**: `briefs:<linkedin_sub>` (Redis hash)
 - **Schema**: Each field in the hash is a `briefId` (timestamp + random suffix). Value is a JSON object `{ id, bankName, type, date, data }`.

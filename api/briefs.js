@@ -1,4 +1,6 @@
-import { kv } from "@vercel/kv";
+import { Redis } from 'ioredis';
+
+const kv = new Redis(process.env.REDIS_URL);
 
 export default async function handler(req, res) {
     const linkedinSub = req.headers['x-linkedin-sub'];
@@ -7,9 +9,9 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Authentication required" });
     }
 
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-        console.error("CRITICAL ERROR: KV_REST_API_URL or KV_REST_API_TOKEN is missing from environment.");
-        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing KV credentials.' });
+    if (!process.env.REDIS_URL) {
+        console.error("CRITICAL ERROR: REDIS_URL is missing from environment.");
+        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing REDIS_URL credentials.' });
     }
 
     const briefsKey = `briefs:${linkedinSub}`;
@@ -23,11 +25,16 @@ export default async function handler(req, res) {
                 return res.status(200).json({ briefs: [] });
             }
 
-            // hgetall returns an object { briefId: briefData, ... }
-            // Convert to array and sort by date descending
-            const briefsArray = Object.values(briefsObj).sort((a, b) => {
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
-            });
+            // Convert to array, parse JSON strings, and sort by date descending
+            const briefsArray = Object.values(briefsObj)
+                .map(str => {
+                    try { return JSON.parse(str); }
+                    catch (e) { return null; }
+                })
+                .filter(Boolean)
+                .sort((a, b) => {
+                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                });
 
             return res.status(200).json({ briefs: briefsArray });
         } catch (error) {
@@ -56,7 +63,7 @@ export default async function handler(req, res) {
                 data
             };
 
-            await kv.hset(briefsKey, { [briefId]: briefRecord });
+            await kv.hset(briefsKey, briefId, JSON.stringify(briefRecord));
 
             return res.status(200).json({ message: "Brief saved successfully", briefId });
         } catch (error) {

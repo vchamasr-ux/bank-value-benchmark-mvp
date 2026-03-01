@@ -16,13 +16,13 @@ graph TD
 
     AuthProxy --> LinkedIn[LinkedIn OAuth 2.0]
     AIProxy --> Gemini[Google Gemini 2.5 Flash]
-    AIProxy --> KV[(Vercel KV: Quotas)]
+    AIProxy --> KV[(Redis: Quotas)]
     BriefsProxy --> KV
     RegProxy --> Email[Resend: Admin Notification]
 ```
 
 - **Frontend**: Handles all UI routing, state management, and direct data fetching for public data (FDIC API).
-- **Serverless API**: Vercel serverless functions (`/api/*`) act as a proxy for operations requiring secrets (Gemini API keys, LinkedIn Client Secrets) and for Vercel KV operations.
+- **Serverless API**: Vercel serverless functions (`/api/*`) act as a proxy for operations requiring secrets (Gemini API keys, LinkedIn Client Secrets) and for Redis operations.
 - **State Management**: React Context (`AuthContext`) manages global session state; individual components use local state and prop drilling.
 
 ## 2. Component Structure
@@ -83,7 +83,7 @@ Data is never cached on the server — fetched fresh client-side on each bank se
 ### C. AI Generation Pipeline
 1. User triggers AI summary from `SummaryModal` or competitive brief from `MoversSummaryModal`.
 2. Frontend sends structured financial + benchmark data to `POST /api/insights`.
-3. `/api/insights` checks daily quota in Vercel KV. If quota exceeded → `429`.
+3. `/api/insights` checks daily quota in Redis. If quota exceeded → `429`.
 4. On success, stores usage in KV and proxies to Gemini, returning the `text` response.
 5. Frontend renders the response and offers Copy | Export HTML | Save Brief actions.
 
@@ -93,13 +93,13 @@ Data is never cached on the server — fetched fresh client-side on each bank se
 3. Each slide uses fixed `1100×619px` page-break-separated CSS for consistent print output.
 
 ### E. Saved Briefs Pipeline
-1. `POST /api/briefs` — saves a brief record to `briefs:<sub>` Redis hash in Vercel KV.
+1. `POST /api/briefs` — saves a brief record to `briefs:<sub>` Redis hash in Redis.
 2. `GET /api/briefs` — retrieves all briefs for the user, sorted newest-first.
 3. `DELETE /api/briefs` — removes a specific record by `briefId`.
 
 ## 4. API & Security Layer
 
 - **Authentication**: LinkedIn OAuth 2.0 Authorization Code Flow. Session stored in `localStorage`. CSRF mitigated via `state` nonce.
-- **Rate Limiting**: Daily AI quota per `linkedin_sub` enforced in `api/insights.js` via Vercel KV. Admin subs bypass.
+- **Rate Limiting**: Daily AI quota per `linkedin_sub` enforced in `api/insights.js` via Redis. Admin subs bypass.
 - **Fail Loudly Strategy**: Environment variable errors, API connection failures, and quota violations all surface as UI alerts (red toast/banner), never silently fail.
 - **Local Dev Bypass**: When `VITE_GEMINI_API_KEY` is set and `authRequired = false`, AI calls go directly from the browser using the Gemini SDK (no auth needed for local testing).

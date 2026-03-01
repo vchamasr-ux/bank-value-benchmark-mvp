@@ -28,7 +28,7 @@ An LLM-driven module that synthesizes raw financial data into a readable strateg
 - **Actions after generation:**
   - **Copy Report**: Copies raw markdown to clipboard.
   - **Export HTML Brief**: Downloads a styled standalone `.html` executive brief.
-  - **Save Brief**: Persists the brief to Vercel KV via `POST /api/briefs`.
+  - **Save Brief**: Persists the brief to Redis via `POST /api/briefs`.
   - **Regenerate**: Re-triggers the Gemini call.
 
 ## 4. Market Movers / Competitive Radar (`MoversSummaryModal.jsx`)
@@ -83,12 +83,12 @@ A print-to-PDF pipeline using `react-to-print`.
 - Each slide: fixed 16:9 layout, blue branding strip, confidentiality footer.
 
 ## 10. Saved Briefs (`SavedBriefsModal.jsx` + `api/briefs.js`)
-Persistent brief management per user, backed by Vercel KV.
+Persistent brief management per user, backed by Redis.
 
 - **Save**: Available after AI generation in both `SummaryModal` and `MoversSummaryModal`.
 - **View**: "My Saved Briefs" button in `UserProfileMenu` opens `SavedBriefsModal`.
 - **Delete**: Each brief can be individually deleted.
-- **Storage**: Vercel KV hash `briefs:<linkedin_sub>` with each brief stored as a field.
+- **Storage**: Redis hash `briefs:<linkedin_sub>` with each brief stored as a field.
 
 ## 11. HTML Brief Export (`src/utils/exportHtmlBrief.js`)
 Generates a fully self-contained styled `.html` executive brief file.

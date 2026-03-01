@@ -2,7 +2,7 @@
 
 **Purpose**: Real-time FDIC financial benchmarking and competitive intelligence tool for U.S. banks. Built for senior bankers and analysts.
 
-**Stack**: React (Vite), Tailwind CSS, FDIC Public API, Google Gemini AI, LinkedIn OAuth, Vercel KV  
+**Stack**: React (Vite), Tailwind CSS, FDIC Public API, Google Gemini AI, LinkedIn OAuth, Redis  
 **Deployment**: Vercel  
 **Data source**: FDIC public API — all data is live, no mock data, no backend (serverless functions used for Auth/Proxy)
 
@@ -13,7 +13,7 @@
 - **Official LinkedIn Integration**: Users must sign in via LinkedIn to access AI features.
 - **Registration Flow**: New users provide their LinkedIn profile URL and consent to professional outreach.
 - **Admin Approval**: Registration notifies the admin for record-keeping (via `api/register.js`).
-- **Usage Quota**: Standard users are limited to **2 AI generation calls per day** (tracked via Vercel KV). Admin users (configured via `ADMIN_LINKEDIN_SUBS` environment variable) have unlimited access.
+- **Usage Quota**: Standard users are limited to **2 AI generation calls per day** (tracked via Redis). Admin users (configured via `ADMIN_LINKEDIN_SUBS` environment variable) have unlimited access.
 - **User Profile Menu**: `UserProfileMenu.jsx` renders the logged-in user's name/avatar, a "My Saved Briefs" button, and a logout option in the top-right of the app header.
 
 ---
@@ -104,7 +104,7 @@ Also includes YoY trendlines for the past 3 years to show growth momentum. Peer 
 - **Actions available after generation:**
   - **Copy Report**: Copies raw markdown to clipboard.
   - **Export HTML Brief**: Downloads a standalone, styled `.html` executive brief (via `exportHtmlBrief.js` utility).
-  - **Save Brief**: Posts to `/api/briefs` to persist the brief to Vercel KV under the user's LinkedIn sub.
+  - **Save Brief**: Posts to `/api/briefs` to persist the brief to Redis under the user's LinkedIn sub.
   - **Regenerate**: Re-triggers the Gemini call.
 
 ---
@@ -115,7 +115,7 @@ Also includes YoY trendlines for the past 3 years to show growth momentum. Peer 
 - Lists all previously saved AI Financial Summaries and Competitive Briefs for the logged-in user.
 - Each entry shows bank name, type, date, and a preview of the content.
 - Users can **delete** individual briefs.
-- Backed by Vercel KV using a Redis hash per user: `briefs:<linkedin_sub>`.
+- Backed by Redis using a Redis hash per user: `briefs:<linkedin_sub>`.
 
 ---
 
@@ -203,8 +203,8 @@ A print-to-PDF pipeline using `react-to-print`.
 | Peer count | Typically N=18–22 after filtering for complete data |
 | KPI computation | `calculateKPIs()` in `kpiCalculator.js` — all from FDIC public fields |
 | Gemini model | `gemini-2.5-flash` via REST API |
-| Quota Management | Vercel KV (Redis) storing daily counts per LinkedIn Sub |
-| Brief Storage | Vercel KV (Redis) hash `briefs:<sub>` for saved AI briefs |
+| Quota Management | Redis storing daily counts per LinkedIn Sub |
+| Brief Storage | Redis hash `briefs:<sub>` for saved AI briefs |
 | Security | LinkedIn OAuth2 authorization code flow with server-side secret |
 | HTML Export | `src/utils/exportHtmlBrief.js` generates a self-contained styled HTML file |
 

@@ -13,7 +13,7 @@ The **Bank Value Benchmark** is a React-based SPA that helps community banks com
 3. **Competitive Radar (Market Movers)**: Identifies top QoQ movers within a peer segment and generates an AI-driven competitive briefing via Gemini.
 4. **Pitchbook Presentation Mode**: A 5-slide full-screen IB-style presentation rendering the bank's benchmarks, AI insights, and market positioning.
 5. **PDF Export**: A `react-to-print`-based pipeline producing a 4-slide printer-ready PDF.
-6. **AI Brief Management**: Save, list, and delete AI-generated briefs (financial summaries and competitive briefs) stored in Vercel KV.
+6. **AI Brief Management**: Save, list, and delete AI-generated briefs (financial summaries and competitive briefs) stored in Redis.
 
 ---
 
@@ -27,7 +27,7 @@ The **Bank Value Benchmark** is a React-based SPA that helps community banks com
 | Data Source | FDIC Public API (`https://banks.data.fdic.gov/`) — client-side |
 | AI Layer | Gemini API (`gemini-2.5-flash`) via serverless proxy |
 | Auth Layer | LinkedIn OAuth 2.0 |
-| Storage | Vercel KV (Redis) for Quotas + Saved Briefs |
+| Storage | Redis for Quotas + Saved Briefs |
 | PDF Export | `react-to-print` |
 | Build | Vite SPA (`index.html`) |
 | Deployment | Vercel |
@@ -47,7 +47,7 @@ Benchmark/
 ├── api/                         # Vercel Serverless Functions
 │   ├── auth/linkedin.js         # LinkedIn Token exchange
 │   ├── insights.js              # Gemini API proxy + Quota check
-│   ├── briefs.js                # Save/list/delete AI briefs (Vercel KV)
+│   ├── briefs.js                # Save/list/delete AI briefs (Redis)
 │   └── register.js              # User registration / admin notification
 │
 ├── src/
@@ -96,7 +96,7 @@ Benchmark/
 
 ### 4.1 Authentication & Quota Flow
 - **LinkedIn OAuth**: Users authenticate via LinkedIn. The `AuthContext` manages the session via `localStorage`.
-- **Daily Quota**: The `/api/insights.js` endpoint checks Vercel KV before making a Gemini call. Users are limited to **2 calls per day**.
+- **Daily Quota**: The `/api/insights.js` endpoint checks Redis before making a Gemini call. Users are limited to **2 calls per day**.
 - **Admin Bypass**: Users listed in `ADMIN_LINKEDIN_SUBS` bypass the quota.
 
 ### 4.2 Main App Data Flow
@@ -134,7 +134,7 @@ Benchmark/
 - Actions: Copy | Export HTML | Save Brief | Regenerate.
 
 ### 5.3 Saved Briefs (`SavedBriefsModal.jsx` + `api/briefs.js`)
-- Stores all briefs in Vercel KV under hash key `briefs:<linkedin_sub>`.
+- Stores all briefs in Redis under hash key `briefs:<linkedin_sub>`.
 - Supports GET (list all), POST (new brief), DELETE (remove by id).
 - Results sorted newest-first.
 
@@ -154,7 +154,7 @@ Benchmark/
 
 ## 6. Design Constraints
 
-- **No backend database**: All persistent state (user counts, briefs) is in Vercel KV.
+- **No backend database**: All persistent state (user counts, briefs) is in Redis.
 - **Fail loudly**: Missing environment variables or API errors surface immediately to the UI.
 - **Proximity-aware peers**: Geographic sorting ensures "local" competition is prioritized in the 20-bank sample.
 - **Auth-gated AI**: All Gemini calls require a valid LinkedIn session (except local dev with `VITE_GEMINI_API_KEY`).
@@ -168,7 +168,7 @@ Benchmark/
 | `GEMINI_API_KEY` | Yes | Server-side key for AI generation |
 | `LINKEDIN_CLIENT_ID` | Yes | LinkedIn OAuth ID |
 | `LINKEDIN_CLIENT_SECRET` | Yes | LinkedIn OAuth secret |
-| `KV_URL` | Yes | Vercel KV (Redis) connection URL |
+| `REDIS_URL` | Yes | Redis connection URL |
 | `ADMIN_LINKEDIN_SUBS` | No | Comma-separated LinkedIn IDs for unlimited quota |
 | `RESEND_API_KEY` | No | For registration notifications |
 | `VITE_GEMINI_API_KEY` | Dev only | Client-side Gemini key for local dev without auth |
