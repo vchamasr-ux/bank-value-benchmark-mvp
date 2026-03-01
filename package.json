@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:tdz": "npx playwright test tests/tdz-smoke.spec.js --reporter=list",
+    "test:tdz-node": "node tests/tdz-diagnostic.mjs",
+    "test:build-check": "npm run build && node tests/build-tdz-scanner.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
