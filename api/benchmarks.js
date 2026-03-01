@@ -1,9 +1,9 @@
 import { Redis } from 'ioredis';
+import { calculateKPIs, calcCAGR } from "../src/utils/kpiCalculator.js";
+import { getProximityScore } from "../src/utils/stateMapping.js";
 
 // Initialize Redis client outside the handler to reuse the connection pool across invocations
 const kv = new Redis(process.env.REDIS_URL);
-import { calculateKPIs, calcCAGR } from "../src/utils/kpiCalculator.js";
-import { getProximityScore } from "../src/utils/stateMapping.js";
 
 const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
 
@@ -142,6 +142,7 @@ export default async function handler(req, res) {
             }
 
             return {
+                cert: String(d.CERT),
                 name: d.NAME,
                 city: d.CITY,
                 state: d.STNAME,

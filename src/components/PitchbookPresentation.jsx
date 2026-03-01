@@ -22,12 +22,8 @@ const PitchbookPresentation = ({
 
     const getBenchmark = (key) => benchmarks ? parseFloat(benchmarks[key]) : 0;
 
-    // Fetch AI summary from localStorage if available (since the user likely already generated it)
-    // Or we just parse whatever is passed in if we lift state. For now, let's gracefully fail if not loaded.
+    // Load AI summary from localStorage if the user already generated one in this session.
     useEffect(() => {
-        // As a quick hack for the prototype, we can check if the user had already generated a summary.
-        // In a real production app, we would lift the AI summary state up to App.jsx.
-        // But for this MVP, we can just grab it if it's there, or leave it blank.
         const cachedKey = `benchmark_summary_${financials.raw.CERT}`;
         const cached = localStorage.getItem(cachedKey);
         if (cached) {
@@ -64,7 +60,7 @@ const PitchbookPresentation = ({
     const getAiBullets = () => {
         let bullets = [];
         if (aiSummaryHtml) {
-            // Very simple markdown list extraction for the prototype
+            // Extract bullet points from the AI markdown summary
             const lines = aiSummaryHtml.split('\n');
             bullets = lines
                 .filter(line => line.trim().startsWith('* ') || line.trim().startsWith('- '))

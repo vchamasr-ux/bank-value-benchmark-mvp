@@ -1,5 +1,4 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import BankSearch from './components/BankSearch';
 import FinancialDashboard from './components/FinancialDashboard';
 import OperationalDashboard from './components/OperationalDashboard';
 import MoversView from './components/MoversView';
