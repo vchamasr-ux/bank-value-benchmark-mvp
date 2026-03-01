@@ -25,7 +25,9 @@ yarn-error.log*
 
 # Testing
 coverage
-
+tests/
+/playwright-report/
+/test-results/
 # Python
 venv/
 .venv/
