@@ -76,7 +76,6 @@ export const getBankFinancials = async (certId) => {
 
 
 import { calculateKPIs, calcCAGR } from '../utils/kpiCalculator.js';
-import { getProximityScore } from '../utils/stateMapping.js';
 
 /**
  * Determine the asset class group and filter string for peers.

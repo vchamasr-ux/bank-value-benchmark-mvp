@@ -109,7 +109,7 @@ const SinglePathCard = ({ path, model, financials, deltaY, timeHorizon }) => {
     const currentVal = parseFloat(financials[leverName]) || 0;
 
     const [sliderDelta, setSliderDelta] = useState(path.prescribedDelta);
-    useEffect(() => setSliderDelta(path.prescribedDelta), [path.prescribedDelta]);
+    useEffect(() => { Promise.resolve().then(() => setSliderDelta(path.prescribedDelta)); }, [path.prescribedDelta]);
 
     const newLeverVal = currentVal + sliderDelta;
     const achievedDeltaY = sliderDelta * coef;
@@ -354,7 +354,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                 }
 
                 return hasValidPath;
-            } catch (e) {
+            } catch {
                 return false;
             }
         });
@@ -693,7 +693,7 @@ const StrategicPlannerTab = ({ financials, benchmarks }) => {
                                         <p>The Scenario Engine cannot find a mathematically viable path to achieve this target without breaking core physical constraints (e.g. lowering Cost of Funds below 0.05% or increasing Yield to extreme levels).</p>
                                     </div>
                                 ) : (
-                                    paths.map((path, idx) => (
+                                    paths.map((path) => (
                                         <InteractivePathCard
                                             key={path.id}
                                             path={path}

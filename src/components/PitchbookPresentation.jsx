@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import GaugeChart from './GaugeChart';
 import MoversView from './MoversView';
 import StrategicPlannerTab from './StrategicPlannerTab';
@@ -33,9 +33,9 @@ const PitchbookPresentation = ({
             try {
                 const data = JSON.parse(cached);
                 if (data.markdown) {
-                    setAiSummaryHtml(data.markdown);
+                    Promise.resolve().then(() => setAiSummaryHtml(data.markdown));
                 }
-            } catch (e) {
+            } catch {
                 console.warn("Failed to parse cached summary");
             }
         }
@@ -399,19 +399,19 @@ const PitchbookPresentation = ({
         }
     ];
 
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
         if (currentSlide < slides.length - 1) {
             setDirection('forward');   // #2 directional transitions
             setCurrentSlide(currentSlide + 1);
         }
-    };
+    }, [currentSlide, slides.length]);
 
-    const handlePrev = () => {
+    const handlePrev = useCallback(() => {
         if (currentSlide > 0) {
             setDirection('backward');  // #2 directional transitions
             setCurrentSlide(currentSlide - 1);
         }
-    };
+    }, [currentSlide]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -422,7 +422,7 @@ const PitchbookPresentation = ({
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [currentSlide, onClose]);
+    }, [handleNext, handlePrev, onClose]);
 
     const activeSlide = slides[currentSlide];
 

@@ -13,7 +13,7 @@ const METRIC_DEFINITIONS = {
 };
 
 // Helper for range calculations to support Testing
-const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, inverse = false }) => {
+const calculateGaugeRanges = ({ min = 0, max = 100, average, p25, p75, inverse = false }) => {
     // Strategy: Center the gauge around the Average value.
     // Determine the Visual Range such that Average is exactly in the middle.
 
@@ -32,8 +32,8 @@ const calculateGaugeRanges = ({ value, min = 0, max = 100, average, p25, p75, in
     let totalVisualRange = visualMax - visualMin;
 
     const colors = inverse
-        ? ['#10B981', '#F59E0B', '#F43F5E'] // Emerald 500, Amber 500, Rose 500 (kept as these actually pop well on dark)
-        : ['#F43F5E', '#F59E0B', '#10B981']; // Rose 500, Amber 500, Emerald 500
+        ? ['#34D399', '#FBBF24', '#FB7185'] // Emerald 400, Amber 400, Rose 400
+        : ['#FB7185', '#FBBF24', '#34D399']; // Rose 400, Amber 400, Emerald 400
 
     let ranges = [];
     let p25Angle = null;
@@ -92,7 +92,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
 
     useEffect(() => {
         if (!isActive) {
-            setAnimated(false);
+            Promise.resolve().then(() => setAnimated(false));
             return;
         }
 
@@ -118,7 +118,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
         return () => observer.disconnect();
     }, [isActive]);
     // Calculate ranges and the visual bounds used for them
-    const { ranges, visualMin, visualMax, p25Angle, p75Angle } = calculateGaugeRanges({ value, min, max, average, p25, p75, inverse });
+    const { ranges, visualMin, visualMax, p25Angle, p75Angle } = calculateGaugeRanges({ min, max, average, p25, p75, inverse });
 
     // Format helper
     const format = (v) => {
@@ -143,11 +143,18 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
 
     return (
         <div ref={containerRef} className={`group flex flex-col items-center flex-1 w-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
-            <div className="relative w-48 h-24 mt-2">
+            {/* Label has been moved down below the gauge in the mock, or we can keep it subtle above */}
+            <div className="text-center w-full mb-1">
+                <Tooltip content={METRIC_DEFINITIONS[metric]} position="top">
+                    <h3 className="text-sm font-semibold text-slate-300 uppercase cursor-help hover:text-white transition-colors inline-block p-1 tracking-wider">{label}</h3>
+                </Tooltip>
+            </div>
+
+            <div className="relative w-48 h-24 mt-2 mb-2">
                 <PieChart width={192} height={96}>
                     <defs>
                         <filter id="gauge-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.15" floodColor="#0f172a" />
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.2" floodColor="#000000" />
                         </filter>
                     </defs>
                     <Pie
@@ -156,7 +163,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                         cy="100%"
                         startAngle={180}
                         endAngle={0}
-                        innerRadius={72}
+                        innerRadius={50} // Made thicker (was 72)
                         outerRadius={80}
                         paddingAngle={0}
                         dataKey="value"
@@ -174,7 +181,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                             if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                    <div className="bg-slate-800 p-2 border border-slate-600 shadow-xl rounded text-xs z-50 text-white">
+                                    <div className="bg-slate-800 p-2 border border-slate-600 shadow-xl rounded text-xs z-50 text-white font-sans">
                                         <span className="font-bold" style={{ color: data.color }}>{data.name}</span>
                                         {p25 && p75 && (
                                             <div className="text-slate-400 mt-1">
@@ -211,57 +218,55 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                     ></div>
                 )}
 
-                {/* Secondary Needle - rendered before primary so it sits slightly underneath */}
+                {/* Secondary Needle */}
                 {isSecondaryAvailable && (
                     <>
                         <div
-                            className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full bg-purple-500 opacity-90`}
+                            className={`absolute bottom-0 left-1/2 w-[3px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] opacity-90`}
                             style={{
                                 transform: `translateX(-50%) rotate(${animated ? secondaryRotation : -90}deg)`
                             }}
                         ></div>
-                        <div className={`absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-[5px] -mb-[5px] rounded-full pointer-events-none shadow-sm shadow-black/50 bg-purple-600`}></div>
+                        <div className={`absolute bottom-[2px] left-1/2 w-3.5 h-3.5 -ml-[7px] -mb-[7px] rounded-full pointer-events-none shadow-[0_0_10px_rgba(192,132,252,0.9)] bg-purple-400`}></div>
                     </>
                 )}
 
-                {/* Main Needle - sweeps from -90° (far left) to real rotation when isActive */}
+                {/* Main Needle */}
                 <div
-                    className={`absolute bottom-0 left-1/2 w-[2px] h-[75px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-slate-200' : 'bg-slate-600'}`}
+                    className={`absolute bottom-0 left-1/2 w-[4px] h-[70px] origin-bottom transition-transform duration-[1200ms] ease-out pointer-events-none rounded-t-full ${isAvailable ? 'bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]' : 'bg-slate-500'}`}
                     style={{
                         transform: `translateX(-50%) rotate(${animated ? rotation : -90}deg)`
                     }}
                 ></div>
-                <div className={`absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-[5px] -mb-[5px] rounded-full pointer-events-none shadow-sm shadow-black/50 ${isAvailable ? 'bg-white' : 'bg-slate-500'}`}></div>
+                <div className={`absolute bottom-[-1px] left-1/2 w-[18px] h-[18px] -ml-[9px] -mb-[9px] rounded-full pointer-events-none border-[3px] border-[#0B1120] ${isAvailable ? 'bg-white shadow-[0_0_15px_rgba(255,255,255,1)]' : 'bg-slate-500'}`}></div>
             </div>
 
             <div className="text-center mt-2 w-full">
-                <Tooltip content={METRIC_DEFINITIONS[metric]} position="bottom">
-                    <h3 className="text-sm font-medium text-slate-400 uppercase cursor-help hover:text-white transition-colors inline-block p-1">{label}</h3>
-                </Tooltip>
                 <div className="flex justify-center items-center mt-1">
-                    <div className={`text-2xl font-semibold tracking-tight ${isAvailable ? 'text-white' : 'text-slate-600'}`}>
+                    <div className={`text-3xl font-extrabold tracking-wide drop-shadow-sm ${isAvailable ? 'text-white' : 'text-slate-600'}`} style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
                         {isAvailable ? `${typeof value === 'number' ? value.toFixed(2) : value}${suffix}` : 'N/A'}
                     </div>
                     {/* Render Subtle Trend Indicator if history is available */}
                     {trend && metric && isAvailable && (
-                        <TrendIndicator history={trend} metric={metric} inverse={inverse} />
+                        <div className="ml-2">
+                            <TrendIndicator history={trend} metric={metric} inverse={inverse} />
+                        </div>
                     )}
                 </div>
 
                 {/* Secondary Value Display */}
                 {isSecondaryAvailable && (
-                    <div className="flex items-center justify-center gap-1.5 mt-0.5" title="Secondary comparison bank value">
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        <span className="text-sm font-bold text-purple-400">
+                    <div className="flex items-center justify-center gap-1.5 mt-1.5" title="Secondary comparison bank value">
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-[0_0_5px_rgba(192,132,252,0.8)]"></span>
+                        <span className="text-sm font-bold text-purple-300 tracking-wide">
                             {typeof secondaryValue === 'number' ? secondaryValue.toFixed(2) : secondaryValue}{suffix}
                         </span>
                     </div>
                 )}
 
-
                 {(average !== undefined && average !== null) && (
-                    <div className="text-xs text-slate-500 mt-1 flex flex-col items-center w-full">
-                        <span className="font-semibold">Avg: {format(average)}</span>
+                    <div className="text-xs text-slate-400 mt-2 flex flex-col items-center w-full">
+                        <span className="font-semibold tracking-wide">Avg: {format(average)}</span>
                         {p25 != null && p75 != null && (() => {
                             const q1 = Number(p25), q3 = Number(p75), iqr = (q3 - q1) || 0.0001;
                             const v = Number(value);
@@ -271,10 +276,10 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                             else pct = Math.round(75 + 25 * Math.min(1, (v - q3) / iqr));
                             pct = Math.max(1, Math.min(99, pct));
                             const clr = inverse
-                                ? (pct <= 33 ? 'text-emerald-600' : pct <= 66 ? 'text-amber-500' : 'text-rose-600')
-                                : (pct >= 67 ? 'text-emerald-600' : pct >= 34 ? 'text-amber-500' : 'text-rose-600');
+                                ? (pct <= 33 ? 'text-emerald-400' : pct <= 66 ? 'text-amber-400' : 'text-rose-400')
+                                : (pct >= 67 ? 'text-emerald-400' : pct >= 34 ? 'text-amber-400' : 'text-rose-400');
                             return (
-                                <span className={`text-[11px] font-bold mt-0.5 ${clr}`} title="Estimated percentile rank within peer group">
+                                <span className={`text-[11px] font-bold mt-1 ${clr}`} title="Estimated percentile rank within peer group">
                                     {pct}th pct of peers
                                 </span>
                             );
@@ -287,3 +292,4 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
 };
 
 export default GaugeChart;
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // --- KPI config (Same as used in analysis) ---
 const KPI_SPECS = [
@@ -21,11 +21,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
     const [error, setError] = useState(null);
     const [moversData, setMoversData] = useState({ threats: [], playbooks: [], tape: "" });
 
-    useEffect(() => {
-        fetchAndAnalyze();
-    }, [segmentKey, currentQuarter]);
-
-    const fetchAndAnalyze = async () => {
+    const fetchAndAnalyze = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
@@ -85,7 +81,11 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [dataProvider, segmentKey, currentQuarter, priorQuarter, focusBankCert]);
+
+    useEffect(() => {
+        fetchAndAnalyze();
+    }, [segmentKey, currentQuarter, fetchAndAnalyze]);
 
     const handleDrillDown = (cert) => {
         if (onDrillDown) onDrillDown(cert);

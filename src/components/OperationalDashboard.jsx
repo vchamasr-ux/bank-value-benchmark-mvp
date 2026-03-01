@@ -9,7 +9,7 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
 
     // FDIC ASSET is in thousands. 10 Billion = 10,000,000
     const defaultPeerGroup = assetSize >= 10000000 ? 'regionalBank_over10B' : 'communityBank_under10B';
-    const [selectedPeerGroup, setSelectedPeerGroup] = useState(defaultPeerGroup);
+    const [selectedPeerGroup] = useState(defaultPeerGroup);
 
     // #6 Form data persistence via sessionStorage
     const [formData, setFormData] = useState(() => {

@@ -52,7 +52,7 @@ const BankSearch = ({ onBankSelect }) => {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md text-slate-900">
+        <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md text-slate-900 text-left">
             <h2 className="text-xl font-bold mb-4 text-slate-800">Find Your Bank</h2>
             <p className="text-xs text-slate-500 mb-4">Start typing a bank name (e.g. "Chase") — results appear automatically.</p>
             <form onSubmit={handleSearch} className="flex gap-2 mb-4">

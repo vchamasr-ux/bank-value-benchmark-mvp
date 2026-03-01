@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginModal from './auth/LoginModal';
 import { generateHtmlBriefString } from '../utils/exportHtmlBrief';
@@ -15,7 +15,9 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
     const { user } = useAuth();
 
     // Shared retry countdown hook — fires generateSummary() automatically when countdown hits 0
-    const { retryCountdown, retryCount, setRetryFromError, resetRetry } = useRetryCountdown(() => generateSummary());
+    const { retryCountdown, retryCount, setRetryFromError, resetRetry } = useRetryCountdown(() => {
+        if (generateSummary) generateSummary();
+    });
 
     const handleCopy = async () => {
         if (!summary) return;
@@ -86,15 +88,14 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
         } else if (isOpen && !user && !isLoginModalOpen && authRequired) {
             setIsLoginModalOpen(true);
         }
-    }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen]);
-
+    }, [isOpen, user, authRequired, summary, isLoading, error, isLoginModalOpen, generateSummary]);
 
     const handleLoginSuccess = () => {
         setIsLoginModalOpen(false);
         generateSummary();
     };
 
-    const generateSummary = async () => {
+    const generateSummary = useCallback(async () => {
         if (!user && authRequired) {
             setIsLoginModalOpen(true);
             return;
@@ -171,7 +172,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [user, financials, benchmarks, authRequired, retryCount, resetRetry, setRetryFromError, onSummaryGenerated]);
 
     if (!isOpen) return null;
 

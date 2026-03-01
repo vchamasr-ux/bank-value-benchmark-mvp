@@ -131,7 +131,7 @@ const getAssetGroupConfig = (assetSize) => {
     return { filter: 'ASSET:[0 TO 1000000]', name: '<$1B' };
 };
 
-const getPeerGroupBenchmark = async (assetSize, subjectState, targetBankKpis, historyParams) => {
+const getPeerGroupBenchmark = async (assetSize) => {
     const { filter: assetFilter, name: groupName } = getAssetGroupConfig(assetSize);
     const fields = 'ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS,NAME,CITY,STNAME,STALP,CERT';
     const url = `https://api.fdic.gov/banks/financials/?filters=${encodeURIComponent(assetFilter)}%20AND%20ACTIVE:1&fields=${fields}&limit=50&sort_by=REPDTE&sort_order=DESC&format=json`;
@@ -156,7 +156,7 @@ const getPeerGroupBenchmark = async (assetSize, subjectState, targetBankKpis, hi
                 return acc;
             }, {});
         }
-    } catch (e) {
+    } catch {
         console.warn("Failed to fetch historical benchmarks.");
     }
 
@@ -204,9 +204,6 @@ const getPeerGroupBenchmark = async (assetSize, subjectState, targetBankKpis, hi
             p75: getPercentile(values, 75).toFixed(2)
         };
     });
-
-    // --- Market Movers Logic ---
-    const priorQuarter = targetBankKpis.reportDate === historyParams[0].REPDTE ? historyParams[1]?.REPDTE : undefined; // we need a way to pass this in
 
     // For the standalone script, we'll calculate the deltas based on the most recent 2 quarters for the peers
     const fetchRecentPeersUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:["20240101"%20TO%20"20241231"]&fields=CERT,REPDTE,ASSET,DEP,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS&limit=100&sort_by=REPDTE&sort_order=DESC&format=json`;
@@ -363,7 +360,7 @@ const run = async () => {
         console.log(`      ✓ Financials calculated.`);
 
         console.log(`[2/4] Fetching peer benchmarks for ${bankDetails.NAME}...`);
-        const benchmarks = await getPeerGroupBenchmark(parseFloat(bankDetails.ASSET), bankDetails.STALP, kpis, history);
+        const benchmarks = await getPeerGroupBenchmark(parseFloat(bankDetails.ASSET));
         console.log(`      ✓ Benchmarks generated for ${benchmarks.groupName}.`);
 
         console.log(`[3/4] Preparing Data Pipeline...`);

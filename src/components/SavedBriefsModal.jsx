@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './auth/AuthContext';
 
 const SavedBriefsModal = ({ isOpen, onClose }) => {
@@ -15,9 +15,9 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
         } else if (!isOpen) {
             setSelectedBrief(null);
         }
-    }, [isOpen, user]);
+    }, [isOpen, user, fetchBriefs]);
 
-    const fetchBriefs = async () => {
+    const fetchBriefs = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
@@ -41,7 +41,7 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [user]);
 
     const handleDelete = async (briefId, e) => {
         e.stopPropagation();

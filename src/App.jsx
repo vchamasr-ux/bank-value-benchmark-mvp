@@ -36,7 +36,6 @@ function App() {
   const [selectedBank, setSelectedBank] = useState(null);
   const [allHistoricalKPIs, setAllHistoricalKPIs] = useState(null); // full 20-quarter array
   const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(0); // 0 = latest (#2)
-  const [financials, setFinancials] = useState(null);
   const [benchmarks, setBenchmarks] = useState(null);
   const [loadingFinancials, setLoadingFinancials] = useState(false);
   const [errorFinancials, setErrorFinancials] = useState(null);
@@ -47,8 +46,18 @@ function App() {
 
   const [secondaryBank, setSecondaryBank] = useState(null);
   const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);
-  const [secondaryFinancials, setSecondaryFinancials] = useState(null);
   const [loadingSecondary, setLoadingSecondary] = useState(false);
+
+  // Derive financials from history and selected quarter
+  const financials = allHistoricalKPIs && allHistoricalKPIs.length > 0 ? {
+    ...allHistoricalKPIs[selectedQuarterIdx],
+    history: allHistoricalKPIs.slice(selectedQuarterIdx)
+  } : null;
+
+  const secondaryFinancials = allSecondaryHistoricalKPIs && allSecondaryHistoricalKPIs.length > 0 ? {
+    ...allSecondaryHistoricalKPIs[selectedQuarterIdx],
+    history: allSecondaryHistoricalKPIs.slice(selectedQuarterIdx)
+  } : null;
 
   // Derived quarter labels — driven by the SELECTED quarter snapshot, not always index 0 (#2)
   const CURRENT_QUARTER = financials?.reportDate || null;
@@ -69,123 +78,94 @@ function App() {
   // Clear radar context when bank is deselected
   useEffect(() => {
     if (!selectedBank) {
-      setRadarContextBank(null);
-      setView('benchmark');
-      setSecondaryBank(null);
-      setSecondaryFinancials(null);
-      setAllSecondaryHistoricalKPIs(null);
+      const clearState = () => {
+        setRadarContextBank(null);
+        setView('benchmark');
+        setSecondaryBank(null);
+        setAllSecondaryHistoricalKPIs(null);
+      };
+      clearState();
     }
   }, [selectedBank]);
 
-  // #2 — When user changes the quarter dropdown, update the active financials snapshot
-  useEffect(() => {
-    if (allHistoricalKPIs && allHistoricalKPIs.length > 0) {
-      // Spread to avoid mutating the cached KPI array item (#2)
-      // history starts at the selected index so trend sparklines show the right time window
-      const snap = {
-        ...allHistoricalKPIs[selectedQuarterIdx],
-        history: allHistoricalKPIs.slice(selectedQuarterIdx)
-      };
-      setFinancials(snap);
-    }
-  }, [selectedQuarterIdx, allHistoricalKPIs]);
-
-  useEffect(() => {
-    if (allSecondaryHistoricalKPIs && allSecondaryHistoricalKPIs.length > 0) {
-      const snap = {
-        ...allSecondaryHistoricalKPIs[selectedQuarterIdx],
-        history: allSecondaryHistoricalKPIs.slice(selectedQuarterIdx)
-      };
-      setSecondaryFinancials(snap);
-    } else {
-      setSecondaryFinancials(null);
-    }
-  }, [selectedQuarterIdx, allSecondaryHistoricalKPIs]);
-
-
   useEffect(() => {
     if (selectedBank) {
-      setLoadingFinancials(true);
-      setErrorFinancials(null);
-      setSelectedQuarterIdx(0); // Reset to latest on new bank selection (#2)
+      const fetchPrimary = async () => {
+        setLoadingFinancials(true);
+        setErrorFinancials(null);
+        setSelectedQuarterIdx(0); // Reset to latest on new bank selection (#2)
 
-      // Chain fetches: We need Bank Data first to get ASSET size for the Peer Group
-      getBankFinancials(selectedBank.CERT)
-        .then(async (bankData) => {
-          if (bankData) {
-            const historicalKPIs = calculateKPIs(bankData);
-            const latestKPIs = historicalKPIs[0];
-            setAllHistoricalKPIs(historicalKPIs); // store full history for quarter selector (#2)
-            setFinancials(latestKPIs);
-            latestKPIs.history = historicalKPIs;
+        // Chain fetches: We need Bank Data first to get ASSET size for the Peer Group
+        getBankFinancials(selectedBank.CERT)
+          .then(async (bankData) => {
+            if (bankData) {
+              const historicalKPIs = calculateKPIs(bankData);
+              setAllHistoricalKPIs(historicalKPIs); // store full history for quarter selector (#2)
 
-            try {
-              const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
-              if (benchmarkData) {
-                const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
-                  const st = peer.stalp;
-                  acc[st] = (acc[st] || 0) + 1;
-                  return acc;
-                }, {});
+              try {
+                const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
+                if (benchmarkData) {
+                  const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
+                    const st = peer.stalp;
+                    acc[st] = (acc[st] || 0) + 1;
+                    return acc;
+                  }, {});
 
-                // benchmarkData already contains accurate per-bank means (not aggregate totals)
-                // computed by getPeerGroupBenchmark — spread directly, no re-calculation needed.
-                setBenchmarks({
-                  ...benchmarkData,
-                  peerStateCounts,
-                });
+                  // benchmarkData already contains accurate per-bank means (not aggregate totals)
+                  // computed by getPeerGroupBenchmark — spread directly, no re-calculation needed.
+                  setBenchmarks({
+                    ...benchmarkData,
+                    peerStateCounts,
+                  });
+                }
+              } catch (benchmarkErr) {
+                console.error("Benchmark fetch failed:", benchmarkErr);
+                setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks. FDIC API may be down.");
               }
-            } catch (benchmarkErr) {
-              console.error("Benchmark fetch failed:", benchmarkErr);
-              setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks. FDIC API may be down.");
+            } else {
+              setErrorFinancials("No recent financial data found.");
             }
-          } else {
-            setErrorFinancials("No recent financial data found.");
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          setErrorFinancials(err.message || "Failed to load financials.");
-        })
-        .finally(() => setLoadingFinancials(false));
+          })
+          .catch(err => {
+            console.error(err);
+            setErrorFinancials(err.message || "Failed to load financials.");
+          })
+          .finally(() => setLoadingFinancials(false));
+      };
+      fetchPrimary();
     } else {
-      setFinancials(null);
-      setBenchmarks(null);
-      setAllHistoricalKPIs(null);
-      setSelectedQuarterIdx(0);
+      Promise.resolve().then(() => {
+        setBenchmarks(null);
+        setAllHistoricalKPIs(null);
+        setSelectedQuarterIdx(0);
+      });
     }
   }, [selectedBank]);
 
   useEffect(() => {
     if (secondaryBank) {
-      setLoadingSecondary(true);
-      getBankFinancials(secondaryBank.CERT)
-        .then((bankData) => {
-          if (bankData && bankData.length > 0) {
-            const historicalKPIs = calculateKPIs(bankData);
-            setAllSecondaryHistoricalKPIs(historicalKPIs);
-            // Snap to selected quarter, same as primary bank
-            const snap = {
-              ...historicalKPIs[selectedQuarterIdx],
-              history: historicalKPIs.slice(selectedQuarterIdx)
-            };
-            setSecondaryFinancials(snap);
-          } else {
-            setSecondaryFinancials(null);
+      const fetchSecondary = async () => {
+        setLoadingSecondary(true);
+        getBankFinancials(secondaryBank.CERT)
+          .then((bankData) => {
+            if (bankData && bankData.length > 0) {
+              const historicalKPIs = calculateKPIs(bankData);
+              setAllSecondaryHistoricalKPIs(historicalKPIs);
+            } else {
+              setAllSecondaryHistoricalKPIs(null);
+            }
+          })
+          .catch(err => {
+            console.error("Secondary bank fetch failed:", err);
             setAllSecondaryHistoricalKPIs(null);
-          }
-        })
-        .catch(err => {
-          console.error("Secondary bank fetch failed:", err);
-          setSecondaryFinancials(null);
-          setAllSecondaryHistoricalKPIs(null);
-        })
-        .finally(() => setLoadingSecondary(false));
+          })
+          .finally(() => setLoadingSecondary(false));
+      };
+      fetchSecondary();
     } else {
-      setSecondaryFinancials(null);
-      setAllSecondaryHistoricalKPIs(null);
+      Promise.resolve().then(() => setAllSecondaryHistoricalKPIs(null));
     }
-  }, [secondaryBank]);  // Only re-fetch if CERT changes, not on quarter change
+  }, [secondaryBank]);
 
 
 
