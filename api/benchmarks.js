@@ -86,18 +86,17 @@ export default async function handler(req, res) {
         const peerCerts = peers.map(p => p.CERT).join(' OR ');
         const histUrl = `https://api.fdic.gov/banks/financials/?filters=CERT:(${peerCerts})%20AND%20REPDTE:20221231&fields=CERT,ASSET,LNLSNET,DEP&format=json`;
         let histMap = {};
-        try {
-            const histResponse = await fetch(histUrl);
-            if (histResponse.ok) {
-                const histJson = await histResponse.json();
-                histMap = (histJson.data || []).reduce((acc, item) => {
-                    acc[item.data.CERT] = item.data;
-                    return acc;
-                }, {});
-            }
-        } catch (e) {
-            console.warn("Failed to fetch historical benchmarks", e);
+
+        const histResponse = await fetch(histUrl);
+        if (!histResponse.ok) {
+            throw new Error(`Failed to fetch historical benchmarks from FDIC (Status: ${histResponse.status})`);
         }
+
+        const histJson = await histResponse.json();
+        histMap = (histJson.data || []).reduce((acc, item) => {
+            acc[item.data.CERT] = item.data;
+            return acc;
+        }, {});
 
         const totalRaw = peers.reduce((acc, d) => {
             const hist = histMap[d.CERT];

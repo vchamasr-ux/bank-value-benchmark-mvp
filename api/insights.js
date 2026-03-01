@@ -167,7 +167,7 @@ ${snapshotBlock}
                 }
             });
 
-        } else {
+        } else if (type === 'financial_summary' || type === undefined) {
             // Default: financial_summary
             // #5 — Project to curated KPI shape instead of sending the full financials object
             // (which includes 20 quarters of raw history). Reduces token use and avoids context overflows.
@@ -222,6 +222,8 @@ Highlight strengths and weaknesses compared to the peer group. Use Markdown form
 Data:
 ${JSON.stringify(promptData, null, 2)}`;
             result = await model.generateContent(prompt);
+        } else {
+            throw new Error(`Unhandled insight type: ${type}`);
         }
 
         const response = await result.response;

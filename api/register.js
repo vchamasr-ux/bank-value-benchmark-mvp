@@ -39,8 +39,8 @@ export default async function handler(req, res) {
         const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_SENDER;
 
         if (!smtpHost || !smtpUser || !smtpPass || !adminEmail) {
-            console.warn("Registration email skipped: SMTP configuration or ADMIN_EMAIL missing");
-            return res.status(200).json({ message: 'Registration received (email configuration missing)' });
+            console.error("CRITICAL ERROR: SMTP configuration or ADMIN_EMAIL missing");
+            return res.status(500).json({ error: 'Server configuration error: Email services not configured.' });
         }
 
         const transporter = nodemailer.createTransport({
