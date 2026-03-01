@@ -9,14 +9,10 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
     const [selectedBrief, setSelectedBrief] = useState(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
-    useEffect(() => {
-        if (isOpen && user) {
-            fetchBriefs();
-        } else if (!isOpen) {
-            setSelectedBrief(null);
-        }
-    }, [isOpen, user, fetchBriefs]);
-
+    // NOTE: fetchBriefs MUST be declared before the useEffect that references it
+    // in its dependency array. Both are const — not hoisted. Rollup minifies
+    // fetchBriefs to a short name ('x') and crashes with TDZ if useEffect
+    // evaluates first. Declaration order is the only fix.
     const fetchBriefs = useCallback(async () => {
         setIsLoading(true);
         setError(null);
@@ -42,6 +38,14 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
             setIsLoading(false);
         }
     }, [user]);
+
+    useEffect(() => {
+        if (isOpen && user) {
+            fetchBriefs();
+        } else if (!isOpen) {
+            setSelectedBrief(null);
+        }
+    }, [isOpen, user, fetchBriefs]);
 
     const handleDelete = async (briefId, e) => {
         e.stopPropagation();
