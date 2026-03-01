@@ -1,7 +1,35 @@
 import { calculateKPIs, calcCAGR } from '../utils/kpiCalculator.js';
+import { z } from 'zod';
 
 const FDIC_API_BASE = 'https://api.fdic.gov/banks/institutions/';
 const FDIC_FINANCIALS_URL = 'https://api.fdic.gov/banks/financials/';
+
+// Zod Schema to strictly enforce FDIC API data shapes (Fail Loudly Doctrine)
+const FdicFinancialReportSchema = z.object({
+    REPDTE: z.union([z.string(), z.number()]),
+    ASSET: z.union([z.string(), z.number()]).optional().nullable(),
+    DEP: z.union([z.string(), z.number()]).optional().nullable(),
+    NUMEMP: z.union([z.string(), z.number()]).optional().nullable(),
+    INTINC: z.union([z.string(), z.number()]).optional().nullable(),
+    INTEXP: z.union([z.string(), z.number()]).optional().nullable(),
+    EINTEXP: z.union([z.string(), z.number()]).optional().nullable(),
+    NONII: z.union([z.string(), z.number()]).optional().nullable(),
+    NONIX: z.union([z.string(), z.number()]).optional().nullable(),
+    LNLSNET: z.union([z.string(), z.number()]).optional().nullable(),
+    NETINC: z.union([z.string(), z.number()]).optional().nullable(),
+    EQ: z.union([z.string(), z.number()]).optional().nullable(),
+    NCLNLS: z.union([z.string(), z.number()]).optional().nullable(),
+    STALP: z.string().optional().nullable(),
+    NAME: z.string().optional().nullable(),
+    CITY: z.string().optional().nullable(),
+    STNAME: z.string().optional().nullable(),
+}).passthrough(); // Passthrough allows other unexpected fields to exist, but the core MUST be present.
+
+const FdicApiResponseSchema = z.object({
+    data: z.array(z.object({
+        data: FdicFinancialReportSchema
+    }).passthrough())
+}).passthrough();
 
 /**
  * Search for banks by name using the FDIC API.
@@ -64,15 +92,21 @@ export const getBankFinancials = async (certId) => {
             if (response.status === 404) return null;
             throw new Error(`FDIC Financials Error: ${response.statusText}`);
         }
-        const data = await response.json();
-        if (data.data.length > 0) {
+
+        const rawData = await response.json();
+
+        // ZOD RUNTIME VALIDATION (Fail Loudly Doctrine - Rule 1 implementation)
+        // This will explode explicitly with a ZodError if the FDIC shape unexpectedly changes.
+        const parsedData = FdicApiResponseSchema.parse(rawData);
+
+        if (parsedData.data.length > 0) {
             // Return array of historical records (sorted DESC by date)
-            return data.data.map(item => item.data);
+            return parsedData.data.map(item => item.data);
         }
         return null;
     } catch (error) {
         console.error("Failed to fetch financials:", error);
-        throw error;
+        throw error; // Let the caller deal with the explicit failure (e.g. throwing a toast or crashing)
     }
 };
 
