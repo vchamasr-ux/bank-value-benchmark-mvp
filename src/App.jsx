@@ -348,7 +348,7 @@ function App() {
                                 className="text-sm font-bold text-slate-200 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 shadow-sm cursor-pointer hover:border-slate-500 transition-colors outline-none"
                                 aria-label="Select reporting quarter"
                               >
-                                {allHistoricalKPIs.map((kpi, idx) => (
+                                {allHistoricalKPIs.slice(0, 8).map((kpi, idx) => (
                                   <option key={idx} value={idx}>
                                     {kpi.reportDate}{idx === 0 ? ' (Latest)' : ''}
                                   </option>
