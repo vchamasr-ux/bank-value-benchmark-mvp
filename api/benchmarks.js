@@ -1,4 +1,7 @@
-import { kv } from "@vercel/kv";
+import { Redis } from 'ioredis';
+
+// Initialize Redis client outside the handler to reuse the connection pool across invocations
+const kv = new Redis(process.env.REDIS_URL);
 import { calculateKPIs, calcCAGR } from "../src/utils/kpiCalculator.js";
 import { getProximityScore } from "../src/utils/stateMapping.js";
 
@@ -25,9 +28,9 @@ export default async function handler(req, res) {
     }
 
     // "Fail Loudly" check for Redis capabilities
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-        console.error("CRITICAL ERROR: KV_REST_API_URL or KV_REST_API_TOKEN is missing from environment.");
-        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing KV credentials.' });
+    if (!process.env.REDIS_URL) {
+        console.error("CRITICAL ERROR: REDIS_URL is missing from environment.");
+        return res.status(500).json({ error: 'Server configuration error: Redis is not configured. Missing REDIS_URL credentials.' });
     }
 
     try {
@@ -38,9 +41,14 @@ export default async function handler(req, res) {
         const cacheKey = `fdic_bench_${BENCH_CACHE_VERSION}_${assetFilter}_${subjectState || 'all'}`;
 
         // 1. Try to get cached benchmark from Redis
-        const cached = await kv.get(cacheKey);
-        if (cached) {
-            return res.status(200).json(cached);
+        const cachedString = await kv.get(cacheKey);
+        if (cachedString) {
+            try {
+                const cachedData = JSON.parse(cachedString);
+                return res.status(200).json(cachedData);
+            } catch (e) {
+                console.warn("Failed to parse cached Redis JSON. Proceeding to fetch new data.");
+            }
         }
 
         // 2. Cache Miss: Perform calculation
@@ -209,7 +217,7 @@ export default async function handler(req, res) {
         };
 
         // Cache the result in Redis (24 hours TTL = 86400 seconds)
-        await kv.set(cacheKey, result, { ex: 86400 });
+        await kv.set(cacheKey, JSON.stringify(result), 'EX', 86400);
 
         return res.status(200).json(result);
 
