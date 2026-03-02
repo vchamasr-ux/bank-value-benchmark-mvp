@@ -46,7 +46,7 @@ export default async function handler(req, res) {
             try {
                 const cachedData = JSON.parse(cachedString);
                 return res.status(200).json(cachedData);
-            } catch (e) {
+            } catch {
                 console.warn("Failed to parse cached Redis JSON. Proceeding to fetch new data.");
             }
         }

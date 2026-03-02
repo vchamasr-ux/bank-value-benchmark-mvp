@@ -30,7 +30,10 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
             }
 
             const data = await response.json();
-            setBriefs(data.briefs || []);
+            if (!data.briefs || !Array.isArray(data.briefs)) {
+                throw new Error("CRITICAL: API response missing 'briefs' array.");
+            }
+            setBriefs(data.briefs);
         } catch (err) {
             console.error("Failed to fetch saved briefs:", err);
             setError(err.message || "Failed to load saved briefs");

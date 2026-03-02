@@ -63,7 +63,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
                     <div className="flex border border-slate-700/50 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-slate-500 bg-slate-800/50 backdrop-blur-md items-center p-1">
                         <button
                             onClick={handlePresentLiveToggled}
@@ -163,7 +163,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 isOpen={isPeerModalOpen}
                 onClose={() => setIsPeerModalOpen(false)}
                 title={`Peer Group: ${benchmarks?.groupName}`}
-                banks={benchmarks?.peerBanks || []}
+                banks={benchmarks?.peerBanks}
                 subjectState={financials?.raw?.STALP}
             />
 

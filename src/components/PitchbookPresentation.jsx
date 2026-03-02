@@ -123,7 +123,7 @@ const PitchbookPresentation = ({
         if (text.includes('asset') && text.includes('growth')) {
             return {
                 metric: 'Asset Growth (3Y)',
-                value: parseFloat(financials.assetGrowth3Y) || 0,
+                value: parseFloat(financials.assetGrowth3Y),
                 average: getBenchmark('assetGrowth3Y'),
                 min: -10, max: 30, inverse: false, suffix: '%'
             };
@@ -131,7 +131,7 @@ const PitchbookPresentation = ({
         if (text.includes('npl') || text.includes('non-performing')) {
             return {
                 metric: 'NPL Ratio',
-                value: parseFloat(financials.nptlRatio) || 0,
+                value: parseFloat(financials.nptlRatio),
                 average: getBenchmark('nptlRatio'),
                 min: 0, max: 5, inverse: true, suffix: '%'
             };
@@ -269,7 +269,7 @@ const PitchbookPresentation = ({
                             <GaugeChart
                                 key={cfg.key}
                                 label={cfg.label}
-                                value={parseFloat(financials[cfg.key]) || 0}
+                                value={parseFloat(financials[cfg.key])}
                                 min={cfg.min}
                                 max={cfg.max}
                                 average={benchmarks ? parseFloat(benchmarks[cfg.key]) : null}
@@ -384,9 +384,9 @@ const PitchbookPresentation = ({
             actionSubtitle: "Modeling the theoretical impact of interest rate movements on Net Interest Margin and baseline profitability.",
             source: "Source: BankValue Scenario Modeler. Forecasts are illustrative.",
             content: (() => {
-                const nim = parseFloat(financials.netInterestMargin) || 0;
-                const cof = parseFloat(financials.costOfFunds) || 0;
-                const roa = parseFloat(financials.returnOnAssets) || 0;
+                const nim = parseFloat(financials.netInterestMargin);
+                const cof = parseFloat(financials.costOfFunds);
+                const roa = parseFloat(financials.returnOnAssets);
                 const bNim = getBenchmark('netInterestMargin');
                 const bCof = getBenchmark('costOfFunds');
                 const bRoa = getBenchmark('returnOnAssets');

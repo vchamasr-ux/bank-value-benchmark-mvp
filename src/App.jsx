@@ -282,9 +282,9 @@ function App() {
                         if (data && data.length > 0) {
                           setSelectedBank({
                             CERT: sourceCert,
-                            NAME: data[0].NAME || 'Selected Bank',
-                            CITY: data[0].CITY || '',
-                            STNAME: data[0].STALP || ''
+                            NAME: data[0].NAME,
+                            CITY: data[0].CITY,
+                            STNAME: data[0].STALP
                           });
                           setView('movers');
                         }
@@ -395,9 +395,9 @@ function App() {
                         if (data && data.length > 0) {
                           setSelectedBank({
                             CERT: cert,
-                            NAME: data[0].NAME || 'Selected Bank',
-                            CITY: data[0].CITY || '',
-                            STNAME: data[0].STALP || data[0].STNAME || ''
+                            NAME: data[0].NAME,
+                            CITY: data[0].CITY,
+                            STNAME: data[0].STALP ? data[0].STALP : data[0].STNAME
                           });
                           setView('benchmark');
                         }

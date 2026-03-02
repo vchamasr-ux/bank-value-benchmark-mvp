@@ -111,8 +111,8 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-linkedin-sub': user?.sub || 'anonymous',
-                    'x-linkedin-name': user?.name || ''
+                    ...(user?.sub && { 'x-linkedin-sub': user.sub }),
+                    ...(user?.name && { 'x-linkedin-name': user.name })
                 },
                 body: JSON.stringify({
                     financials,

@@ -43,7 +43,9 @@ export const searchBank = async (name) => {
     try {
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
-    } catch { /* ignore sessionStorage errors */ }
+    } catch (e) {
+        throw new Error(`Session storage read failed: ${e.message}`);
+    }
 
     // FDIC API requires specific filters string format
     // We search for ACTIVE institutions using the flexible 'search' parameter
@@ -64,7 +66,9 @@ export const searchBank = async (name) => {
 
         try {
             sessionStorage.setItem(cacheKey, JSON.stringify(results));
-        } catch { /* ignore quota errors */ }
+        } catch (e) {
+            throw new Error(`Session storage write failed: ${e.message}`);
+        }
 
         return results;
     } catch (error) {
@@ -142,7 +146,12 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
         const response = await fetch(url);
 
         if (!response.ok) {
-            const errBody = await response.json().catch(() => ({}));
+            let errBody;
+            try {
+                errBody = await response.json();
+            } catch {
+                throw new Error(`CRITICAL: API returned status ${response.status} but body could not be parsed as JSON.`);
+            }
             throw new Error(errBody.error || `HTTP error! status: ${response.status}`);
         }
 
@@ -171,10 +180,14 @@ export const listPeerBanks = async ({ segmentKey }) => {
         if (!response.ok) throw new Error("Failed to fetch peers");
         const json = await response.json();
 
-        // Deduplicate
+        // Fail loud if no data array
+        if (!json.data || !Array.isArray(json.data)) {
+            throw new Error(`CRITICAL: Expected json.data to be an array but got ${typeof json.data}`);
+        }
+
         const seen = new Set();
         const peers = [];
-        (json.data || []).forEach(item => {
+        json.data.forEach(item => {
             const cert = String(item.data.CERT);
             if (!seen.has(cert)) {
                 seen.add(cert);
@@ -242,24 +255,35 @@ export const getBankKpis = async ({ cert, quarter }) => {
             depositGrowth3Y = calcCAGR(parseFloat(record.DEP), parseFloat(baseRec.DEP)) / 100;
         }
 
+        const strictVal = (rawValue, key) => {
+            if (rawValue === undefined || rawValue === null) {
+                throw new Error(`CRITICAL DATA MISSING: Required field '${key}' is missing from FDIC record.`);
+            }
+            const parsed = parseFloat(rawValue);
+            if (isNaN(parsed)) {
+                throw new Error(`CRITICAL DATA INVALID: Field '${key}' contains non-numeric value '${rawValue}'.`);
+            }
+            return parsed;
+        };
+
         return {
             asset_growth_3y: assetGrowth3Y,
             loan_growth_3y: loanGrowth3Y,
             deposit_growth_3y: depositGrowth3Y,
-            eff_ratio: parseFloat(rawKpis.efficiencyRatio) / 100,
-            nim: parseFloat(rawKpis.netInterestMargin) / 100,
-            cost_of_funds: parseFloat(rawKpis.costOfFunds) / 100,
-            non_int_income_pct: parseFloat(rawKpis.nonInterestIncomePercent) / 100,
-            loan_yield: parseFloat(rawKpis.yieldOnLoans) / 100,
-            assets_per_employee: parseFloat(rawKpis.assetsPerEmployee),
-            roe: parseFloat(rawKpis.returnOnEquity) / 100,
-            roa: parseFloat(rawKpis.returnOnAssets) / 100,
-            npl_ratio: parseFloat(rawKpis.nptlRatio) / 100,
-            raw_assets: parseFloat(record.ASSET) || 0,
-            raw_loans: parseFloat(record.LNLSNET) || 0,
-            raw_deposits: parseFloat(record.DEP) || 0,
-            raw_revenue: (parseFloat(record.INTINC) || 0) + (parseFloat(record.NONII) || 0),
-            raw_equity: parseFloat(record.EQ) || 0
+            eff_ratio: strictVal(rawKpis.efficiencyRatio, 'efficiencyRatio') / 100,
+            nim: strictVal(rawKpis.netInterestMargin, 'netInterestMargin') / 100,
+            cost_of_funds: strictVal(rawKpis.costOfFunds, 'costOfFunds') / 100,
+            non_int_income_pct: strictVal(rawKpis.nonInterestIncomePercent, 'nonInterestIncomePercent') / 100,
+            loan_yield: strictVal(rawKpis.yieldOnLoans, 'yieldOnLoans') / 100,
+            assets_per_employee: strictVal(rawKpis.assetsPerEmployee, 'assetsPerEmployee'),
+            roe: strictVal(rawKpis.returnOnEquity, 'returnOnEquity') / 100,
+            roa: strictVal(rawKpis.returnOnAssets, 'returnOnAssets') / 100,
+            npl_ratio: strictVal(rawKpis.nptlRatio, 'nptlRatio') / 100,
+            raw_assets: strictVal(record.ASSET, 'ASSET'),
+            raw_loans: strictVal(record.LNLSNET, 'LNLSNET'),
+            raw_deposits: strictVal(record.DEP, 'DEP'),
+            raw_revenue: strictVal(record.INTINC, 'INTINC') + strictVal(record.NONII, 'NONII'),
+            raw_equity: strictVal(record.EQ, 'EQ')
         };
 
     } catch (e) {

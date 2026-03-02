@@ -29,7 +29,7 @@ export default async function handler(req, res) {
             const briefsArray = Object.values(briefsObj)
                 .map(str => {
                     try { return JSON.parse(str); }
-                    catch (e) { return null; }
+                    catch { return null; }
                 })
                 .filter(Boolean)
                 .sort((a, b) => {

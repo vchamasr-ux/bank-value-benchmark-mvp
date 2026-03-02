@@ -1,10 +1,10 @@
 name: Lighthouse CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
+  # Removed: push on main — was sending failure emails on every direct commit.
+  # Lighthouse audits now only block PRs, not routine pushes.
 
 jobs:
   lhci:
@@ -24,7 +24,11 @@ jobs:
         
       - name: Build Vite App
         run: npm run build
-        
+        env:
+          # Provide a dummy value so the LoginModal renders during the audit.
+          # The real secret is in .env.local (not committed) and Vercel.
+          VITE_LINKEDIN_CLIENT_ID: ci-placeholder
+
       - name: Install Lighthouse CI CLI
         run: npm install -g @lhci/cli
         

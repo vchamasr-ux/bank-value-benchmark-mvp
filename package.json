@@ -10,7 +10,12 @@
     "preview": "vite preview",
     "test:tdz": "npx playwright test tests/tdz-smoke.spec.js --reporter=list",
     "test:tdz-node": "node tests/tdz-diagnostic.mjs",
-    "test:build-check": "npm run build && node tests/build-tdz-scanner.mjs"
+    "test:build-check": "npm run build && node tests/build-tdz-scanner.mjs",
+    "test:circular": "madge src/ --circular",
+    "test:duplicates": "jscpd src/ --threshold 5",
+    "test:garbage": "node tests/garbage-scanner.mjs",
+    "test:quality": "npm run lint && npm run test:circular && npm run test:duplicates && npm run test:garbage",
+    "test:lighthouse": "npx playwright test tests/lighthouse.spec.js --reporter=list"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -37,6 +42,9 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "jscpd": "^4.0.8",
+    "madge": "^8.0.0",
+    "playwright-lighthouse": "^4.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "vite": "^7.2.4"

@@ -16,20 +16,20 @@ const TrendSparkline = ({ data, metric, inverse }) => {
         trendLabel = "3-Y Annual Trend (YoY)";
         chartData = [...annualPoints].reverse().map((val, idx) => ({
             name: `Year ${idx + 1}`,
-            value: val || 0
+            value: val
         }));
     } else {
         trendLabel = "4-Q Trend";
         // Data is passed in DESC order (Newest First). Reverse for Chart (Oldest First).
         chartData = [...data].slice(0, 4).reverse().map(d => ({
             name: d.reportDate,
-            value: d[metric] || 0
+            value: d[metric]
         }));
     }
 
     // Determine Trend Color
-    const first = chartData[0]?.value || 0;
-    const last = chartData[chartData.length - 1]?.value || 0;
+    const first = chartData[0]?.value;
+    const last = chartData[chartData.length - 1]?.value;
 
     let color = '#9ca3af'; // Gray default
     if (chartData.length > 1) {

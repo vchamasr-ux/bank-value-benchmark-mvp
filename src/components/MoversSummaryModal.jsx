@@ -61,7 +61,10 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                 const q1 = kpiPerCertPerQuarter[b.cert][priorQuarter];
                 const q2 = kpiPerCertPerQuarter[b.cert][currentQuarter];
                 deltasByCert[b.cert] = KPI_SPECS.reduce((acc, spec) => {
-                    acc[spec.key] = (q2[spec.key] || 0) - (q1[spec.key] || 0);
+                    const v2 = parseFloat(q2[spec.key]);
+                    const v1 = parseFloat(q1[spec.key]);
+                    if (isNaN(v2) || isNaN(v1)) throw new Error(`CRITICAL: Missing data for metric ${spec.key}`);
+                    acc[spec.key] = v2 - v1;
                     return acc;
                 }, {});
             }
@@ -213,8 +216,8 @@ const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQu
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-linkedin-sub': user?.sub || 'anonymous',
-                    'x-linkedin-name': user?.name || ''
+                    ...(user?.sub && { 'x-linkedin-sub': user.sub }),
+                    ...(user?.name && { 'x-linkedin-name': user.name })
                 },
                 body: JSON.stringify({
                     type: 'market_movers',

@@ -123,7 +123,12 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
     // Format helper
     const format = (v) => {
         if (v === undefined || v === null) return "";
-        const formattedNum = typeof v === 'number' ? v.toFixed(2) : v;
+        let formattedNum = v;
+        if (typeof v === 'number') {
+            formattedNum = v.toFixed(2);
+        } else if (typeof v === 'string' && !isNaN(parseFloat(v))) {
+            formattedNum = parseFloat(v).toFixed(2);
+        }
         return `${formattedNum}${suffix}`;
     };
 
@@ -244,7 +249,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
             <div className="text-center mt-2 w-full">
                 <div className="flex justify-center items-center mt-1">
                     <div className={`text-3xl font-extrabold tracking-wide ${isAvailable ? (isLightMode ? 'text-slate-800' : 'text-white drop-shadow-sm') : 'text-slate-600'}`} style={isLightMode ? {} : { textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
-                        {isAvailable ? `${typeof value === 'number' ? value.toFixed(2) : value}${suffix}` : 'N/A'}
+                        {isAvailable ? `${typeof value === 'number' ? value.toFixed(2) : parseFloat(value).toFixed(2) || value}${suffix}` : 'N/A'}
                     </div>
                     {/* Render Subtle Trend Indicator if history is available */}
                     {trend && metric && isAvailable && (
@@ -259,7 +264,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                     <div className="flex items-center justify-center gap-1.5 mt-1.5" title="Secondary comparison bank value">
                         <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-[0_0_5px_rgba(192,132,252,0.8)]"></span>
                         <span className="text-sm font-bold text-purple-300 tracking-wide">
-                            {typeof secondaryValue === 'number' ? secondaryValue.toFixed(2) : secondaryValue}{suffix}
+                            {typeof secondaryValue === 'number' ? secondaryValue.toFixed(2) : parseFloat(secondaryValue).toFixed(2) || secondaryValue}{suffix}
                         </span>
                     </div>
                 )}

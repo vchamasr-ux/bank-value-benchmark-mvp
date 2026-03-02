@@ -70,7 +70,7 @@ const ComboPathCard = ({ path, financials, deltaY, timeHorizon }) => {
 
             <div className="space-y-4">
                 {path.moves.map(move => {
-                    const currentVal = parseFloat(financials[move.id]) || 0;
+                    const currentVal = parseFloat(financials[move.id]);
                     const newVal = currentVal + move.prescribedDelta;
                     return (
                         <div key={move.id} className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -106,7 +106,7 @@ const ComboPathCard = ({ path, financials, deltaY, timeHorizon }) => {
 const SinglePathCard = ({ path, model, financials, deltaY, timeHorizon }) => {
     const leverName = path.id;
     const coef = path.coef;
-    const currentVal = parseFloat(financials[leverName]) || 0;
+    const currentVal = parseFloat(financials[leverName]);
 
     const [sliderDelta, setSliderDelta] = useState(path.prescribedDelta);
     useEffect(() => { Promise.resolve().then(() => setSliderDelta(path.prescribedDelta)); }, [path.prescribedDelta]);
@@ -251,7 +251,7 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                 }
 
                 // Determine Bank's Tier based on ASSET (in thousands)
-                const assets = parseFloat(financials?.raw?.ASSET || 0);
+                const assets = parseFloat(financials?.raw?.ASSET);
                 let tierKey = '<$1B';
                 if (assets > 250000000) tierKey = '>$250B';
                 else if (assets > 100000000) tierKey = '$100B-$250B';
@@ -343,7 +343,7 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                     if (shouldBePositive && requiredMove < 0) continue;
                     if (shouldBeNegative && requiredMove > 0) continue;
 
-                    const currentVal = parseFloat(financials[leverName]) || 0;
+                    const currentVal = parseFloat(financials[leverName]);
                     const newVal = currentVal + requiredMove;
                     if (leverName === 'costOfFunds' && newVal < 0.05) continue;
                     if (leverName === 'yieldOnLoans' && newVal > 25.0) continue;
@@ -431,7 +431,7 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                 if (shouldBeNegative && requiredMove > 0) return null;
 
                 // "Real World Physical Limits"
-                const currentVal = parseFloat(financials[leverName]) || 0;
+                const currentVal = parseFloat(financials[leverName]);
                 const newVal = currentVal + requiredMove;
                 if (leverName === 'costOfFunds' && newVal < 0.05) return null;
                 if (leverName === 'yieldOnLoans' && newVal > 25.0) return null;

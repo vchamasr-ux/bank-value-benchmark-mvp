@@ -40,8 +40,20 @@ const formatQuarter = (dateString) => {
 // Rollup/Vite minifies this to a single-letter variable (e.g. `x`), and if
 // calculateKPIs is evaluated first it will throw "Cannot access 'x' before initialization".
 const calculateKPIsInternal = (data, history = null) => {
-    // Helper to parse string numbers to float, default to 0
-    const val = (key) => parseFloat(data[key]) || 0;
+    // Strict parser that crashes on missing or invalid data per Fail Loudly doctrine
+    const strictVal = (source, key) => {
+        const rawValue = source[key];
+        if (rawValue === undefined || rawValue === null) {
+            throw new Error(`CRITICAL DATA MISSING: Required field '${key}' is missing from FDIC data.`);
+        }
+        const parsed = parseFloat(rawValue);
+        if (isNaN(parsed)) {
+            throw new Error(`CRITICAL DATA INVALID: Field '${key}' contains non-numeric value '${rawValue}'.`);
+        }
+        return parsed;
+    };
+
+    const val = (key) => strictVal(data, key);
 
     // #1 — Annualize YTD income fields. FDIC reports cumulative YTD income (NETINC, INTINC, etc.).
     // A Q1 report with 3 months of income divided by full-year assets yields ~4x understatement.
@@ -53,7 +65,12 @@ const calculateKPIsInternal = (data, history = null) => {
 
     const nonInterestExp = val('NONIX');
     const nonInterestInc = val('NONII');
-    const interestExp = val('INTEXP') || val('EINTEXP');
+    const getInterestExp = () => {
+        if ('INTEXP' in data && data.INTEXP !== null) return val('INTEXP');
+        if ('EINTEXP' in data && data.EINTEXP !== null) return val('EINTEXP');
+        throw new Error("CRITICAL DATA MISSING: Both 'INTEXP' and 'EINTEXP' are missing from FDIC data.");
+    };
+    const interestExp = getInterestExp();
     const interestExpAnn = interestExp * annFactor;         // for Cost of Funds & NIM
     const netInterestIncome = (val('INTINC') - interestExp) * annFactor; // annualized NIM base
     const interestIncomeAnn = val('INTINC') * annFactor;   // for Yield on Loans
@@ -128,7 +145,7 @@ const calculateKPIsInternal = (data, history = null) => {
     let annualGrowthHistory = null;
 
     if (history && history.length >= 13) {
-        const hVal = (record, key) => parseFloat(record[key]) || 0;
+        const hVal = (record, key) => strictVal(record, key);
         const latest = history[0];
         const oneYearAgo = history[4];
         // #2 — Cap lookback to available history to avoid wrong-baseline bug
