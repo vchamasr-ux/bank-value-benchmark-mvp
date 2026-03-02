@@ -2,10 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from './auth/AuthContext';
 import SavedBriefsModal from './SavedBriefsModal';
 
-const UserProfileMenu = () => {
+const UserProfileMenu = ({ isBriefsModalOpen: externalBriefsOpen, onBriefsModalClose: externalBriefsClose }) => {
     const { user, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
-    const [isBriefsModalOpen, setIsBriefsModalOpen] = useState(false);
+    // Support both lifted state (from App.jsx) and local state
+    const [localBriefsOpen, setLocalBriefsOpen] = useState(false);
+    const isBriefsModalOpen = externalBriefsOpen ?? localBriefsOpen;
+    const setIsBriefsModalOpen = externalBriefsClose
+        ? (val) => { if (val) { /* parent controls open via BriefsNavButton */ } else externalBriefsClose(); }
+        : setLocalBriefsOpen;
     const menuRef = useRef(null);
 
     // Close dropdown when clicking outside
@@ -70,7 +75,7 @@ const UserProfileMenu = () => {
                         <button
                             onClick={() => {
                                 setIsOpen(false);
-                                setIsBriefsModalOpen(true);
+                                setLocalBriefsOpen(true);
                             }}
                             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-600 hover:text-blue-700 hover:bg-slate-50/80 rounded-lg transition-colors text-left"
                         >

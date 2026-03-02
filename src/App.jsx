@@ -19,6 +19,28 @@ const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
 const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false'; // Default to true, allow explicit disable
 
+import { useAuth } from './components/auth/AuthContext';
+import SavedBriefsModal from './components/SavedBriefsModal';
+
+/** Small inline button: only renders when user is authenticated */
+const BriefsNavButton = ({ onClick }) => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return (
+    <button
+      id="nav-saved-briefs"
+      onClick={onClick}
+      className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-1"
+      title="View your saved AI Intelligence Briefs"
+    >
+      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      Briefs
+    </button>
+  );
+};
+
 /**
  * Derive the prior quarter label from a report date string like "Q4 2025".
  * Avoids the need to manually update hardcoded constants each quarter.
@@ -56,6 +78,7 @@ function App() {
   const [secondaryBank, setSecondaryBank] = useState(() => getInitialBank('tgt'));
   const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);
   const [loadingSecondary, setLoadingSecondary] = useState(false);
+  const [isBriefsModalOpen, setIsBriefsModalOpen] = useState(false);
 
   // Derive financials from history and selected quarter
   const financials = allHistoricalKPIs && allHistoricalKPIs.length > 0 ? {
@@ -240,9 +263,10 @@ function App() {
                     </button>
                   </div>
 
-                  {/* Authenticated User Menu */}
-                  <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
-                    <UserProfileMenu />
+                  {/* Authenticated User Menu + Saved Briefs shortcut */}
+                  <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2 flex items-center gap-1">
+                    <BriefsNavButton onClick={() => setIsBriefsModalOpen(true)} />
+                    <UserProfileMenu isBriefsModalOpen={isBriefsModalOpen} onBriefsModalClose={() => setIsBriefsModalOpen(false)} />
                   </div>
 
                   {/* Back to Suite */}
@@ -482,6 +506,9 @@ function App() {
               />
             </Suspense>
           )}
+
+          {/* Saved Briefs Modal — triggered from nav BriefsNavButton or UserProfileMenu */}
+          <SavedBriefsModal isOpen={isBriefsModalOpen} onClose={() => setIsBriefsModalOpen(false)} />
 
           <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
             © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}

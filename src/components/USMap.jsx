@@ -32,26 +32,26 @@ const STATE_GRID = {
 const USMap = ({ subjectState, peerStates }) => {
     // Determine cell color
     const getCellColor = (stateCode) => {
-        if (stateCode === subjectState) return 'bg-blue-800 text-white font-bold ring-2 ring-blue-500';
+        if (stateCode === subjectState) return 'bg-blue-600 text-white font-bold ring-2 ring-blue-400';
 
         const count = peerStates[stateCode] || 0;
-        if (count > 5) return 'bg-blue-600 text-white';
-        if (count > 2) return 'bg-blue-400 text-white';
-        if (count > 0) return 'bg-blue-200 text-blue-900';
+        if (count > 5) return 'bg-blue-500 text-white';
+        if (count > 2) return 'bg-blue-700/60 text-blue-200';
+        if (count > 0) return 'bg-blue-900/60 text-blue-400';
 
-        return 'bg-gray-100 text-gray-300';
+        return 'bg-slate-700 text-slate-500';
     };
 
     return (
-        <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Geographic Distribution</h3>
+        <div className="flex flex-col items-center p-4 bg-slate-900/50 rounded-lg border border-white/10">
+            <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Geographic Distribution</h3>
             <div className="relative" style={{ width: '300px', height: '200px' }}>
                 {Object.entries(STATE_GRID).map(([state, pos]) => (
                     <div
                         key={state}
                         className={`absolute flex items-center justify-center w-5 h-5 text-[8px] rounded-sm transition-colors cursor-default ${getCellColor(state)}`}
                         style={{
-                            left: pos.x * 24, // 24px grid step
+                            left: pos.x * 24,
                             top: pos.y * 24
                         }}
                         title={`${state}: ${peerStates[state] || 0} Peers`}
@@ -62,10 +62,10 @@ const USMap = ({ subjectState, peerStates }) => {
             </div>
 
             {/* Legend */}
-            <div className="flex gap-4 mt-2 text-xs text-gray-500">
-                <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-800 rounded-sm"></div> Subject</div>
+            <div className="flex gap-4 mt-3 text-xs text-slate-500">
+                <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-600 rounded-sm ring-1 ring-blue-400"></div> Subject</div>
                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-400 rounded-sm"></div> Peers</div>
-                <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-100 rounded-sm"></div> None</div>
+                <div className="flex items-center gap-1"><div className="w-3 h-3 bg-slate-700 rounded-sm"></div> None</div>
             </div>
         </div>
     );

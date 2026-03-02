@@ -120,16 +120,31 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             )}
                         </div>
 
+                        {/* Compare CTA — visible when no comparison is active */}
+                        {benchmarks.peerBanks && !isPresentMode && !secondaryBank && (
+                            <button
+                                id="compare-bank-trigger"
+                                onClick={() => setIsPeerModalOpen(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-500/40 bg-purple-900/20 text-purple-300 text-xs font-bold hover:bg-purple-900/40 hover:border-purple-400/60 transition-all"
+                                title="Pick a peer bank to compare side-by-side"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                + Compare
+                            </button>
+                        )}
+
                         {benchmarks.peerBanks && !isPresentMode && secondaryBank && (
-                            <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Compare:</span>
+                            <div className="flex items-center gap-2 bg-purple-900/20 px-3 py-1.5 rounded-lg border border-purple-500/40">
+                                <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Compare:</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-purple-400 max-w-[200px] truncate" title={secondaryBank.NAME || secondaryBank.name}>
+                                    <span className="text-sm font-bold text-purple-300 max-w-[200px] truncate" title={secondaryBank.NAME || secondaryBank.name}>
                                         {secondaryBank.NAME || secondaryBank.name}
                                     </span>
                                     <button
                                         onClick={() => setSecondaryBank(null)}
-                                        className="text-slate-500 hover:text-red-400 transition-colors p-0.5 rounded-full hover:bg-slate-700/50"
+                                        className="text-purple-500 hover:text-red-400 transition-colors p-0.5 rounded-full hover:bg-slate-700/50"
                                         title="Clear comparison"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
