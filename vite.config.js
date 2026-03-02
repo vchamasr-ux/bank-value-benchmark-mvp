@@ -4,6 +4,22 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://bank-value-benchmark-mvp.vercel.app',
+        changeOrigin: true,
+      }
+    }
+  },
+  preview: {
+    proxy: {
+      '/api': {
+        target: 'https://bank-value-benchmark-mvp.vercel.app',
+        changeOrigin: true,
+      }
+    }
+  },
   build: {
     rollupOptions: {
       output: {
