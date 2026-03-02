@@ -11,7 +11,6 @@
     "test:cleanup": "node tests/cleanup-artifacts.mjs",
     "test:bundle-size": "npm run build && node tests/check-bundle-size.mjs",
     "test:load": "k6 run tests/load-test.js",
-    "test:e2e-performance": "npx playwright test tests/performance.spec.js --reporter=list",
     "test:tdz": "npm run test:cleanup && npx playwright test tests/tdz-smoke.spec.js --reporter=list",
     "test:tdz-node": "node tests/tdz-diagnostic.mjs",
     "test:build-check": "npm run build && node tests/build-tdz-scanner.mjs",
