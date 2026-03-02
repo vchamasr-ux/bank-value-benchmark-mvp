@@ -12,8 +12,9 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
     use: {
-        // Run tests directly against the Vercel branch/production site
-        baseURL: 'https://bank-value-benchmark-mvp.vercel.app',
+        // Run tests against production Vercel — /api/benchmarks is a serverless function, not available locally.
+        // Override with PLAYWRIGHT_TEST_BASE_URL=<your-preview-url> to test a Vercel preview branch.
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'https://bank-value-benchmark-mvp.vercel.app',
         trace: 'on-first-retry',
     },
     // We don't need a dev server config block because we're running against live

@@ -233,12 +233,12 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
             {/* Citations & Disclaimer Footer (Only fully visible when unlocked) */}
             <div className={`mt-12 pt-6 border-t border-slate-800 transition-opacity duration-1000 ${isUnlocked ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
-                    <h4 className="text-sm font-bold text-slate-300 mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-300 mb-2 flex items-center gap-2">
                         <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         About this Data
-                    </h4>
+                    </h3>
                     <p className="text-xs text-slate-400 leading-relaxed mb-4">
                         <strong>Disclaimer:</strong> This application is currently in its testing phase. For testing purposes only, your data has not been stored. Unlike the FDIC financial data on the main dashboard, which is sourced directly from regulatory Call Reports, operational metrics (such as digital adoption, account opening, and vendor spend averages) are not publicly filed by banks.
                     </p>

@@ -24,6 +24,25 @@
     }
 }
 
+@keyframes fade-slide-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@layer utilities {
+    .animate-fadeSlideIn {
+        animation: fade-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+}
+
+
 @layer base {
     body {
         font-family: var(--font-sans);

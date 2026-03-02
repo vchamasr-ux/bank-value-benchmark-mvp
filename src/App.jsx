@@ -34,7 +34,15 @@ const derivePriorQuarter = (reportDate) => {
 };
 
 function App() {
-  const [selectedBank, setSelectedBank] = useState(null);
+  // Deep-linking support parsed lazily for initial state
+  const getInitialBank = (paramName) => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const cert = params.get(paramName) || (paramName === 'acq' ? params.get('b') : null);
+    return cert ? { CERT: cert, NAME: 'Loading...', CITY: '', STNAME: '' } : null;
+  };
+
+  const [selectedBank, setSelectedBank] = useState(() => getInitialBank('acq'));
   const [allHistoricalKPIs, setAllHistoricalKPIs] = useState(null); // full 20-quarter array
   const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(0); // 0 = latest (#2)
   const [benchmarks, setBenchmarks] = useState(null);
@@ -45,7 +53,7 @@ function App() {
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
   const [isPresentMode, setIsPresentMode] = useState(false);
 
-  const [secondaryBank, setSecondaryBank] = useState(null);
+  const [secondaryBank, setSecondaryBank] = useState(() => getInitialBank('tgt'));
   const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);
   const [loadingSecondary, setLoadingSecondary] = useState(false);
 
@@ -60,7 +68,7 @@ function App() {
     history: allSecondaryHistoricalKPIs.slice(selectedQuarterIdx)
   } : null;
 
-  // Derived quarter labels — driven by the SELECTED quarter snapshot, not always index 0 (#2)
+  // Derived quarter labels
   const CURRENT_QUARTER = financials?.reportDate || null;
   const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
 

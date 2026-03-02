@@ -25,9 +25,21 @@ yarn-error.log*
 
 # Testing
 coverage
-tests/
 /playwright-report/
 /test-results/
+/lighthouse-report/
+a11y-failed.json
+lighthouse-report.json
+nul
+
+# Visual regression snapshots — machine-specific binaries, not for source control
+tests/visual.spec.js-snapshots/
+
+# Runtime test artifacts (generated outputs, not source)
+tests/a11y-violations.json
+axe-violations.txt
+axe-diag.mjs
+
 # Python
 venv/
 .venv/
