@@ -4,14 +4,28 @@ import { test, expect } from '@playwright/test';
 // Catches ANY component that renders a raw float with more than 2 decimal places.
 // Run this any time a new KPI component is added to ensure it uses .toFixed() correctly.
 
-const BANK_URL = '/?acq=628&tgt=3510'; // JPMorgan Chase
+// ─── Helper: Load bank dashboard via UI search ────────────────────────────────
+// Using UI navigation instead of deprecated ?acq= query params — ensures the
+// full React app state (selectedBank, cert, etc.) is set correctly via normal
+// user flow before we scan the rendered text.
+async function loadDashboard(page) {
+    await page.goto('/');
+    const searchInput = page.locator('#bank-search-input');
+    await expect(searchInput).toBeVisible({ timeout: 15000 });
+    await searchInput.fill('JPMorgan Chase');
+
+    const firstResult = page.locator('li').filter({ hasText: /JPMorgan/i }).first();
+    await expect(firstResult).toBeVisible({ timeout: 10000 });
+    await firstResult.click();
+
+    // Wait for the key gauge to confirm data has loaded
+    await page.waitForSelector('text=Efficiency Ratio', { timeout: 20000 });
+}
 
 test.describe('Number Formatting Guard', () => {
 
     test('No KPI value should render with more than 2 decimal places', async ({ page }) => {
-        await page.goto(BANK_URL);
-        // Wait for gauges to load
-        await page.waitForSelector('text=Efficiency Ratio', { timeout: 15000 });
+        await loadDashboard(page);
 
         // Get all text content from the page
         const bodyText = await page.evaluate(() => document.body.innerText);
@@ -28,8 +42,7 @@ test.describe('Number Formatting Guard', () => {
     });
 
     test('Gauge chart value display should be capped at 2 decimal places', async ({ page }) => {
-        await page.goto(BANK_URL);
-        await page.waitForSelector('text=Efficiency Ratio', { timeout: 15000 });
+        await loadDashboard(page);
 
         // Find all percentage text nodes inside gauge value containers
         const gaugeValues = await page.locator('text=/%/').allTextContents();
