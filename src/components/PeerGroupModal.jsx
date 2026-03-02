@@ -20,7 +20,7 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks, subjectState, onBankSel
             ></div>
 
             {/* Modal — max-w-5xl wide, capped at 85vh, split-panel body */}
-            <div className="relative bg-[#0B1120]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-[#0B1120]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] w-full max-w-6xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header */}
                 <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
@@ -70,7 +70,7 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks, subjectState, onBankSel
                                             onClick={() => onBankSelect && onBankSelect(bank)}
                                             title="Click to compare side-by-side"
                                         >
-                                            <td className="px-4 py-3 text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors max-w-[200px] truncate">
+                                            <td className="px-4 py-3 text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
                                                 {bank.name}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-slate-400 whitespace-nowrap">
