@@ -160,4 +160,37 @@ test.describe('UI Polish & Aesthetics', () => {
             await expect(radarHeader).toBeVisible({ timeout: 5000 });
         }
     });
+
+    test('Strategic Planner panels use dark glassmorphism (no white cards)', async ({ page }) => {
+        // Navigate to a bank dashboard first
+        await page.locator('input[placeholder="Enter bank name..."]').fill('chase');
+        const firstResult = page.locator('li:has-text("chase")').first();
+        await expect(firstResult).toBeVisible({ timeout: 15000 });
+        await firstResult.click();
+
+        // Navigate to the Planner tab
+        await page.getByRole('button', { name: 'Planner' }).click();
+
+        // Wait for the Strategic Planner model to load
+        await page.waitForSelector('text=What Would It Take', { timeout: 20000 });
+        await page.waitForLoadState('networkidle', { timeout: 30000 });
+
+        // ── Guard 1: Configure Goal panel must be dark (glass-panel-dark) ──────
+        const configPanel = page.locator('.glass-panel-dark').filter({ hasText: 'Configure Goal' }).first();
+        await expect(configPanel).toBeVisible({ timeout: 10000 });
+        const configBg = await configPanel.evaluate(el => window.getComputedStyle(el).backgroundColor);
+        // Must NOT be fully white (rgb(255,255,255))
+        expect(configBg, 'Configure Goal panel must not be white').not.toBe('rgb(255, 255, 255)');
+
+        // ── Guard 2: Path cards must not have white backgrounds ───────────────
+        // Path cards are identified by the "Path A" / "Path B" label text
+        const pathBadge = page.locator('text=Path A').first();
+        const isPathVisible = await pathBadge.isVisible().catch(() => false);
+        if (isPathVisible) {
+            // Walk up to the card container and check its bg
+            const pathCard = pathBadge.locator('../../..'); // absolute+badge+h4 → card root
+            const cardBg = await pathCard.evaluate(el => window.getComputedStyle(el).backgroundColor);
+            expect(cardBg, 'Path A card must not be white').not.toBe('rgb(255, 255, 255)');
+        }
+    });
 });

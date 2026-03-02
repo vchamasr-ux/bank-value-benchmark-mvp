@@ -53,8 +53,8 @@ const ComboPathCard = ({ path, financials, deltaY, timeHorizon }) => {
     const percentOfGoal = deltaY !== 0 ? Math.min(100, Math.max(0, (totalAchievedDelta / deltaY) * 100)) : 100;
 
     const badgeColorMap = {
-        'combo_balanced': 'bg-purple-100 text-purple-700 border-purple-200',
-        'combo_aggressive': 'bg-rose-100 text-rose-700 border-rose-200'
+        'combo_balanced': 'bg-purple-900/60 text-purple-300 border-purple-700/50',
+        'combo_aggressive': 'bg-rose-900/60 text-rose-300 border-rose-700/50'
     };
     const strokeColorMap = {
         'combo_balanced': 'border-purple-500/30',
@@ -62,27 +62,27 @@ const ComboPathCard = ({ path, financials, deltaY, timeHorizon }) => {
     };
 
     return (
-        <div className={`bg-white p-5 rounded-xl border-2 shadow-sm transition-colors relative overflow-hidden ${strokeColorMap[path.type]}`}>
+        <div className={`bg-slate-800/60 p-5 rounded-xl border-2 shadow-sm transition-colors relative overflow-hidden backdrop-blur-sm ${strokeColorMap[path.type]}`}>
             <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-black uppercase tracking-wider rounded-bl-lg ${badgeColorMap[path.type]}`}>
                 Combination
             </div>
-            <h4 className="text-sm font-bold text-slate-800 mt-2 mb-4">{path.title}</h4>
+            <h4 className="text-sm font-bold text-slate-200 mt-2 mb-4">{path.title}</h4>
 
             <div className="space-y-4">
                 {path.moves.map(move => {
                     const currentVal = parseFloat(financials[move.id]);
                     const newVal = currentVal + move.prescribedDelta;
                     return (
-                        <div key={move.id} className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <div key={move.id} className="bg-slate-700/50 p-3 rounded-lg border border-slate-600/50">
                             <div className="flex flex-col gap-1">
-                                <div className="flex justify-between items-center text-slate-600 font-bold text-sm">
+                                <div className="flex justify-between items-center text-slate-300 font-bold text-sm">
                                     <span>{formatLabel(move.id)}</span>
                                     <span className="text-blue-600">{move.prescribedDelta > 0 ? '+' : ''}{move.prescribedDelta.toFixed(2)} pts</span>
                                 </div>
-                                <div className="text-[11px] text-slate-500 font-medium bg-blue-50/50 px-2 py-1 rounded border border-blue-50">
+                                <div className="text-[11px] text-slate-400 font-medium bg-blue-900/30 px-2 py-1 rounded border border-blue-800/40">
                                     Requires growing by <span className="font-bold text-blue-700">{calculateCagr(currentVal, newVal, timeHorizon).toFixed(2)}%</span> annually over {timeHorizon} years
                                 </div>
-                                <div className="flex justify-between text-[10px] uppercase font-bold text-slate-400 mt-1">
+                                <div className="flex justify-between text-[10px] uppercase font-bold text-slate-500 mt-1">
                                     <span>Cur: {currentVal.toFixed(2)}%</span>
                                     <span>Tgt: {newVal.toFixed(2)}%</span>
                                 </div>
@@ -95,7 +95,7 @@ const ComboPathCard = ({ path, financials, deltaY, timeHorizon }) => {
                     <div className={`h-2 rounded-full transition-all duration-300 ${percentOfGoal >= 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} style={{ width: `${Math.max(0, percentOfGoal)}%` }}></div>
                 </div>
 
-                <div className="flex justify-between items-center text-xs text-slate-500 font-bold text-right pt-2 border-t border-slate-100">
+                <div className="flex justify-between items-center text-xs text-slate-400 font-bold text-right pt-2 border-t border-slate-700/50">
                     <span className="w-full">Overall Goal: {percentOfGoal.toFixed(0)}% Achieved</span>
                 </div>
             </div>
@@ -149,17 +149,17 @@ const SinglePathCard = ({ path, model, financials, deltaY, timeHorizon }) => {
     if (sliderDelta > maxBound) maxBound = sliderDelta * 1.5;
 
     return (
-        <div className={`bg-white p-5 rounded-xl border-2 shadow-sm transition-colors relative overflow-hidden ${path.type === 'primary' ? 'border-emerald-500/30' : 'border-blue-500/20'}`}>
-            <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-black uppercase tracking-wider rounded-bl-lg ${path.type === 'primary' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+        <div className={`bg-slate-800/60 p-5 rounded-xl border-2 shadow-sm transition-colors relative overflow-hidden backdrop-blur-sm ${path.type === 'primary' ? 'border-emerald-500/40' : 'border-blue-500/30'}`}>
+            <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-black uppercase tracking-wider rounded-bl-lg ${path.type === 'primary' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-blue-900/60 text-blue-300'}`}>
                 Path {path.type === 'primary' ? 'A' : 'B'}
             </div>
-            <h4 className="text-sm font-bold text-slate-800 mt-2 mb-4">{path.title}</h4>
+            <h4 className="text-sm font-bold text-slate-200 mt-2 mb-4">{path.title}</h4>
 
             <div className="space-y-4">
-                <div className="flex justify-between items-center text-slate-600 font-bold text-sm">
+                <div className="flex justify-between items-center text-slate-300 font-bold text-sm">
                     <span>{formatLabel(leverName)}</span>
-                    <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                        {currentVal.toFixed(2)}% &rarr; <span className="text-blue-600">{newLeverVal.toFixed(2)}%</span>
+                    <span className="bg-slate-700/50 px-2 py-0.5 rounded border border-slate-600/50">
+                        {currentVal.toFixed(2)}% &rarr; <span className="text-blue-400">{newLeverVal.toFixed(2)}%</span>
                     </span>
                 </div>
 
@@ -177,14 +177,14 @@ const SinglePathCard = ({ path, model, financials, deltaY, timeHorizon }) => {
                     <div className={`h-2 rounded-full transition-all duration-300 ${percentOfGoal >= 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} style={{ width: `${Math.max(0, percentOfGoal)}%` }}></div>
                 </div>
 
-                <div className="flex justify-between items-center text-xs text-slate-500 font-bold border-b border-slate-100 pb-3 mb-2 border-dashed">
+                <div className="flex justify-between items-center text-xs text-slate-400 font-bold border-b border-slate-700/50 pb-3 mb-2 border-dashed">
                     <span>Delta: {sliderDelta > 0 ? '+' : ''}{sliderDelta.toFixed(2)} pts</span>
                     <span>Achieves {percentOfGoal.toFixed(0)}% of Goal</span>
                 </div>
 
-                <div className="text-sm font-semibold text-blue-900 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 flex items-center justify-between">
+                <div className="text-sm font-semibold text-blue-300 bg-blue-900/30 p-2.5 rounded-lg border border-blue-800/40 flex items-center justify-between">
                     <span>Required Annual Growth:</span>
-                    <span className="font-black text-blue-700">{calculateCagr(currentVal, newLeverVal, timeHorizon).toFixed(2)}% <span className="text-xs text-blue-500 font-medium">/yr</span></span>
+                    <span className="font-black text-blue-400">{calculateCagr(currentVal, newLeverVal, timeHorizon).toFixed(2)}% <span className="text-xs text-blue-500 font-medium">/yr</span></span>
                 </div>
 
                 <div className="pt-2 mt-2 grid grid-cols-2 gap-2">
@@ -559,9 +559,9 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {!isPresentationMode && (
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 mb-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                        <h2 className="text-2xl font-black text-blue-900 tracking-tight">
+                        <h2 className="text-2xl font-black text-white tracking-tight">
                             What Would It Take?
                         </h2>
                         <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-1 rounded text-xs font-bold shadow-sm uppercase tracking-wider">
@@ -569,7 +569,7 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                         </span>
                     </div>
                     {model && (
-                        <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                        <div className="text-xs font-bold text-slate-400 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
                             Model Version: {model.schema_version} (as of {new Date(model.trained_on.asof).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
                         </div>
                     )}
@@ -579,15 +579,15 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 {/* Left Column: Target Selector */}
                 <div className="md:col-span-4 space-y-4">
-                    <div className="bg-white border text-left border-slate-200 rounded-xl p-5 shadow-sm relative overflow-hidden">
+                    <div className="glass-panel-dark !mb-0 text-left relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-0"></div>
-                        <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 relative z-10">Configure Goal</h3>
+                        <h3 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 relative z-10">Configure Goal</h3>
 
                         <div className="space-y-4 relative z-10">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Target Metric</label>
                                 <select
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                                     value={targetKpi}
                                     onChange={(e) => setTargetKpi(e.target.value)}
                                 >
@@ -600,7 +600,7 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Target Type</label>
                                 <select
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none disabled:opacity-50"
+                                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none disabled:opacity-50"
                                     value={targetType}
                                     onChange={(e) => setTargetType(e.target.value)}
                                 >
@@ -618,14 +618,14 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                                     </svg>
                                     Scenario Horizon
                                 </label>
-                                <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                                <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700">
                                     {[1, 3, 5].map(years => (
                                         <button
                                             key={years}
                                             onClick={() => setTimeHorizon(years)}
                                             className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${timeHorizon === years
-                                                ? 'bg-white text-blue-900 shadow-sm border border-slate-200'
-                                                : 'text-slate-500 hover:text-blue-700'
+                                                ? 'bg-slate-700 text-white shadow-sm border border-slate-600'
+                                                : 'text-slate-400 hover:text-slate-200'
                                                 }`}
                                         >
                                             {years} Yr{years > 1 ? 's' : ''}
@@ -653,8 +653,8 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                     </div>
                 ) : (
                     <div className="md:col-span-8 space-y-6">
-                        <div className="bg-blue-900/5 p-6 rounded-xl border border-blue-100 relative text-left">
-                            <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                        <div className="bg-slate-800/60 p-6 rounded-xl border border-slate-700/50 relative text-left backdrop-blur-sm">
+                            <h3 className="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5V2a1 1 0 112 0v5a1 1 0 01-1 1h-5z" clipRule="evenodd" />
                                     <path d="M2.293 12.293a1 1 0 011.414 0L11 4.586 15.586 9H13a1 1 0 110-2h5v5a1 1 0 11-2 0V9.414l-5.293 5.293a1 1 0 01-1.414 0L6 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L5.293 10 9 13.707l5.586-5.586L13 9.414V11a1 1 0 11-2 0v-5a1 1 0 011-1h5a1 1 0 110 2h-2.586l4.293 4.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0L6 11.414l-3.707 3.707a1 1 0 01-1.414-1.414l4.414-4.414L2.293 12.293z" />
@@ -662,10 +662,10 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                                 Required Lever Movements
                             </h3>
 
-                            <div className="mb-6 flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-slate-200">
+                            <div className="mb-6 flex items-center justify-between bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-700/50">
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current {formatLabel(targetKpi)}</span>
-                                    <span className="text-xl font-black text-slate-700">{currentValue.toFixed(2)}%</span>
+                                    <span className="text-xl font-black text-slate-200">{currentValue.toFixed(2)}%</span>
                                 </div>
                                 <div className="flex flex-col items-center px-4">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Gap</span>
@@ -677,7 +677,7 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                                 </div>
                                 <div className="flex flex-col items-end">
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target ({targetType.replaceAll('_', ' ')})</span>
-                                    <span className="text-xl font-black text-blue-900">{currentTarget.toFixed(2)}%</span>
+                                    <span className="text-xl font-black text-blue-300">{currentTarget.toFixed(2)}%</span>
                                 </div>
                             </div>
 
