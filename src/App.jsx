@@ -466,6 +466,8 @@ function App() {
                             setSecondaryBank={setSecondaryBank}
                             secondaryFinancials={secondaryFinancials}
                             loadingSecondary={loadingSecondary}
+                            bankName={selectedBank?.NAME}
+                            currentQuarter={CURRENT_QUARTER}
                           />
                         </div>
                       )}

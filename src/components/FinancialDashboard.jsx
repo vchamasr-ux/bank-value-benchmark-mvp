@@ -3,16 +3,18 @@ import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
 import { exportDashboardToPDF } from '../utils/pdfExport';
+import { exportKPIsToCSV } from '../utils/csvExport';
 import PrintContainer from './pdf/PrintContainer';
 import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
 
-const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, loadingSecondary }) => {
+const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, loadingSecondary, bankName, currentQuarter }) => {
 
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [exportError, setExportError] = useState(null);
     const [aiSummary, setAiSummary] = useState('');
+    const [csvExporting, setCsvExporting] = useState(false);
 
     const handlePresentLiveToggled = () => {
         setIsPresentMode(!isPresentMode);
@@ -39,6 +41,23 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             setExportError("PDF export failed. Please try again.");
         } finally {
             setIsExporting(false);
+        }
+    };
+
+    const handleExportCSV = () => {
+        setCsvExporting(true);
+        try {
+            exportKPIsToCSV(
+                bankName || financials.raw?.NAME || 'Bank',
+                financials,
+                benchmarks,
+                currentQuarter
+            );
+        } catch (err) {
+            console.error('CSV export failed:', err);
+        } finally {
+            // Reset after a tick so the spinner shows briefly
+            setTimeout(() => setCsvExporting(false), 600);
         }
     };
 
@@ -92,6 +111,26 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                                     </svg>
                                 )}
                                 <span>PDF</span>
+                            </button>
+                            <div className="w-px h-5 bg-slate-700 mx-1"></div>
+                            <button
+                                id="export-csv-btn"
+                                onClick={handleExportCSV}
+                                disabled={csvExporting}
+                                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${csvExporting
+                                    ? 'text-slate-600 cursor-not-allowed'
+                                    : 'text-emerald-400 hover:bg-emerald-900/40 hover:text-emerald-300'
+                                    }`}
+                                title="Download KPIs as CSV spreadsheet"
+                            >
+                                {csvExporting ? (
+                                    <div className="w-3 h-3 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin"></div>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                )}
+                                <span>CSV</span>
                             </button>
                         </div>
 
