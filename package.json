@@ -20,6 +20,8 @@
     "test:visual": "npx playwright test tests/visual.spec.js --reporter=list",
     "test:a11y": "npx playwright test tests/a11y-polish.spec.js --reporter=list",
     "test:quality": "npm run lint && npm run test:circular && npm run test:duplicates && npm run test:garbage && npm run test:a11y",
+    "test:features": "npx playwright test tests/feature-wiring.spec.js tests/csv-export.spec.js tests/ui-polish.spec.js --reporter=list",
+    "test:layout": "npx playwright test tests/layout-overflow.spec.js --reporter=list",
     "test:lighthouse": "npx playwright test tests/lighthouse.spec.js --reporter=list",
     "prepare": "husky"
   },
