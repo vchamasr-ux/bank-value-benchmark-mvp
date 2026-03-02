@@ -193,4 +193,57 @@ test.describe('UI Polish & Aesthetics', () => {
             expect(cardBg, 'Path A card must not be white').not.toBe('rgb(255, 255, 255)');
         }
     });
+
+    // ── NEW: Tab Subtitle Tests ────────────────────────────────────────────────
+
+    test('Benchmarks tab shows "Financial KPIs" subtitle', async ({ page }) => {
+        // Subtitle is visible on landing page (no bank required)
+        const subtitle = page.locator('text=Financial KPIs');
+        await expect(subtitle).toBeVisible({ timeout: 5000 });
+    });
+
+    test('Radar and Planner tabs show "Select a bank" subtitle when no bank is selected', async ({ page }) => {
+        // On landing page, both Radar and Planner should be locked
+        // Their subtitle should be "Select a bank"
+        const selectABankHints = page.locator('text=Select a bank');
+        // Both Radar and Planner show this hint — expect at least 2
+        await expect(selectABankHints.first()).toBeVisible({ timeout: 5000 });
+        const count = await selectABankHints.count();
+        expect(count, 'Expected "Select a bank" to appear on both Radar and Planner tabs').toBeGreaterThanOrEqual(2);
+    });
+
+    test('Radar tab shows "Market Position" subtitle after bank is loaded', async ({ page }) => {
+        await page.locator('input[placeholder="Enter bank name..."]').fill('chase');
+        const firstResult = page.locator('li:has-text("chase")').first();
+        await expect(firstResult).toBeVisible({ timeout: 15000 });
+        await firstResult.click();
+        await page.waitForSelector('text=Financial Health Scorecard', { timeout: 20000 });
+
+        // After bank loads, locked tabs should unlock and show descriptive subtitles
+        await expect(page.locator('text=Market Position')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('text=Scenario Modeling')).toBeVisible({ timeout: 5000 });
+    });
+
+    // ── NEW: Compare Row Hover Affordance ─────────────────────────────────────
+
+    test('PeerGroupModal bank rows show "→ Compare" badge on hover', async ({ page }) => {
+        await page.locator('input[placeholder="Enter bank name..."]').fill('chase');
+        const firstResult = page.locator('li:has-text("chase")').first();
+        await expect(firstResult).toBeVisible({ timeout: 15000 });
+        await firstResult.click();
+
+        // Open the peer modal via the N= badge
+        await expect(page.locator('.badge-premium')).toBeVisible({ timeout: 30000 });
+        await page.locator('.badge-premium').click();
+        await expect(page.locator('text=Comparison Sample Group')).toBeVisible({ timeout: 5000 });
+
+        // The → Compare pill should exist in the DOM (opacity-0 by default)
+        const comparePill = page.locator('text=→ Compare').first();
+        await expect(comparePill).toBeAttached({ timeout: 5000 });
+
+        // Hover the first bank row — the pill should become visible
+        const firstRow = page.locator('tbody tr').first();
+        await firstRow.hover();
+        await expect(comparePill).toBeVisible({ timeout: 2000 });
+    });
 });
