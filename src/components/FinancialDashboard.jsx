@@ -47,9 +47,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     // Note: kpiCalculator returns strings. ParseFloat needed.
     return (
         <div id="dashboard-export-zone" className="space-y-8 overflow-x-hidden w-full">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0">
-                    <h2 className="font-extrabold text-white tracking-tight text-2xl whitespace-nowrap">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 shrink-0">
+                    <h2 className="font-extrabold text-white tracking-tight text-2xl break-words">
                         Financial Health Scorecard
                     </h2>
                     <button
@@ -63,7 +63,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                     </button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
+                <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0 min-w-0 overflow-x-auto">
                     <div className="flex border border-slate-700/50 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-slate-500 bg-slate-800/50 backdrop-blur-md items-center p-1">
                         <button
                             onClick={handlePresentLiveToggled}
