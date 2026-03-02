@@ -44,62 +44,52 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks, subjectState, onBankSel
                 <div className="flex flex-1 overflow-hidden min-h-0">
 
                     {/* Left: Map panel — fixed width, vertically centered */}
-                    <div className="w-80 shrink-0 border-r border-white/10 flex flex-col items-center justify-center gap-3 p-5 bg-slate-900/30">
+                    <div className="w-72 shrink-0 border-r border-white/10 flex flex-col items-center justify-center gap-3 p-5 bg-slate-900/30">
                         <USMap subjectState={subjectState} peerStates={peerStateCounts} />
                         <p className="text-xs text-slate-500 italic text-center leading-relaxed">
                             Click any bank →<br />to compare side-by-side
                         </p>
                     </div>
 
-                    {/* Right: Bank list — independently scrollable */}
-                    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-
-                        {/* Sticky column headers */}
-                        <div className="shrink-0 bg-slate-800/80 border-b border-white/10">
-                            <table className="min-w-full">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Bank Name</th>
-                                        <th scope="col" className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Location</th>
-                                        <th scope="col" className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Total Assets</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-
-                        {/* Scrollable rows */}
-                        <div className="flex-1 overflow-y-auto">
-                            <table className="min-w-full">
-                                <tbody className="divide-y divide-white/5">
-                                    {banks && banks.length > 0 ? (
-                                        banks.map((bank, index) => (
-                                            <tr
-                                                key={`${bank.name}-${index}`}
-                                                className="hover:bg-blue-900/40 transition-colors cursor-pointer group"
-                                                onClick={() => onBankSelect && onBankSelect(bank)}
-                                                title="Click to compare side-by-side"
-                                            >
-                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
-                                                    {bank.name}
-                                                </td>
-                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-slate-400">
-                                                    {bank.city}, {bank.state}
-                                                </td>
-                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-slate-200 text-right font-mono">
-                                                    ${(bank.asset / 1000000).toFixed(1)}B
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="3" className="px-5 py-8 text-center text-sm text-slate-500 italic">
-                                                No peer bank details available.
+                    {/* Right: Bank list — independently scrollable, no horizontal overflow */}
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+                        <table className="w-full">
+                            <thead className="bg-slate-800/90 sticky top-0 z-10">
+                                <tr>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Bank</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">City, State</th>
+                                    <th scope="col" className="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider w-24">Assets</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {banks && banks.length > 0 ? (
+                                    banks.map((bank, index) => (
+                                        <tr
+                                            key={`${bank.name}-${index}`}
+                                            className="hover:bg-blue-900/40 transition-colors cursor-pointer group"
+                                            onClick={() => onBankSelect && onBankSelect(bank)}
+                                            title="Click to compare side-by-side"
+                                        >
+                                            <td className="px-4 py-3 text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors max-w-[200px] truncate">
+                                                {bank.name}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-400 whitespace-nowrap">
+                                                {bank.city}, {bank.state}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-200 text-right font-mono whitespace-nowrap w-24">
+                                                ${(bank.asset / 1000000).toFixed(1)}B
                                             </td>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="3" className="px-4 py-8 text-center text-sm text-slate-500 italic">
+                                            No peer bank details available.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
