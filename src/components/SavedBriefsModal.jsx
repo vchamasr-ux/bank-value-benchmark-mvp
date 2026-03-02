@@ -268,7 +268,7 @@ const SavedBriefsModal = ({ isOpen, onClose }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
 
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white/95 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/20 w-full max-w-5xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                 {/* Side Panel: List of briefs */}
                 <div className={`w-full md:w-1/3 border-r border-gray-100 bg-gray-50 flex flex-col ${selectedBrief ? 'hidden md:flex' : 'flex'}`}>
                     <div className="p-6 border-b border-gray-200 bg-white">

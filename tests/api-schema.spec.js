@@ -21,7 +21,13 @@ test.describe('API Schema Regression Guard', () => {
             await route.fulfill({ response });
         });
 
-        await page.goto('/?acq=628&tgt=3510');
+        await page.goto('/');
+        const searchInput = page.locator('#bank-search-input');
+        await expect(searchInput).toBeVisible({ timeout: 15000 });
+        await searchInput.fill('JPMorgan Chase');
+        const firstResult = page.locator('[data-testid="bank-result"]').or(page.getByRole('option').first()).or(page.locator('li').filter({ hasText: /JPMorgan/i }).first());
+        await expect(firstResult).toBeVisible({ timeout: 10000 });
+        await firstResult.click();
         await page.waitForSelector('text=Efficiency Ratio', { timeout: 20000 });
 
         // Validate the captured response shape
@@ -51,7 +57,13 @@ test.describe('API Schema Regression Guard', () => {
             await route.fulfill({ response });
         });
 
-        await page.goto('/?acq=628&tgt=3510');
+        await page.goto('/');
+        const searchInput = page.locator('#bank-search-input');
+        await expect(searchInput).toBeVisible({ timeout: 15000 });
+        await searchInput.fill('JPMorgan Chase');
+        const firstResult = page.locator('[data-testid="bank-result"]').or(page.getByRole('option').first()).or(page.locator('li').filter({ hasText: /JPMorgan/i }).first());
+        await expect(firstResult).toBeVisible({ timeout: 10000 });
+        await firstResult.click();
         await page.waitForSelector('text=Efficiency Ratio', { timeout: 20000 });
 
         if (capturedBenchmarkResponse) {
@@ -70,7 +82,13 @@ test.describe('API Schema Regression Guard', () => {
             await route.fulfill({ status: 500, body: 'Internal Server Error' });
         });
 
-        await page.goto('/?acq=628&tgt=3510');
+        await page.goto('/');
+        const searchInput = page.locator('#bank-search-input');
+        await expect(searchInput).toBeVisible({ timeout: 15000 });
+        await searchInput.fill('JPMorgan Chase');
+        const firstResult = page.locator('[data-testid="bank-result"]').or(page.getByRole('option').first()).or(page.locator('li').filter({ hasText: /JPMorgan/i }).first());
+        await expect(firstResult).toBeVisible({ timeout: 10000 });
+        await firstResult.click();
         await page.waitForTimeout(3000);
 
         // Should show ErrorBoundary or graceful error — NOT a blank white screen

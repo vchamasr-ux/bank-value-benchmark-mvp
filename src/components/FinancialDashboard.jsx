@@ -107,7 +107,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             {benchmarks.sampleSize && (
                                 <button
                                     onClick={() => setIsPeerModalOpen(true)}
-                                    className="text-blue-600 font-bold ml-1 hover:text-blue-800 bg-blue-100/50 hover:bg-blue-100 px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
+                                    className="badge-premium ml-2"
                                     title="View Peer Group List"
                                 >
                                     N={benchmarks.sampleSize}
@@ -116,42 +116,23 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                         </div>
                     )}
 
-                    {benchmarks && benchmarks.peerBanks && !isPresentMode && (
+                    {benchmarks && benchmarks.peerBanks && !isPresentMode && secondaryBank && (
                         <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50 shrink-0">
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Compare:</span>
-                            {loadingSecondary ? (
-                                <span className="text-sm text-slate-400 font-bold">Loading...</span>
-                            ) : (
-                                <select
-                                    value={secondaryBank ? (secondaryBank.CERT || secondaryBank.cert) : ""}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (!val) {
-                                            if (setSecondaryBank) setSecondaryBank(null);
-                                        } else {
-                                            const peer = benchmarks.peerBanks.find(p => String(p.cert) === String(val) || String(p.CERT) === String(val));
-                                            if (peer && setSecondaryBank) {
-                                                setSecondaryBank({
-                                                    CERT: peer.cert || peer.CERT,
-                                                    NAME: peer.name || peer.NAME,
-                                                    CITY: peer.city || peer.CITY,
-                                                    STNAME: peer.state || peer.STNAME,
-                                                    STALP: peer.stalp || peer.STALP,
-                                                });
-                                            }
-                                        }
-                                    }}
-                                    className="bg-transparent text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors outline-none cursor-pointer max-w-[200px] truncate"
-                                    title="Select a peer bank to compare side-by-side"
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-purple-400 max-w-[200px] truncate" title={secondaryBank.NAME || secondaryBank.name}>
+                                    {secondaryBank.NAME || secondaryBank.name}
+                                </span>
+                                <button
+                                    onClick={() => setSecondaryBank(null)}
+                                    className="text-slate-500 hover:text-red-400 transition-colors p-0.5 rounded-full hover:bg-slate-700/50"
+                                    title="Clear comparison"
                                 >
-                                    <option value="" className="bg-slate-800 text-slate-300">None</option>
-                                    {benchmarks.peerBanks.map(peer => (
-                                        <option key={peer.cert || peer.CERT} value={peer.cert || peer.CERT} className="bg-slate-800 text-slate-300">
-                                            {peer.name || peer.NAME}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     )}
                     {/* Removed Data as of FDIC badge from here, relocated to App.jsx bank header */}
@@ -165,6 +146,18 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 title={`Peer Group: ${benchmarks?.groupName}`}
                 banks={benchmarks?.peerBanks}
                 subjectState={financials?.raw?.STALP}
+                onBankSelect={(bank) => {
+                    if (setSecondaryBank) {
+                        setSecondaryBank({
+                            CERT: bank.cert || bank.CERT,
+                            NAME: bank.name || bank.NAME,
+                            CITY: bank.city || bank.CITY,
+                            STNAME: bank.state || bank.STNAME,
+                            STALP: bank.stalp || bank.STALP,
+                        });
+                    }
+                    setIsPeerModalOpen(false);
+                }}
             />
 
             {/* AI Summary Modal */}
@@ -179,9 +172,9 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
 
 
             {/* Growth Performance (New) */}
-            <div className="relative bg-[#0B1120] p-6 pt-8 rounded-xl shadow-2xl border border-slate-800/60 mb-8 overflow-hidden animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="glass-panel-dark group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                 {/* Glowing Left Border Accent */}
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
+                <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-xl bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
 
                 <h3 className="text-xl font-extrabold text-white mb-4 flex items-center gap-2 px-2 tracking-wide">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -235,8 +228,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Operational Efficiency & Margin */}
-            <div className="relative bg-[#0B1120] p-6 pt-8 rounded-xl shadow-2xl border border-slate-800/60 mb-8 overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
+            <div className="glass-panel-dark group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-xl bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
                 <h3 className="text-xl font-extrabold text-white mb-4 flex items-center gap-2 px-2 tracking-wide">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -287,8 +280,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Revenue Generation & Productivity */}
-            <div className="relative bg-[#0B1120] p-6 pt-8 rounded-xl shadow-2xl border border-slate-800/60 mb-8 overflow-hidden animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
+            <div className="glass-panel-dark group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-xl bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
                 <h3 className="text-xl font-extrabold text-white mb-4 flex items-center gap-2 px-2 tracking-wide">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
@@ -338,8 +331,8 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
             </div>
 
             {/* Returns & Asset Quality */}
-            <div className="relative bg-[#0B1120] p-6 pt-8 rounded-xl shadow-2xl border border-slate-800/60 animate-fade-in-up overflow-hidden" style={{ animationDelay: '400ms' }}>
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
+            <div className="glass-panel-dark group animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-xl bg-gradient-to-b from-purple-500 via-indigo-500 to-blue-500 shadow-[2px_0_15px_rgba(99,102,241,0.5)]"></div>
                 <h3 className="text-xl font-extrabold text-white mb-4 flex items-center gap-2 px-2 tracking-wide">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

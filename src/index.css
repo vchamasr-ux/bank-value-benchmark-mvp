@@ -9,6 +9,9 @@
     --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
     --shadow-premium-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
 
+    --shadow-glass-dark: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --shadow-glass-dark-hover: 0 8px 30px rgba(59, 130, 246, 0.15);
+
     --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -33,6 +36,16 @@
     100% {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@layer components {
+    .glass-panel-dark {
+        @apply relative bg-[#0B1120]/90 backdrop-blur-xl p-6 pt-8 rounded-xl shadow-[var(--shadow-glass-dark)] border border-white/10 mb-8 transition-all duration-300 hover:shadow-[var(--shadow-glass-dark-hover)];
+    }
+
+    .badge-premium {
+        @apply bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold px-2.5 py-0.5 rounded-full text-xs shadow-sm backdrop-blur-sm transition-colors hover:bg-blue-600/30 hover:border-blue-500/50 cursor-pointer;
     }
 }
 

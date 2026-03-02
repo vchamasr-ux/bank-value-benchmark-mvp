@@ -176,7 +176,7 @@ const OperationalDashboard = ({ assetSize = 0 }) => {
             {/* Gauges Grid */}
             {/* If NOT unlocked: opacity-50, blur, and use Benchmark Data. */}
             {/* If unlocked: normal opacity, no blur, and use Form Data (User Input). */}
-            <div className={`bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-slate-700/50 ring-1 ring-white/5 transition-all duration-500 ${!isUnlocked ? 'opacity-50 filter blur-[2px]' : ''}`}>
+            <div className={`bg-slate-900/40 backdrop-blur-xl p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-slate-700/50 ring-1 ring-white/5 transition-all duration-500 hover:shadow-[0_8px_30px_rgba(59,130,246,0.15)] group ${!isUnlocked ? 'opacity-50 filter blur-[2px]' : ''}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                     <GaugeChart
                         label="Digital Adoption"

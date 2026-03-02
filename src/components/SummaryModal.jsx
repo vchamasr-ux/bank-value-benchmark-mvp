@@ -255,7 +255,7 @@ const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = 
                 onClick={onClose}
             ></div>
 
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white/95 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/20 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/80">
                     <div className="flex items-center gap-3">
                         <div className="bg-blue-100 p-2 rounded-lg">

@@ -164,7 +164,7 @@ const PitchbookPresentation = ({
                     <div className="mt-2 text-slate-500 font-medium">
                         {selectedBank.CITY}, {selectedBank.STNAME} • Cert: {selectedBank.CERT}
                     </div>
-                    <div className="absolute bottom-16 w-full text-center">
+                    <div className="mt-12 text-center relative z-10 w-full">
                         <p className="text-slate-500 text-sm font-bold tracking-widest uppercase">{currentQuarter} Performance Review</p>
                     </div>
                 </div>

@@ -179,7 +179,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                         ))}
                     </Pie>
                     <RechartsTooltip
-                        wrapperStyle={{ zIndex: 9999, position: 'fixed' }}
+                        wrapperStyle={{ zIndex: 100 }}
                         formatter={() => ''}
                         separator=""
                         content={({ active, payload }) => {
