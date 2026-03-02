@@ -231,35 +231,42 @@ function App() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setView('benchmark')}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'benchmark'
+                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'benchmark'
                         ? 'bg-blue-900/40 text-blue-300'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Benchmarks</span>
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'benchmark' ? 'text-blue-400/70' : 'text-slate-600'}`}>Financial KPIs</span>
                     </button>
                     <button
                       onClick={() => setView('movers')}
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'movers'
+                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'movers'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
                           ? 'text-slate-600 opacity-40 cursor-not-allowed'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Radar</span>
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-400/70' : !selectedBank ? 'text-slate-700' : 'text-slate-600'}`}>
+                        {!selectedBank ? 'Select a bank' : 'Market Position'}
+                      </span>
                     </button>
                     <button
                       onClick={() => setView('planner')}
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'planner'
+                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'planner'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
                           ? 'text-slate-600 opacity-40 cursor-not-allowed'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Planner</span>
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-400/70' : !selectedBank ? 'text-slate-700' : 'text-slate-600'}`}>
+                        {!selectedBank ? 'Select a bank' : 'Scenario Modeling'}
+                      </span>
                     </button>
                   </div>
 

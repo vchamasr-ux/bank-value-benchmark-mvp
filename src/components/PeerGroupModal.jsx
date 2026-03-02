@@ -71,7 +71,10 @@ const PeerGroupModal = ({ isOpen, onClose, title, banks, subjectState, onBankSel
                                             title="Click to compare side-by-side"
                                         >
                                             <td className="px-4 py-3 text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
-                                                {bank.name}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{bank.name}</span>
+                                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-blue-400 bg-blue-900/40 px-1.5 py-0.5 rounded whitespace-nowrap">→ Compare</span>
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-slate-400 whitespace-nowrap">
                                                 {bank.city}, {bank.state}
