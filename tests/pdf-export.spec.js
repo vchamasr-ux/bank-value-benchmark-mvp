@@ -9,6 +9,16 @@ import os from 'os';
  */
 
 async function loadJPMorgan(page) {
+    // Inject auth state to bypass LinkedIn login walls
+    await page.addInitScript(() => {
+        localStorage.setItem('feat_auth_required', 'false');
+        localStorage.setItem('auth_user', JSON.stringify({
+            name: 'Playwright Test User',
+            email: 'test@example.com',
+            sub: 'playwright|123456'
+        }));
+    });
+
     await page.goto('/');
     const input = page.locator('input[placeholder="Enter bank name..."]');
     await expect(input).toBeVisible({ timeout: 15000 });
