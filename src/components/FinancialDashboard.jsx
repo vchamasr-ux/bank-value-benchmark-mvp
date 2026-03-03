@@ -7,7 +7,7 @@ import { exportKPIsToCSV } from '../utils/csvExport';
 import PrintContainer from './pdf/PrintContainer';
 import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
 
-const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, loadingSecondary, bankName, currentQuarter }) => {
+const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, bankName, currentQuarter }) => {
 
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);

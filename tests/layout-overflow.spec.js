@@ -37,16 +37,7 @@ async function elementHasHorizontalScroll(locator) {
     return locator.evaluate(el => el.scrollWidth > el.clientWidth + 2); // +2px tolerance for sub-pixel
 }
 
-/** Returns what % of the viewport height is filled with visible content */
-async function contentFillPercent(page) {
-    return page.evaluate(() => {
-        const viewport = window.innerHeight;
-        const scrollH = document.documentElement.scrollHeight;
-        // Ratio: how much of viewport height is actual content (pre-scroll)
-        const firstScreenContent = Math.min(scrollH, viewport);
-        return Math.round((firstScreenContent / viewport) * 100);
-    });
-}
+
 
 // ─── Suite 1: Page-level horizontal scroll ────────────────────────────────────
 

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The 30-Second Executive Diagnostic | Built with BankValue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy: #050d1a;
+            --panel: #0b1628;
+            --glass: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --blue: #3b82f6;
+            --indigo: #6366f1;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text: #e2e8f0;
+            --muted: #64748b;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── HUD Nav ─────────────────────────────────────────── */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--rose), var(--emerald));
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        #slide-nav {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 99;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            border: 1px solid var(--muted);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-dot.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            transform: scale(1.4);
+        }
+
+        /* ── Layout ──────────────────────────────────────────── */
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .slide.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide-inner {
+            max-width: 1040px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .split-slide {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 56px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .split-slide {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Typography & Components ─────────────────────────── */
+        .eyebrow {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .eyebrow::before {
+            content: 'STEP';
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 9px;
+        }
+
+        h1 {
+            font-size: clamp(2.4rem, 5vw, 4.2rem);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-red {
+            background: linear-gradient(135deg, #f43f5e, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lead {
+            font-size: 1.15rem;
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            padding: 32px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+        }
+
+        .bank-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #93c5fd;
+            margin-bottom: 24px;
+        }
+
+        /* ── Scatterplot Replica ─────────────────────────────── */
+        .scatter-container {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            border-bottom: 2px solid var(--border);
+            border-left: 2px solid var(--border);
+            padding: 20px;
+        }
+
+        .scatter-axis-x {
+            position: absolute;
+            bottom: -28px;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .scatter-axis-y {
+            position: absolute;
+            left: -140px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .scatter-node {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--muted);
+            opacity: 0.5;
+            transform: translate(-50%, 50%);
+            transition: all 0.5s;
+        }
+
+        .scatter-node.outlier {
+            background: var(--rose);
+            opacity: 1;
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.6);
+            z-index: 10;
+            animation: pulseRed 2s infinite;
+        }
+
+        @keyframes pulseRed {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(244, 63, 94, 0.8);
+            }
+        }
+
+        .scatter-label {
+            position: absolute;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--rose);
+            white-space: nowrap;
+        }
+
+        /* ── Gauge Component ─────────────────────────────────── */
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .gauge {
+            text-align: center;
+            padding: 24px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .gauge-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .gauge-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .gauge-sub {
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .gauge.good .gauge-val {
+            color: var(--emerald);
+        }
+
+        .gauge.bad .gauge-val {
+            color: var(--rose);
+        }
+
+        /* ── Strategic Planner ───────────────────────────────── */
+        .planner-ui {
+            background: #0b1628;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .planner-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .planner-body {
+            padding: 32px 24px;
+        }
+
+        .slider-track {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+            position: relative;
+            margin: 32px 0;
+        }
+
+        .slider-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--emerald);
+            border-radius: 99px;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+        }
+
+        .impact-box {
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            text-align: center;
+        }
+
+        /* ── CTA ──────────────────────────────────────────────── */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #1e293b;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            z-index: 50;
+            text-transform: uppercase;
+        }
+
+        .arrow-down {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            animation: float 2.5s ease-in-out infinite;
+            margin-top: 40px;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(6px);
+            }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: 99px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            border: 1px solid var(--border);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="progress-bar"></div>
+    <nav id="slide-nav">
+        <div class="nav-dot active" onclick="scrollToSlide(0)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(1)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(2)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(3)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(4)"></div>
+    </nav>
+
+    <div class="watermark">BANKVALUE · LIVE FDIC INSIGHTS</div>
+
+    <!-- ==============================================
+     SLIDE 0: TITLE
+=============================================== -->
+    <section class="slide" id="slide-0">
+        <div class="slide-inner" style="align-items:center; text-align:center;">
+            <div
+                style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border:1px solid rgba(255,255,255,0.1); border-radius:99px; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#94a3b8; margin-bottom:24px;">
+                <span
+                    style="display:inline-block; width:8px; height:8px; background:var(--emerald); border-radius:50%; box-shadow:0 0 10px var(--emerald);"></span>
+                Live Case Study
+            </div>
+
+            <h1>The 30-Second<br /><span class="gradient-text">Executive Diagnostic</span></h1>
+
+            <p class="lead" style="margin: 0 auto 36px; max-width:680px;">
+                Most bank executives wait 45 days for a board packet to diagnose structural flaws.
+                I built a web app that connects directly to the FDIC to do it visually, in exactly 3 clicks.
+            </p>
+
+            <div class="arrow-down" onclick="scrollToSlide(1)">
+                Scroll to view the teardown
+                <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 0v16M2 10l6 8 6-8" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==============================================
+     SLIDE 1: THE RADAR
+=============================================== -->
+    <section class="slide" id="slide-1">
+        <div class="slide-inner split-slide">
+
+            <div>
+                <div class="eyebrow">Identify the Outlier</div>
+                <h2>Spot broken operating models <span class="gradient-text-red">instantly.</span></h2>
+                <p class="lead">
+                    Using the app's <strong>Competitor Radar</strong>, we map our performance against our peer group.
+                </p>
+                <p class="lead">
+                    This bank sits completely detached in the bottom-right quadrant. We generate massive revenue for our
+                    size (X-axis), but our overall profitability is scraping the bottom (Y-axis). <strong
+                        style="color:white;">Why?</strong>
+                </p>
+            </div>
+
+            <div class="glass-card">
+                <div
+                    style="font-size:13px; font-weight:700; color:white; margin-bottom:32px; letter-spacing:0.05em; text-transform:uppercase;">
+                    Peer Distribution (Performance)</div>
+
+                <div class="scatter-container">
+                    <!-- Axes -->
+                    <div class="scatter-axis-x">Net Interest Income (Revenue Core) →</div>
+                    <div class="scatter-axis-y">← Return on Assets (Profitability)</div>
+
+                    <!-- Peer Nodes (Random distribution top left / middle) -->
+                    <div class="scatter-node" style="left: 20%; bottom: 60%;"></div>
+                    <div class="scatter-node" style="left: 35%; bottom: 75%;"></div>
+                    <div class="scatter-node" style="left: 45%; bottom: 80%;"></div>
+                    <div class="scatter-node" style="left: 50%; bottom: 65%;"></div>
+                    <div class="scatter-node" style="left: 60%; bottom: 55%;"></div>
+                    <div class="scatter-node" style="left: 25%; bottom: 45%;"></div>
+                    <div class="scatter-node" style="left: 40%; bottom: 50%;"></div>
+                    <div class="scatter-node" style="left: 30%; bottom: 85%;"></div>
+
+                    <!-- The Outlier Node (Bottom Right) -->
+                    <div class="scatter-node outlier" style="left: 85%; bottom: 20%;"></div>
+
+                    <div class="scatter-label" style="left: 85%; bottom: 30%; transform: translateX(-50%);">
+                        Federal Savings Bank
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==============================================
+     SLIDE 2: THE GAUGES
+=============================================== -->
+    <section class="slide" id="slide-2">
+        <div class="slide-inner split-slide" style="grid-template-columns: 1fr 1.2fr;">
+
+            <div style="order:2;">
+                <div class="eyebrow">Diagnose the Flaw</div>
+                <h2>Great engine.<br /><span class="gradient-text-red">Terrible overhead.</span></h2>
+                <p class="lead">
+                    We drill down into the dashboard scorecard. The core banking engine is actually fantastic. We're
+                    making great loans (Yield) and generating almost 5x the revenue of an average peer.
+                </p>
+                <p class="lead" style="margin-bottom:0;">
+                    <strong>The fatal flaw:</strong> Our Efficiency Ratio is flashing deep red at 94.2%. We are spending
+                    94 cents of every revenue dollar just to keep the lights on and pay legacy overhead.
+                </p>
+            </div>
+
+            <div style="order:1;">
+                <div class="gauge-grid">
+                    <div class="gauge good">
+                        <div class="gauge-title">Net Interest Margin</div>
+                        <div class="gauge-val">3.20%</div>
+                        <div class="gauge-sub">Average (P50)</div>
+                    </div>
+                    <div class="gauge good">
+                        <div class="gauge-title">Revenue Generation</div>
+                        <div class="gauge-val">18.4%</div>
+                        <div class="gauge-sub">Top Quartile (P75)</div>
+                    </div>
+                    <div class="gauge bad"
+                        style="grid-column: span 2; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05);">
+                        <div class="gauge-title" style="color: #fda4af;">Efficiency Ratio (Overhead)</div>
+                        <div class="gauge-val">94.2%</div>
+                        <div class="gauge-sub" style="color: #f43f5e;">Danger: Peer Average is 64.7%</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==============================================
+     SLIDE 3: THE PLANNER
+=============================================== -->
+    <section class="slide" id="slide-3">
+        <div class="slide-inner split-slide">
+
+            <div>
+                <div class="eyebrow">Strategic Planner</div>
+                <h2>Instantly quantify<br />the <span class="gradient-text">Required Action</span>.</h2>
+                <p class="lead">
+                    As an executive, knowing your overhead is high doesn't help execution. Knowing the exact dollar
+                    amount you need to cut does.
+                </p>
+                <p class="lead">
+                    I built a <strong>Strategic Planner</strong> directly into the app. We drag our efficiency ratio
+                    target down to match the peer average, and the engine calculates exactly what management needs to
+                    authorize cutting to hit top-quartile earnings.
+                </p>
+            </div>
+
+            <!-- Planner Mockup -->
+            <div class="planner-ui">
+                <div class="planner-header">
+                    <div
+                        style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:white;">
+                        ⚙️ Strategic Planner</div>
+                </div>
+                <div class="planner-body">
+                    <div
+                        style="font-size:13px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:8px;">
+                        Target Efficiency Ratio</div>
+                    <div
+                        style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-weight:800; font-size:24px;">
+                        <span style="color:var(--rose);">94.2% <span
+                                style="font-size:12px; font-family:'Inter'; color:var(--muted); font-weight:600;">(Current)</span></span>
+                        <span style="color:var(--emerald);">64.7% <span
+                                style="font-size:12px; font-family:'Inter'; color:var(--muted); font-weight:600;">(Target)</span></span>
+                    </div>
+
+                    <div class="slider-track">
+                        <div class="slider-fill" style="width: 100%;"></div>
+                        <div class="slider-handle" style="left: 100%;"></div>
+                    </div>
+
+                    <div class="impact-box" style="margin-top:24px;">
+                        <div
+                            style="font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#059669; margin-bottom:12px;">
+                            PRESCRIPTION</div>
+                        <div style="font-size:18px; color:white; font-weight:600; line-height:1.4;">
+                            Reduce Non-Interest Expense by<br />
+                            <span
+                                style="font-family:'JetBrains Mono'; font-size:32px; font-weight:800; color:#10b981;">$62M</span>
+                        </div>
+                        <div style="margin-top:12px; font-size:13px; color:#d1fae5;">
+                            ROA will increase from <strong>0.71%</strong> → <strong>6.16%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==============================================
+     SLIDE 4: CTA
+=============================================== -->
+    <section class="slide" id="slide-4">
+        <div class="slide-inner" style="align-items:center; text-align:center;">
+            <div class="eyebrow" style="justify-content:center;">The Tool</div>
+
+            <h2>I built <span style="color:white;">BankValue</span> so you don't<br />have to read pitchbooks.</h2>
+
+            <p class="lead" style="margin: 0 auto 40px; text-align:center;">
+                BankValue is a custom React web app that connects directly to the FDIC APIs. It handles automatic peer
+                grouping, algorithmic benchmarks, and generates a cohesive narrative in milliseconds.
+            </p>
+
+            <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+                <a href="https://bank-value-benchmark-mvp.vercel.app" target="_blank" class="btn btn-primary">
+                    🚀 Run a Diagnostic (Live App)
+                </a>
+                <a href="https://github.com/vchamasr-ux/bank-value-benchmark-mvp" target="_blank"
+                    class="btn btn-secondary">
+                    💻 View Source on GitHub
+                </a>
+            </div>
+
+            <div
+                style="margin-top: 48px; border-top: 1px solid var(--border); padding-top: 24px; color: var(--muted); font-size: 13px;">
+                Built from scratch with React, Tailwind, and Node.js. Test it on any of the 4,000+ US banks.
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.nav-dot');
+        const bar = document.getElementById('progress-bar');
+
+        function scrollToSlide(idx) { slides[idx].scrollIntoView({ behavior: 'smooth' }); }
+        window.scrollToSlide = scrollToSlide;
+
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    const idx = Array.from(slides).indexOf(e.target);
+                    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+                    bar.style.width = (((idx + 1) / slides.length) * 100) + '%';
+
+                    // Animate planner slider on slide 3
+                    if (idx === 3) {
+                        setTimeout(() => {
+                            const handle = document.querySelector('.slider-handle');
+                            const fill = document.querySelector('.slider-fill');
+                            if (handle) {
+                                handle.style.transition = 'all 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                                handle.style.left = '0%';
+                            }
+                            if (fill) {
+                                fill.style.transition = 'all 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                                fill.style.width = '0%';
+                            }
+                        }, 800);
+                    }
+                }
+            });
+        }, { threshold: 0.4 });
+
+        slides.forEach(s => obs.observe(s));
+        document.addEventListener('keydown', e => {
+            const current = Array.from(dots).findIndex(d => d.classList.contains('active'));
+            if (e.key === 'ArrowDown') { e.preventDefault(); scrollToSlide(Math.min(current + 1, slides.length - 1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); scrollToSlide(Math.max(current - 1, 0)); }
+        });
+    </script>
+</body>
+
+</html>

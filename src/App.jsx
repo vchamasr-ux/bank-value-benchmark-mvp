@@ -236,7 +236,7 @@ function App() {
                         : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Benchmarks</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'benchmark' ? 'text-blue-400/70' : 'text-slate-600'}`}>Financial KPIs</span>
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'benchmark' ? 'text-blue-300' : 'text-slate-500'}`}>Financial KPIs</span>
                     </button>
                     <button
                       onClick={() => setView('movers')}
@@ -249,7 +249,7 @@ function App() {
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Radar</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-400/70' : !selectedBank ? 'text-slate-700' : 'text-slate-600'}`}>
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-300' : !selectedBank ? 'text-slate-600' : 'text-slate-500'}`}>
                         {!selectedBank ? 'Select a bank' : 'Market Position'}
                       </span>
                     </button>
@@ -264,7 +264,7 @@ function App() {
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Planner</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-400/70' : !selectedBank ? 'text-slate-700' : 'text-slate-600'}`}>
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-300' : !selectedBank ? 'text-slate-600' : 'text-slate-500'}`}>
                         {!selectedBank ? 'Select a bank' : 'Scenario Modeling'}
                       </span>
                     </button>

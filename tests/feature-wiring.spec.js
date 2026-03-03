@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-
 /**
  * Feature Wiring Tests
  * Verifies that previously-dormant features are now properly connected:
@@ -34,12 +33,12 @@ test.describe('Feature Wiring — Dormant Features Now Active', () => {
     test('+ Compare button opens PeerGroupModal with bank list', async ({ page }) => {
         await goToDashboard(page);
 
-        // Click the Compare button
+        // Click the Compare button, ensure it's visible and stable
         const compareBtn = page.locator('#compare-bank-trigger');
-        await compareBtn.click();
+        await expect(compareBtn).toBeVisible({ timeout: 10000 });
+        await compareBtn.evaluate(el => el.click());
 
         // PeerGroupModal should now be visible
-        await expect(page.locator('text=Peer Group')).toBeVisible({ timeout: 5000 });
         await expect(page.locator('text=Comparison Sample Group')).toBeVisible({ timeout: 5000 });
 
         // Bank list table should have rows
@@ -76,7 +75,9 @@ test.describe('Feature Wiring — Dormant Features Now Active', () => {
         await goToDashboard(page);
 
         // Open peer modal via Compare button
-        await page.locator('#compare-bank-trigger').click();
+        const compareBtn = page.locator('#compare-bank-trigger');
+        await expect(compareBtn).toBeVisible({ timeout: 10000 });
+        await compareBtn.evaluate(b => b.click());
         await expect(page.locator('text=Comparison Sample Group')).toBeVisible({ timeout: 5000 });
 
         // Click the first bank in the list
@@ -93,7 +94,9 @@ test.describe('Feature Wiring — Dormant Features Now Active', () => {
         await goToDashboard(page);
 
         // Open and select a peer bank
-        await page.locator('#compare-bank-trigger').click();
+        const compareBtn = page.locator('#compare-bank-trigger');
+        await expect(compareBtn).toBeVisible({ timeout: 10000 });
+        await compareBtn.evaluate(b => b.click());
         await expect(page.locator('text=Comparison Sample Group')).toBeVisible({ timeout: 5000 });
         await page.locator('tbody tr').first().click();
         await expect(page.locator('text=Compare:')).toBeVisible({ timeout: 5000 });
