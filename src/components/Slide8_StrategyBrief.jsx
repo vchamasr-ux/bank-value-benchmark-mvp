@@ -208,8 +208,8 @@ const Slide8_StrategyBrief = ({ dataProvider, segmentKey, segmentLabel, priorQua
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-slate-50 border-l-[3px] border-slate-400 px-3 py-2 rounded-r-md flex-1 flex flex-col justify-center">
-                                    <p className="text-slate-700 font-medium leading-snug italic text-[13px] line-clamp-3">
+                                <div className="bg-slate-50 border-l-[3px] border-slate-400 px-3 py-3 rounded-r-md mt-2 flex-grow">
+                                    <p className="text-slate-700 font-medium leading-relaxed italic text-[13px]">
                                         "{mover.strategyInsight}"
                                     </p>
                                 </div>

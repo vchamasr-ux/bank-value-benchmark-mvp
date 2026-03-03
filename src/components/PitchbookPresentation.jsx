@@ -463,42 +463,49 @@ const PitchbookPresentation = ({
     };
 
     const handleCopyLink = () => {
-        const url = new URL(window.location.origin + window.location.pathname);
-        url.searchParams.set('b', selectedBank.CERT);
+        // Build URL from current window location to preserve all existing params (like acq, tgt, etc.)
+        const url = new URL(window.location.href);
         url.searchParams.set('present', 'true');
-        navigator.clipboard.writeText(url.toString()).then(() => {
-            setIsLinkCopied(true);
-            setTimeout(() => setIsLinkCopied(false), 2000);
-        });
+
+        const urlString = url.toString();
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(urlString).then(() => {
+                setIsLinkCopied(true);
+                setTimeout(() => setIsLinkCopied(false), 2000);
+            }).catch(err => {
+                console.error('Failed to copy via clipboard API', err);
+                fallbackCopyTextToClipboard(urlString);
+            });
+        } else {
+            fallbackCopyTextToClipboard(urlString);
+        }
     };
 
-    const handleDownloadStaticHTML = () => {
-        // Grab the HTML representation of the current slide
-        const content = document.querySelector('.pitchbook-canvas')?.outerHTML || '';
-        const html = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>${selectedBank.NAME} - Pitchbook Slide</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #e2e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; font-family: sans-serif; }
-    </style>
-</head>
-<body>
-    ${content}
-</body>
-</html>`;
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${selectedBank.NAME}_Pitchbook_Slide_${currentSlide + 1}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    const fallbackCopyTextToClipboard = (text) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        // Avoid scrolling to bottom
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+            setIsLinkCopied(true);
+            setTimeout(() => setIsLinkCopied(false), 2000);
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
     };
+
+
 
     const activeSlide = slides[currentSlide];
 
@@ -544,17 +551,7 @@ const PitchbookPresentation = ({
                             )}
                             {isLinkCopied ? 'Copied!' : 'Copy Link'}
                         </button>
-                        <button
-                            onClick={handleDownloadStaticHTML}
-                            aria-label="Download slide as HTML"
-                            title="Download current slide as HTML"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none bg-slate-700 hover:bg-emerald-700 text-slate-300 hover:text-white border border-slate-600 hover:border-emerald-500"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Save HTML
-                        </button>
+
                         <button
                             onClick={toggleFullscreen}
                             aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
