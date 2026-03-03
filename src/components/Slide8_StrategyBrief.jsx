@@ -167,27 +167,51 @@ const Slide8_StrategyBrief = ({ dataProvider, segmentKey, segmentLabel, priorQua
         <div className="w-full h-full px-6 pt-2 pb-4 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both"
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '14px' }}>
 
-            {movers.slice(0, 4).map((mover, idx) => (
-                <div key={mover.cert} className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3">
-                    <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-800 font-black text-base flex items-center justify-center flex-shrink-0 border border-blue-100">
-                                {idx + 1}
+            {movers.slice(0, 4).map((mover, idx) => {
+                const isPositiveDriver = mover.primaryDriver.signedZ > 0;
+                return (
+                    <div key={mover.cert}
+                        className="rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden"
+                        style={{
+                            background: 'linear-gradient(135deg, #0f1f3d 0%, #1a2e54 60%, #1e3a6e 100%)',
+                            border: '1px solid rgba(99,140,255,0.2)',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)'
+                        }}>
+                        {/* Subtle glow top-left */}
+                        <div className="absolute top-0 left-0 w-32 h-20 opacity-20 pointer-events-none"
+                            style={{ background: 'radial-gradient(ellipse at top left, #4f8fff, transparent)' }} />
+
+                        {/* Card Header */}
+                        <div className="flex items-start justify-between gap-3 relative">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-8 h-8 rounded-lg font-black text-base flex items-center justify-center flex-shrink-0"
+                                    style={{ background: 'rgba(79,143,255,0.2)', color: '#93c5fd', border: '1px solid rgba(79,143,255,0.35)' }}>
+                                    {idx + 1}
+                                </div>
+                                <h3 className="text-[15px] font-bold leading-tight text-white" title={mover.bankName}>{mover.bankName}</h3>
                             </div>
-                            <h3 className="text-[15px] font-bold text-slate-900 leading-tight" title={mover.bankName}>{mover.bankName}</h3>
+                            <div className="text-right flex-shrink-0">
+                                <div className="text-[8px] font-bold uppercase tracking-widest leading-none mb-1" style={{ color: 'rgba(148,163,184,0.7)' }}>Primary Driver</div>
+                                <div className={`font-bold text-xs ${isPositiveDriver ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {mover.primaryDriver.spec.label} {mover.primaryDriver.z > 0 ? '+' : ''}{mover.primaryDriver.z.toFixed(2)}σ
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Primary Driver</div>
-                            <div className={`font-bold text-xs ${mover.primaryDriver.signedZ > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {mover.primaryDriver.spec.label} {mover.primaryDriver.z > 0 ? '+' : ''}{mover.primaryDriver.z.toFixed(2)}σ
-                            </div>
+
+                        {/* Strategy Quote */}
+                        <div className="flex-1 flex items-center px-4 py-3 rounded-r-lg relative"
+                            style={{
+                                borderLeft: `3px solid ${isPositiveDriver ? '#34d399' : '#f87171'}`,
+                                background: 'rgba(0,0,0,0.25)',
+                                backdropFilter: 'blur(4px)'
+                            }}>
+                            <p className="font-medium italic text-[14px] leading-relaxed" style={{ color: 'rgba(226,232,240,0.9)' }}>
+                                "{mover.strategyInsight}"
+                            </p>
                         </div>
                     </div>
-                    <div className="border-l-4 border-blue-900 bg-slate-50 px-4 py-3 rounded-r-lg flex-1 flex items-center">
-                        <p className="text-slate-700 font-medium italic text-[14px] leading-relaxed">"{mover.strategyInsight}"</p>
-                    </div>
-                </div>
-            ))}
+                );
+            })}
 
         </div>
     );

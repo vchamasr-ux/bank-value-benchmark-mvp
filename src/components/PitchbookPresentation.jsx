@@ -329,21 +329,22 @@ const PitchbookPresentation = ({
             isDivider: true,
             content: (
                 <div className="flex flex-col items-start justify-center h-full w-full bg-blue-900 px-24 animate-in fade-in slide-in-from-right-8 duration-500">
-                    <h2 className="text-5xl font-serif font-black text-white mb-4">III. Strategic Outliers & Actions</h2>
+                    <h2 className="text-5xl font-serif font-black text-white mb-4">III. Competitive Landscape: Strategic Imperatives</h2>
                     <div className="w-24 h-1.5 bg-blue-400"></div>
                 </div>
             )
         },
         {
             id: 'strategy-brief',
-            actionTitle: "Strategic Outliers & Actions",
-            actionSubtitle: "Deterministic strategic briefs based on the top 5 performance anomalies relative to the peer group.",
+            actionTitle: "Competitive Landscape: Strategic Imperatives",
+            actionSubtitle: "Top 4 peer anomalies ranked by market surprise — with action-oriented imperatives for JPMorgan.",
             source: `Source: BankValue Intelligence; Peer Group: ${benchmarks?.groupName || 'Segment'}`,
             content: (
                 <div className="w-full h-full relative" style={{ height: '100%', maxHeight: '100%' }}>
                     <Slide8_StrategyBrief
                         dataProvider={fdicService}
                         focusBankCert={String(selectedBank.CERT)}
+                        focusBankName={selectedBank.name || selectedBank.REPDTE}
                         segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
                         segmentLabel={benchmarks?.groupName || 'Peer Group'}
                         priorQuarter={priorQuarter}
