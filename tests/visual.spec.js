@@ -13,6 +13,8 @@ for (const vp of viewports) {
 
         test('Landing Page Baseline', async ({ page }) => {
             await page.goto('/');
+            await page.evaluate(() => localStorage.setItem('feat_auth_required', 'false'));
+            await page.reload();
 
             // Wait for the UI to be fully interactive/rendered
             await page.waitForLoadState('networkidle');
@@ -28,6 +30,8 @@ for (const vp of viewports) {
         test('Pitchbook App (De Novo Modeler) Baseline', async ({ page }) => {
             // Navigate with a query param that loads the pitchbook view
             await page.goto('/?b=123');
+            await page.evaluate(() => localStorage.setItem('feat_auth_required', 'false'));
+            await page.reload();
 
             // Wait for network requests to settle (e.g. data fetching for charts)
             await page.waitForLoadState('networkidle');
@@ -89,10 +93,12 @@ test.describe('Pitchbook Slide-by-Slide Visual Regression', () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
     // Only run if PLAYWRIGHT_TEST_BASE_URL is set (Vercel staging or local dev with ?acq=... working)
-    test('All 10 slides render without overflow or blank content', async ({ page }) => {
+    test('All 9 slides render without overflow or blank content', async ({ page }) => {
         // Open pitchbook for JPMorgan Chase
         await page.goto('/?acq=628&tgt=3510');
-        await page.waitForSelector('text=Efficiency Ratio', { timeout: 20000 });
+        await page.evaluate(() => localStorage.setItem('feat_auth_required', 'false'));
+        await page.reload();
+        await page.waitForSelector('text=Financial Health Scorecard', { timeout: 20000 });
 
         // Open the pitchbook presentation
         const presentLiveBtn = page.getByRole('button', { name: /Present Live/i }).first();

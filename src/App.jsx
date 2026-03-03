@@ -73,7 +73,11 @@ function App() {
   const [view, setView] = useState('benchmark'); // 'benchmark' | 'movers'
   const [showMovers, setShowMovers] = useState(false);
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
-  const [isPresentMode, setIsPresentMode] = useState(false);
+  const [isPresentMode, setIsPresentMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('present') === 'true';
+  });
 
   const [secondaryBank, setSecondaryBank] = useState(() => getInitialBank('tgt'));
   const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);

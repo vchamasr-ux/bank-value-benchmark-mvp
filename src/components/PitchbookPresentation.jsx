@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GaugeChart from './GaugeChart';
-import MoversView from './MoversView';
+import Slide8_StrategyBrief from './Slide8_StrategyBrief';
 import Sparkline from './Sparkline';
 import { formatAssets } from '../utils/formatUtils';
 import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
@@ -16,6 +16,7 @@ const PitchbookPresentation = ({
 }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [direction, setDirection] = useState('forward'); // for directional transitions (#2)
+    const [isLinkCopied, setIsLinkCopied] = useState(false);
     const [aiSummaryHtml, setAiSummaryHtml] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const presentationRef = React.useRef(null);
@@ -181,8 +182,8 @@ const PitchbookPresentation = ({
                             {/* #8 — clickable agenda items jump to the relevant slide */}
                             {[{ num: 'I.', label: 'Strategic Summary & Key Insights', idx: 3 },
                             { num: 'II.', label: 'Core Financial Benchmarking', idx: 5 },
-                            { num: 'III.', label: 'Competitive Radar & Positioning', idx: 7 },
-                            { num: 'IV.', label: 'Forward-Looking Strategy', idx: 9 }].map(item => (
+                            { num: 'III.', label: 'Strategic Outliers & Actions', idx: 7 },
+                            { num: 'IV.', label: 'Forward-Looking Strategy', idx: 8 }].map(item => (
                                 <button
                                     key={item.num}
                                     onClick={() => { setDirection('forward'); setCurrentSlide(item.idx); }}
@@ -328,52 +329,26 @@ const PitchbookPresentation = ({
             isDivider: true,
             content: (
                 <div className="flex flex-col items-start justify-center h-full w-full bg-blue-900 px-24 animate-in fade-in slide-in-from-right-8 duration-500">
-                    <h2 className="text-5xl font-serif font-black text-white mb-4">III. Competitive Radar</h2>
+                    <h2 className="text-5xl font-serif font-black text-white mb-4">III. Strategic Outliers & Actions</h2>
                     <div className="w-24 h-1.5 bg-blue-400"></div>
                 </div>
             )
         },
         {
-            id: 'radar-threats',
-            actionTitle: "Market Positioning & Peer Distribution",
-            actionSubtitle: "Competitive outliers with the highest surprise score — deteriorating relative to the peer group.",
+            id: 'strategy-brief',
+            actionTitle: "Strategic Outliers & Actions",
+            actionSubtitle: "Deterministic strategic briefs based on the top 5 performance anomalies relative to the peer group.",
+            source: `Source: BankValue Intelligence; Peer Group: ${benchmarks?.groupName || 'Segment'}`,
             content: (
-                <div className="w-full overflow-y-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both" style={{ height: '100%', maxHeight: '100%' }}>
-                    <MoversView
+                <div className="w-full h-full relative" style={{ height: '100%', maxHeight: '100%' }}>
+                    <Slide8_StrategyBrief
                         dataProvider={fdicService}
-                        perspectiveBankName={selectedBank.NAME}
                         focusBankCert={String(selectedBank.CERT)}
                         segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
                         segmentLabel={benchmarks?.groupName || 'Peer Group'}
                         priorQuarter={priorQuarter}
                         currentQuarter={currentQuarter}
-                        onDrillDown={() => { }}
-                        onShowBrief={() => { }}
                         isPresentationMode={true}
-                        forcedTab="threats"
-                    />
-                </div>
-            )
-        },
-        {
-            id: 'radar-playbooks',
-            actionTitle: "Market Positioning & Peer Distribution",
-            actionSubtitle: "Competitive outliers with the highest surprise score — outperforming relative to the peer group.",
-            source: `Source: BankValue Analytics; Peer Group: ${benchmarks?.groupName || 'Segment'}`,
-            content: (
-                <div className="w-full overflow-y-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both" style={{ height: '100%', maxHeight: '100%' }}>
-                    <MoversView
-                        dataProvider={fdicService}
-                        perspectiveBankName={selectedBank.NAME}
-                        focusBankCert={String(selectedBank.CERT)}
-                        segmentKey={benchmarks?.assetFilter || 'ASSET:[50000000 TO 250000000]'}
-                        segmentLabel={benchmarks?.groupName || 'Peer Group'}
-                        priorQuarter={priorQuarter}
-                        currentQuarter={currentQuarter}
-                        onDrillDown={() => { }}
-                        onShowBrief={() => { }}
-                        isPresentationMode={true}
-                        forcedTab="playbooks"
                     />
                 </div>
             )
@@ -487,6 +462,44 @@ const PitchbookPresentation = ({
         }
     };
 
+    const handleCopyLink = () => {
+        const url = new URL(window.location.origin + window.location.pathname);
+        url.searchParams.set('b', selectedBank.CERT);
+        url.searchParams.set('present', 'true');
+        navigator.clipboard.writeText(url.toString()).then(() => {
+            setIsLinkCopied(true);
+            setTimeout(() => setIsLinkCopied(false), 2000);
+        });
+    };
+
+    const handleDownloadStaticHTML = () => {
+        // Grab the HTML representation of the current slide
+        const content = document.querySelector('.pitchbook-canvas')?.outerHTML || '';
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${selectedBank.NAME} - Pitchbook Slide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #e2e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    ${content}
+</body>
+</html>`;
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedBank.NAME}_Pitchbook_Slide_${currentSlide + 1}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const activeSlide = slides[currentSlide];
 
     return (
@@ -511,17 +524,36 @@ const PitchbookPresentation = ({
                         <span>Use &larr; &rarr; to navigate</span>
                     </div>
                     <div className="flex gap-2 items-center">
-                        {/* #5 — Save as PDF shortcut */}
                         <button
-                            onClick={() => window.print()}
-                            aria-label="Save as PDF"
-                            title="Save as PDF (Ctrl+P)"
+                            onClick={handleCopyLink}
+                            aria-label="Copy presentation link"
+                            title="Copy link to this pitchbook"
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none border ${isLinkCopied
+                                ? 'bg-emerald-600 text-white border-emerald-500'
+                                : 'bg-slate-700 hover:bg-blue-600 text-slate-300 hover:text-white border-slate-600 hover:border-blue-500'
+                                }`}
+                        >
+                            {isLinkCopied ? (
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            ) : (
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                            )}
+                            {isLinkCopied ? 'Copied!' : 'Copy Link'}
+                        </button>
+                        <button
+                            onClick={handleDownloadStaticHTML}
+                            aria-label="Download slide as HTML"
+                            title="Download current slide as HTML"
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-colors outline-none bg-slate-700 hover:bg-emerald-700 text-slate-300 hover:text-white border border-slate-600 hover:border-emerald-500"
                         >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Save as PDF
+                            Save HTML
                         </button>
                         <button
                             onClick={toggleFullscreen}
@@ -635,59 +667,7 @@ const PitchbookPresentation = ({
                 </div>
             </div>
 
-            {/* PRINT VIEW (Render all slides for Save as PDF) */}
-            <div className="print-only">
-                {slides.map((slide, printIdx) => (
-                    <div key={`print-slide-${printIdx}`} className="pitchbook-print-slide bg-white relative flex flex-col overflow-hidden">
-                        {!slide.isCover && !slide.isDivider && (
-                            <div className="w-full px-10 pt-8 pb-4 border-b-2 border-slate-800 flex justify-between items-end flex-shrink-0">
-                                <div className="max-w-4xl">
-                                    <h2 className="text-3xl font-black text-blue-900 tracking-tight leading-tight">
-                                        {slide.actionTitle}
-                                    </h2>
-                                    {slide.actionSubtitle && (
-                                        <p className="text-slate-500 font-medium text-lg mt-1 tracking-wide">
-                                            {slide.actionSubtitle}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-lg font-black text-slate-300 uppercase tracking-widest leading-none text-right">
-                                        Bank<span className="text-blue-300">Value</span>
-                                    </div>
-                                    <div className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 text-right">
-                                        Performance Benchmarks
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        <div className={`flex-1 w-full relative overflow-hidden ${slide.isDivider ? '' : 'p-10 bg-white'}`}>
-                            {slide.content}
-                        </div>
-                        <div className="w-full px-10 py-4 border-t border-slate-200 flex justify-between items-end flex-shrink-0 bg-white z-20">
-                            <div>
-                                {slide.source && (
-                                    <div className="text-[9px] font-serif font-medium italic text-slate-500 mb-1.5">
-                                        {slide.source}
-                                    </div>
-                                )}
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                                    STRICTLY CONFIDENTIAL — DO NOT DISTRIBUTE OR COPY
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-xs font-bold text-slate-500 mb-1">
-                                    {selectedBank.NAME}
-                                </div>
-                                <div className="text-[10px] text-slate-400 font-bold tracking-widest">
-                                    {printIdx + 1} / {slides.length}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="w-full h-1.5 bg-blue-900 absolute bottom-0 left-0 z-30"></div>
-                    </div>
-                ))}
-            </div>
+
         </div>
     );
 };

@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import GaugeChart from './GaugeChart';
 import PeerGroupModal from './PeerGroupModal';
 import SummaryModal from './SummaryModal';
-import { exportDashboardToPDF } from '../utils/pdfExport';
 import { exportKPIsToCSV } from '../utils/csvExport';
-import PrintContainer from './pdf/PrintContainer';
 import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
 
 const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, bankName, currentQuarter }) => {
@@ -12,36 +10,11 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
-    const [exportError, setExportError] = useState(null);
     const [aiSummary, setAiSummary] = useState('');
     const [csvExporting, setCsvExporting] = useState(false);
 
     const handlePresentLiveToggled = () => {
         setIsPresentMode(!isPresentMode);
-    };
-
-    const handleExportPDF = async () => {
-        setIsExporting(true);
-        setExportError(null);
-        try {
-            // Give React a tiny tick to ensure loaders show up
-            await new Promise(resolve => setTimeout(resolve, 50));
-
-            // Base slides that are always present
-            const slidesToCapture = ['pdf-slide-1', 'pdf-slide-2'];
-
-            // Add optional slides if data is present
-            if (aiSummary) slidesToCapture.push('pdf-slide-3');
-            if (benchmarks?.peerBanks?.length > 0) slidesToCapture.push('pdf-slide-4');
-
-            // Trigger capture of the hidden 16:9 slides
-            await exportDashboardToPDF(slidesToCapture, `BankValue_${financials.raw?.NAME || 'Report'}.pdf`);
-        } catch (error) {
-            console.error("Failed to export PDF:", error);
-            setExportError("PDF export failed. Please try again.");
-        } finally {
-            setIsExporting(false);
-        }
     };
 
     const handleExportCSV = () => {
@@ -94,25 +67,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                                 <span>Present Live</span>
                             </button>
                             <div className="w-px h-5 bg-slate-700 mx-1"></div>
-                            <button
-                                onClick={handleExportPDF}
-                                disabled={isExporting}
-                                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${isExporting
-                                    ? 'text-slate-600 cursor-not-allowed'
-                                    : 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                                    }`}
-                                title="Export PDF"
-                            >
-                                {isExporting ? (
-                                    <div className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin"></div>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                )}
-                                <span>PDF</span>
-                            </button>
-                            <div className="w-px h-5 bg-slate-700 mx-1"></div>
+
                             <button
                                 id="export-csv-btn"
                                 onClick={handleExportCSV}
@@ -134,11 +89,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                             </button>
                         </div>
 
-                        {exportError && (
-                            <span className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-lg animate-in fade-in duration-200">
-                                ⚠ {exportError}
-                            </span>
-                        )}
+
                     </div>
                 </div>
 
@@ -422,8 +373,7 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 </div>
             </div>
 
-            {/* Hidden PDF Export Slides */}
-            <PrintContainer financials={financials} benchmarks={benchmarks} aiSummary={aiSummary} />
+
         </div>
     );
 };
