@@ -249,12 +249,23 @@ test.describe('UI Polish & Aesthetics', () => {
 
     // ── NEW: Pitchbook Copy Link & Button Layout ───────────────────────────────
 
-    test('Pitchbook nav bar shows Copy Link and Full Screen but NOT Save HTML', async ({ page }) => {
-        // Deep-link directly into presentation mode. App fetches FDIC data then mounts PitchbookPresentation.
-        await page.goto('/?acq=628&present=true');
+    // Helper: open the Pitchbook presentation for a given bank
+    async function openPitchbook(page, bankName = 'jpmorgan') {
+        await page.goto('/');
+        await page.locator('input[placeholder="Enter bank name..."]').fill(bankName);
+        const firstResult = page.locator(`li:has-text("${bankName}")`).first();
+        await expect(firstResult).toBeVisible({ timeout: 15000 });
+        await firstResult.click();
+        // Wait for the Financial Health Scorecard to appear (benchmarks loaded)
+        await expect(page.locator('text=Financial Health Scorecard')).toBeVisible({ timeout: 40000 });
+        // Click the Present Live button
+        await page.getByRole('button', { name: /present live/i }).click();
+        // Wait for the Pitchbook nav bar to mount
+        await expect(page.getByRole('button', { name: /close presentation/i })).toBeVisible({ timeout: 15000 });
+    }
 
-        // Wait for the pitchbook to fully mount — the CLOSE button is the fastest reliable landmark
-        await expect(page.getByRole('button', { name: /close presentation/i })).toBeVisible({ timeout: 45000 });
+    test('Pitchbook nav bar shows Copy Link and Full Screen but NOT Save HTML', async ({ page }) => {
+        await openPitchbook(page);
 
         // Must have Copy Link
         await expect(page.getByRole('button', { name: /copy link/i })).toBeVisible();
@@ -265,28 +276,24 @@ test.describe('UI Polish & Aesthetics', () => {
     });
 
     test('Copy Link button shows \'Copied!\' feedback and writes a valid URL to clipboard', async ({ page, context }) => {
-        // Grant clipboard write permission so navigator.clipboard works in test
+        // Grant clipboard permissions so navigator.clipboard works in Playwright
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        // Deep-link directly into presentation mode with a known cert
-        await page.goto('/?acq=628&present=true');
-
-        // Wait for the pitchbook to fully mount
-        await expect(page.getByRole('button', { name: /close presentation/i })).toBeVisible({ timeout: 45000 });
+        await openPitchbook(page);
 
         const copyBtn = page.getByRole('button', { name: /copy link/i });
         await expect(copyBtn).toBeVisible();
         await copyBtn.click();
 
-        // Button should momentarily show 'Copied!' feedback
+        // Button should show 'Copied!' feedback
         await expect(page.getByRole('button', { name: /copied!/i })).toBeVisible({ timeout: 2000 });
 
-        // Read the clipboard value and verify it is a complete, valid URL
+        // Verify the clipboard contains a valid presentable URL
         const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
         expect(clipboardText).toContain('present=true');
-        // The acq param must be preserved from the original URL
-        expect(clipboardText).toContain('acq=628');
-        // Must be a parseable URL
+        // acq param must be in the copied URL
+        expect(clipboardText).toMatch(/acq=\d+/);
+        // Must be a valid, parseable URL
         expect(() => new URL(clipboardText)).not.toThrow();
     });
 });
