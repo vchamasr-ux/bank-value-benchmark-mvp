@@ -10,7 +10,7 @@ const PrintContainer = ({ financials, benchmarks, aiSummary }) => {
     const bankName = financials.raw?.NAME || 'Target Bank';
 
     return (
-        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', pointerEvents: 'none' }}>
             <Slide1_CoreMetrics financials={financials} benchmarks={benchmarks} bankName={bankName} />
             <Slide2_Returns financials={financials} benchmarks={benchmarks} bankName={bankName} />
             <Slide3_ExecutiveSummary aiSummary={aiSummary} bankName={bankName} />
