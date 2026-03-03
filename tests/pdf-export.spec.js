@@ -10,7 +10,8 @@ import os from 'os';
 
 async function loadJPMorgan(page) {
     // Inject auth state to bypass LinkedIn login walls
-    await page.addInitScript(() => {
+    await page.goto('/');
+    await page.evaluate(() => {
         localStorage.setItem('feat_auth_required', 'false');
         localStorage.setItem('auth_user', JSON.stringify({
             name: 'Playwright Test User',
@@ -18,6 +19,9 @@ async function loadJPMorgan(page) {
             sub: 'playwright|123456'
         }));
     });
+    // Reload so the bundle re-evaluates localStorage.getItem('feat_auth_required')
+    await page.reload();
+    await page.waitForLoadState('networkidle');
 
     await page.goto('/');
     const input = page.locator('input[placeholder="Enter bank name..."]');
