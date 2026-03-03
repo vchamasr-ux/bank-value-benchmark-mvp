@@ -246,4 +246,47 @@ test.describe('UI Polish & Aesthetics', () => {
         await firstRow.hover();
         await expect(comparePill).toBeVisible({ timeout: 2000 });
     });
+
+    // ── NEW: Pitchbook Copy Link & Button Layout ───────────────────────────────
+
+    test('Pitchbook nav bar shows Copy Link and Full Screen but NOT Save HTML', async ({ page }) => {
+        // Deep-link directly into presentation mode. App fetches FDIC data then mounts PitchbookPresentation.
+        await page.goto('/?acq=628&present=true');
+
+        // Wait for the pitchbook to fully mount — the CLOSE button is the fastest reliable landmark
+        await expect(page.getByRole('button', { name: /close presentation/i })).toBeVisible({ timeout: 45000 });
+
+        // Must have Copy Link
+        await expect(page.getByRole('button', { name: /copy link/i })).toBeVisible();
+        // Must have Full Screen
+        await expect(page.getByRole('button', { name: /full screen/i })).toBeVisible();
+        // Must NOT have Save HTML
+        await expect(page.getByRole('button', { name: /save html/i })).not.toBeAttached();
+    });
+
+    test('Copy Link button shows \'Copied!\' feedback and writes a valid URL to clipboard', async ({ page, context }) => {
+        // Grant clipboard write permission so navigator.clipboard works in test
+        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+        // Deep-link directly into presentation mode with a known cert
+        await page.goto('/?acq=628&present=true');
+
+        // Wait for the pitchbook to fully mount
+        await expect(page.getByRole('button', { name: /close presentation/i })).toBeVisible({ timeout: 45000 });
+
+        const copyBtn = page.getByRole('button', { name: /copy link/i });
+        await expect(copyBtn).toBeVisible();
+        await copyBtn.click();
+
+        // Button should momentarily show 'Copied!' feedback
+        await expect(page.getByRole('button', { name: /copied!/i })).toBeVisible({ timeout: 2000 });
+
+        // Read the clipboard value and verify it is a complete, valid URL
+        const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+        expect(clipboardText).toContain('present=true');
+        // The acq param must be preserved from the original URL
+        expect(clipboardText).toContain('acq=628');
+        // Must be a parseable URL
+        expect(() => new URL(clipboardText)).not.toThrow();
+    });
 });

@@ -164,61 +164,50 @@ const Slide8_StrategyBrief = ({ dataProvider, segmentKey, segmentLabel, priorQua
     }
 
     return (
-        <div className="w-full h-full flex flex-col justify-start px-6 pt-2 pb-4 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both">
-            {movers.length > 0 && (
-                <div className="flex-1 flex flex-col gap-4 min-h-0">
+        <div className="w-full h-full px-6 pt-2 pb-4 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both"
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr 1fr', gap: '12px' }}>
 
-                    {/* Top Mover - Featured Full Width */}
-                    <div className="bg-white border-2 border-slate-200 p-4 rounded-lg shadow-sm flex items-start gap-4 flex-shrink-0">
-                        <div className="w-10 h-10 rounded bg-blue-50 text-blue-800 font-black text-2xl flex items-center justify-center flex-shrink-0 border border-blue-100">
-                            1
-                        </div>
-                        <div className="flex-1 min-w-0 pr-2">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-xl font-bold text-slate-900 truncate pr-4">{movers[0].bankName}</h3>
-                                <div className="text-right flex-shrink-0">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Primary Driver</div>
-                                    <div className={`font-bold text-sm ${movers[0].primaryDriver.signedZ > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                        {movers[0].primaryDriver.spec.label} {movers[0].primaryDriver.z > 0 ? '+' : ''}{movers[0].primaryDriver.z.toFixed(2)}σ
-                                    </div>
+            {/* Card 1 - spans full width */}
+            {movers[0] && (
+                <div className="bg-white border-2 border-blue-100 rounded-lg shadow-sm p-4 flex items-start gap-4 col-span-2">
+                    <div className="w-10 h-10 rounded bg-blue-50 text-blue-800 font-black text-xl flex items-center justify-center flex-shrink-0 border border-blue-100">1</div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-xl font-bold text-slate-900 truncate pr-4">{movers[0].bankName}</h3>
+                            <div className="text-right flex-shrink-0">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Primary Driver</div>
+                                <div className={`font-bold text-sm ${movers[0].primaryDriver.signedZ > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    {movers[0].primaryDriver.spec.label} {movers[0].primaryDriver.z > 0 ? '+' : ''}{movers[0].primaryDriver.z.toFixed(2)}σ
                                 </div>
-                            </div>
-                            <div className="bg-slate-50 border-l-4 border-blue-900 px-4 py-3 rounded-r-md">
-                                <p className="text-slate-800 font-medium leading-relaxed italic text-[15px]">
-                                    "{movers[0].strategyInsight}"
-                                </p>
                             </div>
                         </div>
+                        <div className="border-l-4 border-blue-900 bg-slate-50 px-4 py-2.5 rounded-r-md">
+                            <p className="text-slate-800 font-medium italic text-[15px] leading-relaxed">"{movers[0].strategyInsight}"</p>
+                        </div>
                     </div>
-
-                    {/* Remaining 4 Movers - 2x2 Grid */}
-                    <div className="grid grid-cols-2 grid-rows-2 gap-4 flex-1 min-h-0">
-                        {movers.slice(1).map((mover, idx) => (
-                            <div key={mover.cert} className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm flex flex-col justify-between overflow-hidden">
-                                <div className="flex items-start justify-between mb-2 gap-2">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <div className="w-7 h-7 rounded bg-slate-50 text-slate-700 font-black text-sm flex items-center justify-center flex-shrink-0 border border-slate-200">
-                                            {idx + 2}
-                                        </div>
-                                        <h3 className="text-[15px] font-bold text-slate-900 truncate" title={mover.bankName}>{mover.bankName}</h3>
-                                    </div>
-                                    <div className="text-right flex-shrink-0">
-                                        <div className={`font-bold text-xs ${mover.primaryDriver.signedZ > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                            {mover.primaryDriver.spec.label} {mover.primaryDriver.z > 0 ? '+' : ''}{mover.primaryDriver.z.toFixed(2)}σ
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="bg-slate-50 border-l-[3px] border-slate-400 px-3 py-3 rounded-r-md mt-2 flex-grow">
-                                    <p className="text-slate-700 font-medium leading-relaxed italic text-[13px]">
-                                        "{mover.strategyInsight}"
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
                 </div>
             )}
+
+            {/* Cards 2-5 - fill rows 2 and 3, 2 per row */}
+            {movers.slice(1).map((mover, idx) => (
+                <div key={mover.cert} className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-7 h-7 rounded bg-slate-50 text-slate-600 font-black text-sm flex items-center justify-center flex-shrink-0 border border-slate-200">
+                                {idx + 2}
+                            </div>
+                            <h3 className="text-[14px] font-bold text-slate-900 leading-tight" title={mover.bankName}>{mover.bankName}</h3>
+                        </div>
+                        <div className={`font-bold text-xs flex-shrink-0 ${mover.primaryDriver.signedZ > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {mover.primaryDriver.spec.label} {mover.primaryDriver.z > 0 ? '+' : ''}{mover.primaryDriver.z.toFixed(2)}σ
+                        </div>
+                    </div>
+                    <div className="border-l-[3px] border-slate-400 bg-slate-50 px-3 py-2 rounded-r-md flex-1">
+                        <p className="text-slate-700 font-medium italic text-[13px] leading-relaxed">"{mover.strategyInsight}"</p>
+                    </div>
+                </div>
+            ))}
+
         </div>
     );
 };
