@@ -61,6 +61,8 @@ export const searchBank = async (name) => {
         if (!response.ok) {
             throw new Error(`FDIC API Error: ${response.statusText}`);
         }
+        
+        const data = await response.json();
         const results = data.data
             .map(item => item.data)
             .filter(bank => bank.BKCLASS !== 'NC' && bank.BKCLASS !== 'OI');
