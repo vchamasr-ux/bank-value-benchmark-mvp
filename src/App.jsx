@@ -249,12 +249,12 @@ function App() {
                       className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'movers'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
-                          ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                          ? 'text-slate-500 opacity-50 cursor-not-allowed hover:opacity-75'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Radar</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-300' : !selectedBank ? 'text-slate-600' : 'text-slate-500'}`}>
-                        {!selectedBank ? 'Select a bank' : 'Market Position'}
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-300' : 'text-slate-500'}`}>
+                        Market Position
                       </span>
                     </button>
                     <button
@@ -264,12 +264,12 @@ function App() {
                       className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'planner'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
-                          ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                          ? 'text-slate-500 opacity-50 cursor-not-allowed hover:opacity-75'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Planner</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-300' : !selectedBank ? 'text-slate-600' : 'text-slate-500'}`}>
-                        {!selectedBank ? 'Select a bank' : 'Scenario Modeling'}
+                      <span className={`text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-300' : 'text-slate-500'}`}>
+                        Scenario Modeling
                       </span>
                     </button>
                   </div>
