@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 // --- KPI config (Same as used in analysis) ---
 const KPI_SPECS = [
@@ -17,9 +17,18 @@ const KPI_SPECS = [
 
 const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, onDrillDown, onShowBrief, isPresentationMode, forcedTab }) => {
     const [activeTab, setActiveTab] = useState(forcedTab || 'threats'); // 'threats' | 'playbooks'
+    const [timeframe, setTimeframe] = useState('quarterly'); // 'quarterly' | '5year'
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [moversData, setMoversData] = useState({ threats: [], playbooks: [], tape: "" });
+
+    const comparisonQuarter = useMemo(() => {
+        if (timeframe === 'quarterly') return priorQuarter;
+        if (!currentQuarter) return priorQuarter;
+        const match = currentQuarter.match(/^Q([1-4]) (\d{4})$/);
+        if (!match) return priorQuarter;
+        return `Q${match[1]} ${parseInt(match[2], 10) - 5}`;
+    }, [timeframe, priorQuarter, currentQuarter]);
 
     const fetchAndAnalyze = useCallback(async () => {
         setIsLoading(true);
@@ -27,7 +36,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
         try {
             // 1. Fetch
             const peerBanks = await dataProvider.listPeerBanks({ segmentKey, quarter: currentQuarter, focusCert: focusBankCert });
-            const quarters = [priorQuarter, currentQuarter];
+            const quarters = [comparisonQuarter, currentQuarter];
             const kpiMap = {};
 
             for (const q of quarters) {
@@ -41,12 +50,12 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
 
             // 2. Compute
             const completePeers = peerBanks.filter(b => quarters.every(q => kpiMap[b.cert][q] !== null));
-            if (completePeers.length < 5) throw new Error("Insufficient peer historical data.");
+            if (completePeers.length < 5) throw new Error(`Insufficient peer historical data for the ${timeframe === '5year' ? '5-Year Momentum' : 'Quarterly'} period.`);
 
             const distByMetric = {};
             const statsByMetric = {};
             for (const spec of KPI_SPECS) {
-                const vals = completePeers.map(b => kpiMap[b.cert][currentQuarter][spec.key] - kpiMap[b.cert][priorQuarter][spec.key]);
+                const vals = completePeers.map(b => kpiMap[b.cert][currentQuarter][spec.key] - kpiMap[b.cert][comparisonQuarter][spec.key]);
                 const sorted = [...vals].sort((a, b) => a - b);
                 distByMetric[spec.key] = sorted;
                 const p25 = sorted[Math.floor(sorted.length * 0.25)];
@@ -56,7 +65,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
 
             const rows = completePeers.map(bank => {
                 const drivers = KPI_SPECS.map(spec => {
-                    const delta = kpiMap[bank.cert][currentQuarter][spec.key] - kpiMap[bank.cert][priorQuarter][spec.key];
+                    const delta = kpiMap[bank.cert][currentQuarter][spec.key] - kpiMap[bank.cert][comparisonQuarter][spec.key];
                     const { p50, iqr } = statsByMetric[spec.key];
                     const z = (delta - p50) / iqr;
                     const signedZ = spec.better === "higher" ? z : -z;
@@ -81,11 +90,11 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
         } finally {
             setIsLoading(false);
         }
-    }, [dataProvider, segmentKey, currentQuarter, priorQuarter, focusBankCert]);
+    }, [dataProvider, segmentKey, currentQuarter, comparisonQuarter, focusBankCert, timeframe]);
 
     useEffect(() => {
         fetchAndAnalyze();
-    }, [segmentKey, currentQuarter, fetchAndAnalyze]);
+    }, [segmentKey, currentQuarter, comparisonQuarter, fetchAndAnalyze]);
 
     useEffect(() => {
         if (forcedTab) setActiveTab(forcedTab);
@@ -132,22 +141,40 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                             RADAR ACTIVE: {segmentLabel}
                         </div>
                         <h2 className="text-2xl font-black text-white leading-tight">Competitive Radar</h2>
-                        <p className="text-slate-400 text-sm">Identifying outliers in {currentQuarter} vs {priorQuarter} </p>
+                        <p className="text-slate-400 text-sm">Identifying {timeframe === '5year' ? 'momentum streaks' : 'outliers'} in {currentQuarter} vs {comparisonQuarter} </p>
                     </div>
 
-                    <div className="flex gap-2 bg-[#0B1120]/50 border border-white/5 p-1 rounded-xl">
-                        <button
-                            onClick={() => setActiveTab('threats')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-                        >
-                            Market Threats ({moversData.threats.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('playbooks')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-                        >
-                            Growth Playbooks ({moversData.playbooks.length})
-                        </button>
+                    <div className="flex flex-col gap-1.5 bg-[#0B1120]/50 border border-white/5 p-1 rounded-xl">
+                        {/* Timeframe Toggle */}
+                        <div className="flex bg-slate-900/50 rounded-lg p-0.5 pointer-events-auto">
+                            <button
+                                onClick={() => setTimeframe('quarterly')}
+                                className={`flex-1 px-4 py-1.5 rounded-md text-xs font-bold transition-all ${timeframe === 'quarterly' ? 'bg-blue-500/20 text-blue-300 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                QoQ Velocity
+                            </button>
+                            <button
+                                onClick={() => setTimeframe('5year')}
+                                className={`flex-1 px-4 py-1.5 rounded-md text-xs font-bold transition-all ${timeframe === '5year' ? 'bg-purple-500/20 text-purple-300 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                5Y Momentum
+                            </button>
+                        </div>
+                        {/* Tabs */}
+                        <div className="flex gap-1 border-t border-slate-700/30 pt-1 mt-0.5">
+                            <button
+                                onClick={() => setActiveTab('threats')}
+                                className={`px-4 py-1.5 flex-1 rounded-lg text-sm font-bold transition-all ${activeTab === 'threats' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}
+                            >
+                                Market Threats ({moversData.threats.length})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('playbooks')}
+                                className={`px-4 py-1.5 flex-1 rounded-lg text-sm font-bold transition-all ${activeTab === 'playbooks' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}
+                            >
+                                Growth Playbooks ({moversData.playbooks.length})
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
