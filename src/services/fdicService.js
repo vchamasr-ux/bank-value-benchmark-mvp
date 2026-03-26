@@ -65,17 +65,22 @@ export const searchBank = async (name) => {
         const data = await response.json();
         
         if (!data || !Array.isArray(data.data)) {
-            return [];
+            // Do not silently fallback
+            throw new Error(`FDIC API returned an invalid data structure: expected an array but got ${typeof data?.data}`);
         }
 
         const results = data.data
             .map(item => item.data)
             .filter(bank => bank.BKCLASS !== 'NC' && bank.BKCLASS !== 'OI');
 
+        if (results.length === 0) {
+           throw new Error(`No active banks found matching "${name}".`);
+        }
+
         try {
             sessionStorage.setItem(cacheKey, JSON.stringify(results));
         } catch (e) {
-            throw new Error(`Session storage write failed: ${e.message}`);
+            console.warn(`Session storage write failed: ${e.message}`);
         }
 
         return results;

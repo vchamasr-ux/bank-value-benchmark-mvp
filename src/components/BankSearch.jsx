@@ -126,8 +126,8 @@ const BankSearch = ({ onBankSelect }) => {
                 setResults(banks);
                 // Tiny delay so the element mounts before the animation class applies
                 requestAnimationFrame(() => setResultsVisible(true));
-            } catch {
-                setError('Failed to fetch banks. Please try again.');
+            } catch (err) {
+                setError(err.message || 'Failed to fetch banks. Please try again.');
             } finally {
                 setLoading(false);
             }
@@ -149,7 +149,7 @@ const BankSearch = ({ onBankSelect }) => {
                 setResults(banks);
                 requestAnimationFrame(() => setResultsVisible(true));
             })
-            .catch(() => setError('Failed to fetch banks. Please try again.'))
+            .catch((err) => setError(err.message || 'Failed to fetch banks. Please try again.'))
             .finally(() => setLoading(false));
     }, [searchTerm]);
 

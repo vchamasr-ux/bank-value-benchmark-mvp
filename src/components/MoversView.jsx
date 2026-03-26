@@ -173,7 +173,7 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                                 {m.bankName}
                                             </h4>
                                         </div>
-                                        <div className="mt-4 flex flex-wrap gap-4">
+                                        <div className="mt-4 flex flex-wrap gap-4 mb-2">
                                             {m.topDrivers.map((d, dIdx) => (
                                                 <div key={dIdx} className="flex flex-col">
                                                     <span className={`font-bold uppercase text-[10px] ${isPresentationMode ? 'text-slate-400' : 'text-slate-500'}`}>{d.spec.label}</span>
@@ -183,6 +183,11 @@ const MoversView = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, curr
                                                 </div>
                                             ))}
                                         </div>
+                                        {m.topDrivers.length > 0 && (
+                                            <div className={`mt-3 text-sm ${isPresentationMode ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                <strong>Interpretation:</strong> This bank is {Math.abs(m.topDrivers[0].z) > 2 ? 'significantly' : 'moderately'} {activeTab === 'threats' ? 'underperforming' : 'outperforming'} relative to peers, driven primarily by anomalous shifts in {m.topDrivers[0].spec.label}.
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="text-right">
                                         <div className={`text-[10px] font-black uppercase mb-1 ${isPresentationMode ? 'text-slate-400' : 'text-slate-500'}`}>Surprise Score</div>

@@ -497,17 +497,51 @@ const StrategicPlannerTab = ({ financials, benchmarks, isPresentationMode }) => 
                 if (validLevers.length >= 2) {
                     const topLever = validLevers[0];
                     const secondLever = validLevers[1];
-                    const moves = [
-                        { id: topLever.id, coef: topLever.coef, prescribedDelta: (deltaY * 0.6) / topLever.coef },
-                        { id: secondLever.id, coef: secondLever.coef, prescribedDelta: (deltaY * 0.4) / secondLever.coef }
-                    ];
-
+                    
                     newPaths.push({
                         id: 'combo_aggressive',
                         type: 'combo_aggressive',
                         title: 'Aggressive 60/40 Split',
                         isCombo: true,
-                        moves: moves
+                        moves: [
+                            { id: topLever.id, coef: topLever.coef, prescribedDelta: (deltaY * 0.6) / topLever.coef },
+                            { id: secondLever.id, coef: secondLever.coef, prescribedDelta: (deltaY * 0.4) / secondLever.coef }
+                        ]
+                    });
+
+                    // Optimistic Path: 80% Top Lever
+                    newPaths.push({
+                        id: 'combo_optimistic',
+                        type: 'combo_optimistic',
+                        title: 'Optimistic (80/20 Split)',
+                        isCombo: true,
+                        moves: [
+                            { id: topLever.id, coef: topLever.coef, prescribedDelta: (deltaY * 0.8) / topLever.coef },
+                            { id: secondLever.id, coef: secondLever.coef, prescribedDelta: (deltaY * 0.2) / secondLever.coef }
+                        ]
+                    });
+
+                    // Conservative Path: Spread risk across top 3 (if available) or even split
+                    let conservativeMoves = [];
+                    if (validLevers.length >= 3) {
+                        const thirdLever = validLevers[2];
+                        conservativeMoves = [
+                            { id: topLever.id, coef: topLever.coef, prescribedDelta: (deltaY * 0.4) / topLever.coef },
+                            { id: secondLever.id, coef: secondLever.coef, prescribedDelta: (deltaY * 0.3) / secondLever.coef },
+                            { id: thirdLever.id, coef: thirdLever.coef, prescribedDelta: (deltaY * 0.3) / thirdLever.coef }
+                        ];
+                    } else {
+                        conservativeMoves = [
+                            { id: topLever.id, coef: topLever.coef, prescribedDelta: (deltaY * 0.5) / topLever.coef },
+                            { id: secondLever.id, coef: secondLever.coef, prescribedDelta: (deltaY * 0.5) / secondLever.coef }
+                        ];
+                    }
+                    newPaths.push({
+                        id: 'combo_conservative',
+                        type: 'combo_conservative',
+                        title: validLevers.length >= 3 ? 'Conservative 40/30/30 Split' : 'Conservative 50/50 Split',
+                        isCombo: true,
+                        moves: conservativeMoves
                     });
                 }
             }

@@ -29,12 +29,20 @@ const LoginModal = ({ isOpen, onClose }) => {
         }));
 
         // LinkedIn OAuth Configuration
-        let origin = window.location.origin;
-        // Force HTTPS in production to match LinkedIn whitelist exactly
-        if (origin.includes('vercel.app') || (!origin.includes('localhost') && origin.startsWith('http://'))) {
-            origin = origin.replace('http://', 'https://');
+        const configuredRedirect = import.meta.env.VITE_LINKEDIN_REDIRECT_URI;
+        let redirectUri;
+        
+        if (configuredRedirect) {
+            redirectUri = configuredRedirect;
+        } else {
+            let origin = window.location.origin;
+            // Force HTTPS in production to match LinkedIn whitelist exactly
+            if (origin.includes('vercel.app') || (!origin.includes('localhost') && origin.startsWith('http://'))) {
+                origin = origin.replace('http://', 'https://');
+            }
+            redirectUri = `${origin}/auth/callback`;
         }
-        const redirectUri = `${origin}/auth/callback`;
+
         const state = Math.random().toString(36).substring(7);
         localStorage.setItem('auth_state', state);
 

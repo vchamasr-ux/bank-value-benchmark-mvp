@@ -1,0 +1,46 @@
+Act as an MBB (McKinsey/Bain/BCG) Banking Consultant preparing an executive intelligence brief.
+You are evaluating: FIRST REPUBLIC BANK (FDIC CERT: 59017, Location: SAN FRANCISCO, CA).
+Peer Segment constraint: $100B-$250B.
+
+Here is the complete financial context:
+
+1. CORE SCORECARD (Current vs Peer Average):
+- ROA: 0.12% (Avg: 1.32%)
+- ROE: 1.50% (Avg: 12.60%)
+- Net Interest Margin: 0.38% (Avg: 3.74%)
+- Efficiency Ratio: 70.23% (Avg: 55.48%)
+- Cost of Funds: 0.43% (Avg: 2.09%)
+- Loan Yield: 1.10% (Avg: 9.94%)
+- Non-Performing Loans: 0.08% (Avg: 1.14%)
+
+2. STRATEGIC MOMENTUM (3-Year CAGR vs Peer Average):
+- Asset Growth: 23.42% (Avg: 4.53%)
+- Loan Growth: 21.96% (Avg: 3.80%)
+- Deposit Growth: 3.70% (Avg: 3.86%)
+
+3. SCENARIO OPTIMIZATION (Ridge Regression Output):
+
+            Target: Top-Quartile ROA (1.35%). Gap to close: +1.23 points (~$2865.2M impact).
+            Balanced Path recommended moves:
+            - Loan Yield: +4.31 pts
+            - Efficiency Ratio: -25.50 pts
+            - Non-Int Inc %: +43.13 pts
+            Aggressive Path recommended moves:
+            - Loan Yield: +7.76 pts (Tradeoff expected: +7.51% on Non-Int Inc %)
+            - Efficiency Ratio: -30.60 pts 
+            Optimistic Path recommended moves:
+            - Loan Yield: +10.35 pts
+            - Efficiency Ratio: -15.30 pts
+            Conservative Path recommended moves:
+            - Loan Yield: +5.17 pts
+            - Efficiency Ratio: -22.95 pts
+            - Non-Int Inc %: +38.81 pts
+            
+
+INSTRUCTIONS:
+Write a STRICTLY 3-paragraph executive narrative meant for the bank's C-suite.
+Paragraph 1: Sector Context & Overall Posture (synthesize where they stand overall based on size and core KPIs).
+Paragraph 2: Primary Strengths & Momentum (highlight what they are doing better than median).
+Paragraph 3: Strategic Vulnerabilities & Prescriptive Actions (summarize the weakest points and explicitly tie in the scenario logic for how to reach top-quartile ROA).
+
+DO NOT include pleasantries, bullet points, or intros like "Here is the summary." Produce just the 3 compelling paragraphs.
