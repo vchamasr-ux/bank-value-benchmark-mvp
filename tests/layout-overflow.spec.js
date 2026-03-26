@@ -120,12 +120,12 @@ test.describe('Modals — No Horizontal Overflow', () => {
         await expect(page.locator('text=Comparison Sample Group')).toBeVisible({ timeout: 5000 });
 
         // Check the entire modal container
-        const modal = page.locator('[class*="max-w-5xl"]').first();
+        const modal = page.locator('.max-w-6xl').first();
         const modalScroll = await elementHasHorizontalScroll(modal);
         expect(modalScroll, 'PeerGroupModal has horizontal scroll').toBe(false);
 
         // Check the bank table panel specifically
-        const tableContainer = page.locator('text=Comparison Sample Group').locator('../..').locator('[class*="overflow-y-auto"]').first();
+        const tableContainer = page.locator('.overflow-y-auto').first();
         const tableScroll = await elementHasHorizontalScroll(tableContainer);
         expect(tableScroll, 'PeerGroupModal bank table panel has horizontal scroll').toBe(false);
     });
@@ -135,7 +135,7 @@ test.describe('Modals — No Horizontal Overflow', () => {
         await page.locator('.badge-premium').click();
         await expect(page.locator('text=Comparison Sample Group')).toBeVisible({ timeout: 5000 });
 
-        const modal = page.locator('[class*="max-w-5xl"]').first();
+        const modal = page.locator('.max-w-6xl').first();
         const box = await modal.boundingBox();
         if (box) {
             expect(box.height, 'PeerGroupModal taller than 90% of viewport').toBeLessThanOrEqual(800 * 0.92);

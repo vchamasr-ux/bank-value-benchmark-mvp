@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 // used in fdicService.js. If the FDIC API silently changes a field name, CI catches it here
 // before it hits a real user — even before Zod throws at runtime.
 
-const FDIC_PATTERN = '**/api.fdic.gov/api/financials**';
+const FDIC_PATTERN = '**/api.fdic.gov/banks/financials**';
 const BENCHMARK_PATTERN = '**/api/benchmarks**';
 
 test.describe('API Schema Regression Guard', () => {

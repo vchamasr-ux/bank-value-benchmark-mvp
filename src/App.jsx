@@ -292,10 +292,10 @@ function App() {
               </div>
 
               {selectedBank && (
-                <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-800/50 rounded-full text-xs font-bold text-slate-300 border border-slate-700/50 ${radarContextBank ? 'border-blue-500/50 bg-blue-900/30' : ''}`}>
-                  <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-400' : 'bg-emerald-400 animate-pulse'}`}></span>
-                  {selectedBank.NAME}
-                  {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
+                <div className={`hidden md:flex items-center justify-end gap-3 px-4 py-1.5 bg-slate-800/50 rounded-full text-xs font-bold text-slate-300 border border-slate-700/50 shrink overflow-hidden max-w-[30%] ${radarContextBank ? 'border-blue-500/50 bg-blue-900/30' : ''}`}>
+                  <span className={`w-2 h-2 shrink-0 rounded-full ${radarContextBank ? 'bg-blue-400' : 'bg-emerald-400 animate-pulse'}`}></span>
+                  <span className="truncate">{selectedBank.NAME}</span>
+                  {radarContextBank && <span className="text-[10px] shrink-0 text-blue-400 ml-1">(Peer Drill-down)</span>}
                 </div>
               )}
             </div>

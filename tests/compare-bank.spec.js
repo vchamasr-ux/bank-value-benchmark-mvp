@@ -29,7 +29,7 @@ test.describe('Click-to-Compare Bank Functionality', () => {
         await expect(bankRow).toBeVisible({ timeout: 10000 });
 
         // Get the name of the bank we are about to click to verify it later
-        const secondaryBankName = await bankRow.locator('td').first().innerText();
+        const secondaryBankName = await bankRow.locator('td span').first().innerText();
 
         // 4. Click the row to trigger comparison
         await bankRow.click();

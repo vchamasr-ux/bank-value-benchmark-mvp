@@ -147,7 +147,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
     const secondaryRotation = (secondaryPercentage * 180) - 90;
 
     return (
-        <div ref={containerRef} className={`group flex flex-col items-center flex-1 w-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
+        <div ref={containerRef} className={`gauge-container group flex flex-col items-center flex-1 w-full relative z-10 ${!isAvailable ? 'opacity-80 grayscale-[0.2]' : ''}`}>
             {/* Label has been moved down below the gauge in the mock, or we can keep it subtle above */}
             <div className="text-center w-full mb-1">
                 <Tooltip content={METRIC_DEFINITIONS[metric]} position="top">

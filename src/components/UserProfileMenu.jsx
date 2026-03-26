@@ -5,6 +5,7 @@ import SavedBriefsModal from './SavedBriefsModal';
 const UserProfileMenu = ({ isBriefsModalOpen: externalBriefsOpen, onBriefsModalClose: externalBriefsClose }) => {
     const { user, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
     // Support both lifted state (from App.jsx) and local state
     const [localBriefsOpen, setLocalBriefsOpen] = useState(false);
     const isBriefsModalOpen = externalBriefsOpen ?? localBriefsOpen;
@@ -43,17 +44,18 @@ const UserProfileMenu = ({ isBriefsModalOpen: externalBriefsOpen, onBriefsModalC
 
     return (
         <div className="relative" ref={menuRef}>
-            {/* Avatar Trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 border-2 border-transparent hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all overflow-hidden"
                 title={`${user.name}'s Profile`}
             >
-                {user.picture ? (
+                {user.picture && !imageFailed ? (
                     <img
                         src={user.picture}
                         alt={`${user.name}'s Avatar`}
                         className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                        onError={() => setImageFailed(true)}
                     />
                 ) : (
                     <span className="text-sm font-bold text-slate-600">
