@@ -13,15 +13,19 @@ const TrendIndicator = ({ history, metric, inverse }) => {
     // Find previous quarter (next in array)
     const previous = parseFloat(history[1][metric]) || 0;
 
-    if (previous === 0) return null; // Avoid division by zero
+    if (previous === 0 && current === 0) return null;
 
-    const percentChange = ((current - previous) / previous) * 100;
-    const absChange = Math.abs(percentChange);
+    // All KPIs in this application are already expressed as whole numbers representing percentages.
+    // Calculating relative percentage change `((current - previous) / previous)` against rates
+    // generates extreme mathematically valid but practically meaningless numbers (e.g. 0.1% -> 1.0% = +900%).
+    // We instead calculate the flat nominal percentage point difference.
+    const nominalDiff = current - previous;
+    const absChange = Math.abs(nominalDiff);
 
     // Determine Color Logic
     // Default: Increase is Green (Good), Decrease is Red (Bad)
     // Inverse: Increase is Red (Bad e.g. Expenses), Decrease is Green (Good)
-    let isPositive = percentChange > 0;
+    let isPositive = nominalDiff > 0;
     let isGood = isPositive;
 
     if (inverse) {
