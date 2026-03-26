@@ -63,6 +63,11 @@ export const searchBank = async (name) => {
         }
         
         const data = await response.json();
+        
+        if (!data || !Array.isArray(data.data)) {
+            return [];
+        }
+
         const results = data.data
             .map(item => item.data)
             .filter(bank => bank.BKCLASS !== 'NC' && bank.BKCLASS !== 'OI');
