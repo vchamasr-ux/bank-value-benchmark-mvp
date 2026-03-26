@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { searchBank } from '../services/fdicService';
+import { searchBank } from '../../services/fdicService';
 
 // #3 — Debounced live search (300ms) so results appear as the user types
 const DEBOUNCE_MS = 300;

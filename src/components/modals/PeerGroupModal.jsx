@@ -1,5 +1,5 @@
 import React from 'react';
-import USMap from './USMap';
+import USMap from '../core/USMap';
 
 const PeerGroupModal = ({ isOpen, onClose, title, banks, subjectState, onBankSelect }) => {
     if (!isOpen) return null;

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './components/auth/AuthContext'
-import ErrorBoundary from './components/ErrorBoundary.jsx'
+import ErrorBoundary from './components/core/ErrorBoundary.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

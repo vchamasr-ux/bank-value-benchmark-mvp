@@ -1,5 +1,5 @@
 import React from 'react';
-import BankSearch from './BankSearch';
+import BankSearch from '../search/BankSearch';
 
 // #7 — Centralised social proof stats. Update here when FDIC coverage or model changes.
 const STATS = [

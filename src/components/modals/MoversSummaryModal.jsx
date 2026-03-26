@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './auth/AuthContext';
-import LoginModal from './auth/LoginModal';
-import useRetryCountdown from '../hooks/useRetryCountdown';
+import { useAuth } from '../auth/AuthContext';
+import LoginModal from '../auth/LoginModal';
+import useRetryCountdown from '../../hooks/useRetryCountdown';
 
-import { KPI_SPECS, fmtSigned } from '../config/kpiSpecs';
+import { KPI_SPECS, fmtSigned } from '../../config/kpiSpecs';
 
 const MoversSummaryModal = ({ isOpen, onClose, dataProvider, segmentKey, priorQuarter, currentQuarter, perspectiveBankName, focusBankCert, authRequired = true }) => {
     const [summary, setSummary] = useState('');

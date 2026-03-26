@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './auth/AuthContext';
-import LoginModal from './auth/LoginModal';
-import { generateHtmlBriefString } from '../utils/exportHtmlBrief';
-import useRetryCountdown from '../hooks/useRetryCountdown';
+import { useAuth } from '../auth/AuthContext';
+import LoginModal from '../auth/LoginModal';
+import { generateHtmlBriefString } from '../../utils/exportHtmlBrief';
+import useRetryCountdown from '../../hooks/useRetryCountdown';
 
 const SummaryModal = ({ isOpen, onClose, financials, benchmarks, authRequired = true, onSummaryGenerated }) => {
     const [summary, setSummary] = useState('');

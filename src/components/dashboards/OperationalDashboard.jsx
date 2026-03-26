@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import GaugeChart from './GaugeChart';
-import benchmarkData from '../data/operationalBenchmarks.json';
-import { useAuth } from './auth/AuthContext';
-import LoginModal from './auth/LoginModal';
+import GaugeChart from '../charts/GaugeChart';
+import benchmarkData from '../../data/operationalBenchmarks.json';
+import { useAuth } from '../auth/AuthContext';
+import LoginModal from '../auth/LoginModal';
 
 const OperationalDashboard = ({ assetSize = 0 }) => {
     const { user } = useAuth();

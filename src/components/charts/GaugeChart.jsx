@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import TrendIndicator from './TrendIndicator';
-import Tooltip from './Tooltip';
+import Tooltip from '../core/Tooltip';
 
 const METRIC_DEFINITIONS = {
     returnOnEquity: "Net Income divided by Average Total Equity. Measures how effectively management is using a company's assets to create profits.",

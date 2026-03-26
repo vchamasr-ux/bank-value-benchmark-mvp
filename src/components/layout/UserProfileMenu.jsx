@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from './auth/AuthContext';
-import SavedBriefsModal from './SavedBriefsModal';
+import { useAuth } from '../auth/AuthContext';
+import SavedBriefsModal from '../modals/SavedBriefsModal';
 
 const UserProfileMenu = ({ isBriefsModalOpen: externalBriefsOpen, onBriefsModalClose: externalBriefsClose }) => {
     const { user, logout } = useAuth();

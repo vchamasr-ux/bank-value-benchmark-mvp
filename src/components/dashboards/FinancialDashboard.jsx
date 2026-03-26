@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import GaugeChart from './GaugeChart';
-import PeerGroupModal from './PeerGroupModal';
-import SummaryModal from './SummaryModal';
-import { exportKPIsToCSV } from '../utils/csvExport';
-import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
+import GaugeChart from '../charts/GaugeChart';
+import PeerGroupModal from '../modals/PeerGroupModal';
+import SummaryModal from '../modals/SummaryModal';
+import { exportKPIsToCSV } from '../../utils/csvExport';
+import { CORE_FINANCIAL_GAUGES } from '../../utils/gaugeConfigs';
 
 const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPresentMode, setIsPresentMode, secondaryBank, setSecondaryBank, secondaryFinancials, bankName, currentQuarter }) => {
 

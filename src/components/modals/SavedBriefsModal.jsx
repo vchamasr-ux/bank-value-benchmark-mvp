@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './auth/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 
 const SavedBriefsModal = ({ isOpen, onClose }) => {
     const { user } = useAuth();

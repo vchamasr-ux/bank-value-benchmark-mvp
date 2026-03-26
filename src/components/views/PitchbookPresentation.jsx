@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import GaugeChart from './GaugeChart';
+import GaugeChart from '../charts/GaugeChart';
 import Slide8_StrategyBrief from './Slide8_StrategyBrief';
-import Sparkline from './Sparkline';
-import { formatAssets } from '../utils/formatUtils';
-import { CORE_FINANCIAL_GAUGES } from '../utils/gaugeConfigs';
+import Sparkline from '../charts/Sparkline';
+import { formatAssets } from '../../utils/formatUtils';
+import { CORE_FINANCIAL_GAUGES } from '../../utils/gaugeConfigs';
 
 const PitchbookPresentation = ({
     selectedBank,

@@ -1,18 +1,18 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import FinancialDashboard from './components/FinancialDashboard';
-import OperationalDashboard from './components/OperationalDashboard';
-import MoversView from './components/MoversView';
-import UserProfileMenu from './components/UserProfileMenu';
-import LandingPage from './components/LandingPage';
+import FinancialDashboard from './components/dashboards/FinancialDashboard';
+import OperationalDashboard from './components/dashboards/OperationalDashboard';
+import MoversView from './components/views/MoversView';
+import UserProfileMenu from './components/layout/UserProfileMenu';
+import LandingPage from './components/layout/LandingPage';
 import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
-import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
-import PitchbookPresentation from './components/PitchbookPresentation';
+import FinancialDashboardSkeleton from './components/dashboards/FinancialDashboardSkeleton';
+import PitchbookPresentation from './components/views/PitchbookPresentation';
 import { calculateKPIs } from './utils/kpiCalculator';
 
 // Lazy-loaded heavy components — keeps main bundle lean and avoids Rollup TDZ issues
-const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
-const StrategicPlannerTab = lazy(() => import('./components/StrategicPlannerTab'));
+const MoversSummaryModal = lazy(() => import('./components/modals/MoversSummaryModal'));
+const StrategicPlannerTab = lazy(() => import('./components/views/StrategicPlannerTab'));
 const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
@@ -20,7 +20,7 @@ const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false
 const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false'; // Default to true, allow explicit disable
 
 import { useAuth } from './components/auth/AuthContext';
-import SavedBriefsModal from './components/SavedBriefsModal';
+import SavedBriefsModal from './components/modals/SavedBriefsModal';
 
 /** Small inline button: only renders when user is authenticated */
 const BriefsNavButton = ({ onClick }) => {
