@@ -8,7 +8,7 @@ import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
 import FinancialDashboardSkeleton from './components/dashboards/FinancialDashboardSkeleton';
 import PitchbookPresentation from './components/views/PitchbookPresentation';
-import { calculateKPIs } from './utils/kpiCalculator';
+import { useBankData } from './hooks/useBankData';
 
 // Lazy-loaded heavy components — keeps main bundle lean and avoids Rollup TDZ issues
 const MoversSummaryModal = lazy(() => import('./components/modals/MoversSummaryModal'));
@@ -41,63 +41,32 @@ const BriefsNavButton = ({ onClick }) => {
   );
 };
 
-/**
- * Derive the prior quarter label from a report date string like "Q4 2025".
- * Avoids the need to manually update hardcoded constants each quarter.
- */
-const derivePriorQuarter = (reportDate) => {
-  if (!reportDate) return null;
-  const match = reportDate.match(/^Q([1-4]) (\d{4})$/);
-  if (!match) return null;
-  let q = parseInt(match[1], 10);
-  let y = parseInt(match[2], 10);
-  if (q === 1) { q = 4; y -= 1; } else { q -= 1; }
-  return `Q${q} ${y}`;
-};
-
 function App() {
-  // Deep-linking support parsed lazily for initial state
-  const getInitialBank = (paramName) => {
-    if (typeof window === 'undefined') return null;
-    const params = new URLSearchParams(window.location.search);
-    const cert = params.get(paramName) || (paramName === 'acq' ? params.get('b') : null);
-    return cert ? { CERT: cert, NAME: 'Loading...', CITY: '', STNAME: '' } : null;
-  };
+  const {
+    selectedBank, setSelectedBank,
+    allHistoricalKPIs, setAllHistoricalKPIs,
+    selectedQuarterIdx, setSelectedQuarterIdx,
+    benchmarks,
+    loadingFinancials,
+    errorFinancials,
+    view, setView,
+    radarContextBank, setRadarContextBank,
+    secondaryBank, setSecondaryBank,
+    secondaryFinancials,
+    loadingSecondary,
+    financials,
+    CURRENT_QUARTER,
+    PRIOR_QUARTER
+  } = useBankData();
 
-  const [selectedBank, setSelectedBank] = useState(() => getInitialBank('acq'));
-  const [allHistoricalKPIs, setAllHistoricalKPIs] = useState(null); // full 20-quarter array
-  const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(0); // 0 = latest (#2)
-  const [benchmarks, setBenchmarks] = useState(null);
-  const [loadingFinancials, setLoadingFinancials] = useState(false);
-  const [errorFinancials, setErrorFinancials] = useState(null);
-  const [view, setView] = useState('benchmark'); // 'benchmark' | 'movers'
   const [showMovers, setShowMovers] = useState(false);
-  const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
   const [isPresentMode, setIsPresentMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
     return params.get('present') === 'true';
   });
 
-  const [secondaryBank, setSecondaryBank] = useState(() => getInitialBank('tgt'));
-  const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);
-  const [loadingSecondary, setLoadingSecondary] = useState(false);
   const [isBriefsModalOpen, setIsBriefsModalOpen] = useState(false);
-
-  // Derive financials from history and selected quarter
-  const financials = allHistoricalKPIs && allHistoricalKPIs.length > 0 ? {
-    ...allHistoricalKPIs[selectedQuarterIdx],
-    history: allHistoricalKPIs.slice(selectedQuarterIdx)
-  } : null;
-
-  const secondaryFinancials = allSecondaryHistoricalKPIs && allSecondaryHistoricalKPIs.length > 0 ? {
-    ...allSecondaryHistoricalKPIs[selectedQuarterIdx],
-    history: allSecondaryHistoricalKPIs.slice(selectedQuarterIdx)
-  } : null;
-
-  // Derived quarter labels
-  const CURRENT_QUARTER = financials?.reportDate || null;
-  const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
 
   // Global '/' keyboard shortcut — focus the bank search input (Datadog / Grafana convention)
   useEffect(() => {
@@ -111,97 +80,6 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-  // Clear radar context when bank is deselected
-  useEffect(() => {
-    if (!selectedBank) {
-      const clearState = () => {
-        setRadarContextBank(null);
-        setView('benchmark');
-        setSecondaryBank(null);
-        setAllSecondaryHistoricalKPIs(null);
-      };
-      clearState();
-    }
-  }, [selectedBank]);
-
-  useEffect(() => {
-    if (selectedBank) {
-      const fetchPrimary = async () => {
-        setLoadingFinancials(true);
-        setErrorFinancials(null);
-        setSelectedQuarterIdx(0); // Reset to latest on new bank selection (#2)
-
-        // Chain fetches: We need Bank Data first to get ASSET size for the Peer Group
-        getBankFinancials(selectedBank.CERT)
-          .then(async (bankData) => {
-            if (bankData) {
-              const historicalKPIs = calculateKPIs(bankData);
-              setAllHistoricalKPIs(historicalKPIs); // store full history for quarter selector (#2)
-
-              try {
-                const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
-                if (benchmarkData) {
-                  const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
-                    const st = peer.stalp;
-                    acc[st] = (acc[st] || 0) + 1;
-                    return acc;
-                  }, {});
-
-                  // benchmarkData already contains accurate per-bank means (not aggregate totals)
-                  // computed by getPeerGroupBenchmark — spread directly, no re-calculation needed.
-                  setBenchmarks({
-                    ...benchmarkData,
-                    peerStateCounts,
-                  });
-                }
-              } catch (benchmarkErr) {
-                console.error("Benchmark fetch failed:", benchmarkErr);
-                setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks. FDIC API may be down.");
-              }
-            } else {
-              setErrorFinancials("No recent financial data found.");
-            }
-          })
-          .catch(err => {
-            console.error(err);
-            setErrorFinancials(err.message || "Failed to load financials.");
-          })
-          .finally(() => setLoadingFinancials(false));
-      };
-      fetchPrimary();
-    } else {
-      Promise.resolve().then(() => {
-        setBenchmarks(null);
-        setAllHistoricalKPIs(null);
-        setSelectedQuarterIdx(0);
-      });
-    }
-  }, [selectedBank]);
-
-  useEffect(() => {
-    if (secondaryBank) {
-      const fetchSecondary = async () => {
-        setLoadingSecondary(true);
-        getBankFinancials(secondaryBank.CERT)
-          .then((bankData) => {
-            if (bankData && bankData.length > 0) {
-              const historicalKPIs = calculateKPIs(bankData);
-              setAllSecondaryHistoricalKPIs(historicalKPIs);
-            } else {
-              setAllSecondaryHistoricalKPIs(null);
-            }
-          })
-          .catch(err => {
-            console.error("Secondary bank fetch failed:", err);
-            setAllSecondaryHistoricalKPIs(null);
-          })
-          .finally(() => setLoadingSecondary(false));
-      };
-      fetchSecondary();
-    } else {
-      Promise.resolve().then(() => setAllSecondaryHistoricalKPIs(null));
-    }
-  }, [secondaryBank]);
 
 
 
