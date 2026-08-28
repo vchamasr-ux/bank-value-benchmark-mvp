@@ -104,7 +104,7 @@ function App() {
           {/* Global Navigation Header */}
           <header className="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-[100] shadow-sm">
             <div className="max-w-7xl mx-auto px-2 sm:px-4 min-h-16 flex items-center justify-between">
-              <div className="flex items-center gap-1 sm:gap-8 min-w-0">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-1 gap-y-1 sm:gap-8 min-w-0 w-full">
                 <h1
                   className="text-lg sm:text-xl font-black text-white tracking-tight cursor-pointer shrink-0"
                   onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
@@ -112,8 +112,8 @@ function App() {
                   BANK<span className="text-blue-500">VALUE</span>
                 </h1>
 
-                <nav className="flex items-center gap-0.5 sm:gap-4 min-w-0">
-                  <div className="flex items-center gap-1">
+                <nav className="flex flex-1 flex-wrap sm:flex-nowrap items-center gap-0.5 sm:gap-4 min-w-0">
+                  <div className="order-3 sm:order-none basis-full sm:basis-auto flex items-center justify-center gap-1">
                     <button
                       onClick={() => setView('benchmark')}
                       className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'benchmark'
@@ -156,7 +156,7 @@ function App() {
                   </div>
 
                   {/* Authenticated User Menu + Saved Briefs shortcut */}
-                  <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2 flex items-center gap-1">
+                  <div className="order-1 sm:order-none pl-2 sm:pl-4 border-l border-slate-200 ml-auto sm:ml-2 flex items-center gap-1">
                     <BriefsNavButton onClick={() => setIsBriefsModalOpen(true)} />
                     {!user && (
                       <button
@@ -172,7 +172,7 @@ function App() {
                   {/* Back to Suite */}
                   <a
                     href="https://fdic-suite-landing.vercel.app"
-                    className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-1 sm:ml-2"
+                    className="order-2 sm:order-none flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-1 sm:ml-2"
                     aria-label="Back to FDIC Intelligence Suite"
                   >
                     ← Suite
@@ -424,3 +424,4 @@ function App() {
 }
 
 export default App;
+
