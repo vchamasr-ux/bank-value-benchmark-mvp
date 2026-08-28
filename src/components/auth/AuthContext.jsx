@@ -26,17 +26,38 @@ export const AuthProvider = ({ children }) => {
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             const state = urlParams.get('state');
+            const ticket = urlParams.get('sso_ticket');
+
+            if (urlParams.get('sso_logged_out') === '1') {
+                localStorage.removeItem('auth_user');
+                setUser(null);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+
+            if (ticket) {
+                setCallbackLoading(true);
+                try {
+                    const response = await fetch('/api/auth/sso-exchange', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ticket }),
+                    });
+                    const data = await response.json();
+                    if (!response.ok || !data.user) throw new Error(data.error || 'Suite sign-in could not be completed');
+                    setUser(data.user);
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (error) {
+                    console.error('Suite ticket exchange failed:', error);
+                } finally {
+                    setCallbackLoading(false);
+                }
+                return;
+            }
 
             if (code && state) {
                 setCallbackLoading(true); // Block rendering while OAuth resolves
-                const savedState = localStorage.getItem('auth_state');
-                if (state !== savedState) {
-                    console.error("Auth State Mismatch");
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    setCallbackLoading(false);
-                    return;
-                }
-
                 try {
                     // 1. Exchange code for user data via our serverless function
                     const response = await fetch(`/api/auth/linkedin?code=${code}&state=${state}`);
@@ -56,25 +77,29 @@ export const AuthProvider = ({ children }) => {
                             name: userData.name,
                             email: userData.email,
                             profileUrl: userData.profileUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(userData.name)}`, // Fallback search link if URL not provided
-                            consent: pendingData.consent
+                            consent: pendingData.consent ?? userData.consent
                         })
                     });
 
                     await regResponse.json();
 
                     // 4. Set user and clean up
+                    const { continueUrl, consent: _consent, ...safeUserData } = userData;
                     const userWithProfile = {
-                        ...userData,
+                        ...safeUserData,
                         profileUrl: userData.profileUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(userData.name)}`
                     };
                     setUser(userWithProfile);
                     localStorage.setItem('auth_user', JSON.stringify(userWithProfile));
 
-                    localStorage.removeItem('auth_state');
                     localStorage.removeItem('pending_registration');
 
-                    // 5. Clean URL
-                    window.history.replaceState({}, document.title, "/");
+                    // 5. Continue to the requesting suite app, or clean the local URL.
+                    if (continueUrl) {
+                        window.location.replace(continueUrl);
+                    } else {
+                        window.history.replaceState({}, document.title, "/");
+                    }
                 } catch (err) {
                     console.error("Auth Callback Error:", err);
                     window.history.replaceState({}, document.title, "/");
@@ -95,6 +120,8 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('auth_user');
+        const returnTo = `${window.location.origin}/`;
+        window.location.href = `/api/auth/sso-logout?return_to=${encodeURIComponent(returnTo)}`;
     };
 
     return (
