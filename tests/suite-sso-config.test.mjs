@@ -4,6 +4,7 @@ import {
     anonymousReturnUrl,
     CENTRAL_ORIGIN,
     normalizeReturnTo,
+    OAUTH_TTL_SECONDS,
     SUITE_ORIGINS,
 } from '../api/auth/_suite-sso.js';
 
@@ -28,3 +29,8 @@ test('anonymous handoff is marked and preserves the destination', () => {
     assert.equal(result.searchParams.get('sso_checked'), '1');
     assert.equal(result.searchParams.get('sso_status'), 'anonymous');
 });
+
+test('LinkedIn sign-in state survives a realistic MFA or consent pause', () => {
+    assert.ok(OAUTH_TTL_SECONDS >= 60 * 30);
+});
+
