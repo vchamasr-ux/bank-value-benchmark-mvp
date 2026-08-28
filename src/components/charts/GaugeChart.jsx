@@ -12,6 +12,15 @@ const METRIC_DEFINITIONS = {
     nptlRatio: "Non-Performing Loans divided by Total Loans. Indicates the quality of the loan portfolio (lower is better)."
 };
 
+const formatOrdinal = (value) => {
+    const number = Math.abs(Math.trunc(Number(value)));
+    const lastTwo = number % 100;
+    if (lastTwo >= 11 && lastTwo <= 13) return `${number}th`;
+
+    const suffix = number % 10 === 1 ? 'st' : number % 10 === 2 ? 'nd' : number % 10 === 3 ? 'rd' : 'th';
+    return `${number}${suffix}`;
+};
+
 // Helper for range calculations to support Testing
 const calculateGaugeRanges = ({ min = 0, max = 100, average, p25, p75, inverse = false }) => {
     // Strategy: Center the gauge around the Average value.
@@ -285,7 +294,7 @@ const GaugeChart = ({ value, secondaryValue, min = 0, max = 100, label, average,
                                 : (pct >= 67 ? 'text-emerald-400' : pct >= 34 ? 'text-amber-400' : 'text-rose-400');
                             return (
                                 <span className={`text-[11px] font-bold mt-1 ${clr}`} title="Estimated percentile rank within peer group">
-                                    {pct}th pct of peers
+                                    {formatOrdinal(pct)} pct of peers
                                 </span>
                             );
                         })()}

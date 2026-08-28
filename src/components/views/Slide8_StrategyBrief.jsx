@@ -64,7 +64,7 @@ const generateStrategy = (topDriver, focusBankName) => {
     return strategies[key] || `Monitor competitor's strategic maneuvers and evaluate long-term viability relative to ${self}.`;
 };
 
-const Slide8_StrategyBrief = ({ dataProvider, segmentKey, segmentLabel, priorQuarter, currentQuarter, focusBankCert, focusBankName, isPresentationMode = true }) => {
+const Slide8_StrategyBrief = ({ dataProvider, segmentKey, priorQuarter, currentQuarter, focusBankCert, focusBankName }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [movers, setMovers] = useState([]);
@@ -133,7 +133,7 @@ const Slide8_StrategyBrief = ({ dataProvider, segmentKey, segmentLabel, priorQua
         } finally {
             setIsLoading(false);
         }
-    }, [dataProvider, segmentKey, currentQuarter, priorQuarter, focusBankCert]);
+    }, [dataProvider, segmentKey, currentQuarter, priorQuarter, focusBankCert, focusBankName]);
 
     useEffect(() => {
         fetchAndAnalyze();

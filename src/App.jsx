@@ -13,7 +13,7 @@ import { useBankData } from './hooks/useBankData';
 // Lazy-loaded heavy components — keeps main bundle lean and avoids Rollup TDZ issues
 const MoversSummaryModal = lazy(() => import('./components/modals/MoversSummaryModal'));
 const StrategicPlannerTab = lazy(() => import('./components/views/StrategicPlannerTab'));
-const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
+const { getBankFinancials } = fdicService;
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
@@ -44,7 +44,7 @@ const BriefsNavButton = ({ onClick }) => {
 function App() {
   const {
     selectedBank, setSelectedBank,
-    allHistoricalKPIs, setAllHistoricalKPIs,
+    allHistoricalKPIs,
     selectedQuarterIdx, setSelectedQuarterIdx,
     benchmarks,
     loadingFinancials,
@@ -100,8 +100,8 @@ function App() {
         <>
           {/* Global Navigation Header */}
           <header className="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-[100] shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2 sm:gap-8">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 min-h-16 flex items-center justify-between">
+              <div className="flex items-center gap-1 sm:gap-8 min-w-0">
                 <h1
                   className="text-lg sm:text-xl font-black text-white tracking-tight cursor-pointer shrink-0"
                   onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
@@ -109,29 +109,29 @@ function App() {
                   BANK<span className="text-blue-500">VALUE</span>
                 </h1>
 
-                <nav className="flex items-center gap-1 sm:gap-4">
+                <nav className="flex items-center gap-0.5 sm:gap-4 min-w-0">
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setView('benchmark')}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'benchmark'
+                      className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'benchmark'
                         ? 'bg-blue-900/40 text-blue-300'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Benchmarks</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'benchmark' ? 'text-blue-300' : 'text-slate-500'}`}>Financial KPIs</span>
+                      <span className={`hidden sm:block text-[9px] font-normal tracking-wide ${view === 'benchmark' ? 'text-blue-300' : 'text-slate-500'}`}>Financial KPIs</span>
                     </button>
                     <button
                       onClick={() => setView('movers')}
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'movers'
+                      className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'movers'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
                           ? 'text-slate-500 opacity-50 cursor-not-allowed hover:opacity-75'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Radar</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-300' : 'text-slate-500'}`}>
+                      <span className={`hidden sm:block text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-300' : 'text-slate-500'}`}>
                         Market Position
                       </span>
                     </button>
@@ -139,14 +139,14 @@ function App() {
                       onClick={() => setView('planner')}
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex flex-col items-center leading-none gap-0.5 ${view === 'planner'
+                      className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'planner'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
                           ? 'text-slate-500 opacity-50 cursor-not-allowed hover:opacity-75'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Planner</span>
-                      <span className={`text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-300' : 'text-slate-500'}`}>
+                      <span className={`hidden sm:block text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-300' : 'text-slate-500'}`}>
                         Scenario Modeling
                       </span>
                     </button>

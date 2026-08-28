@@ -163,7 +163,7 @@ const BankSearch = ({ onBankSelect }) => {
         <div className="w-full max-w-2xl mx-auto group/container">
             {/* Main Search Box */}
             <div
-                className="w-full p-8 bg-[#1e2336] rounded-[24px] text-slate-100 text-left shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-slate-700/50 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(59,130,246,0.15)] mb-6"
+                className="w-full p-5 sm:p-8 bg-[#1e2336] rounded-[24px] text-slate-100 text-left shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-slate-700/50 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(59,130,246,0.15)] mb-6"
             >
                 {/* ── Header ── */}
                 <h2 className="text-3xl font-bold tracking-tight mb-4 text-white">
@@ -174,7 +174,7 @@ const BankSearch = ({ onBankSelect }) => {
                 </p>
 
                 {/* ── Search Form ── */}
-                <form onSubmit={handleSearch} className="flex gap-4">
+                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <div className="relative flex-1">
                         {/* Left icon omitted to match mockup, but kept in code for utility if needed or can be removed completely. Mockup doesn't show an icon in the input. Let's remove it to match exactly. */}
 
@@ -213,7 +213,7 @@ const BankSearch = ({ onBankSelect }) => {
                         type="submit"
                         disabled={loading}
                         className="
-                            px-8 py-4 rounded-xl text-base font-bold tracking-wide
+                            w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold tracking-wide
                             bg-[#1d64ff] text-white
                             shadow-md shadow-blue-500/20
                             hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/40 hover:-translate-y-0.5

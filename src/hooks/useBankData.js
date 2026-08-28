@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { calculateKPIs } from '../utils/kpiCalculator';
 import * as fdicService from '../services/fdicService';
 
@@ -25,7 +25,7 @@ export const getInitialBank = (paramName) => {
 };
 
 export const useBankData = () => {
-  const [selectedBank, setSelectedBank] = useState(() => getInitialBank('acq'));
+  const [selectedBank, setSelectedBankState] = useState(() => getInitialBank('acq'));
   const [allHistoricalKPIs, setAllHistoricalKPIs] = useState(null);
   const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(0);
   const [benchmarks, setBenchmarks] = useState(null);
@@ -52,15 +52,15 @@ export const useBankData = () => {
   const CURRENT_QUARTER = financials?.reportDate || null;
   const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
 
-  // Clear radar context when bank is deselected
-  useEffect(() => {
-    if (!selectedBank) {
+  const setSelectedBank = useCallback((bank) => {
+    setSelectedBankState(bank);
+    if (!bank) {
       setRadarContextBank(null);
       setView('benchmark');
       setSecondaryBank(null);
       setAllSecondaryHistoricalKPIs(null);
     }
-  }, [selectedBank]);
+  }, []);
 
   useEffect(() => {
     if (selectedBank) {
@@ -139,7 +139,7 @@ export const useBankData = () => {
 
   return {
     selectedBank, setSelectedBank,
-    allHistoricalKPIs, setAllHistoricalKPIs,
+    allHistoricalKPIs,
     selectedQuarterIdx, setSelectedQuarterIdx,
     benchmarks,
     loadingFinancials,

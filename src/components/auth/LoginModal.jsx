@@ -36,8 +36,10 @@ const LoginModal = ({ isOpen, onClose }) => {
             redirectUri = configuredRedirect;
         } else {
             let origin = window.location.origin;
-            // Force HTTPS in production to match LinkedIn whitelist exactly
-            if (origin.includes('vercel.app') || (!origin.includes('localhost') && origin.startsWith('http://'))) {
+            // Force canonical production URL on all Vercel previews to satisfy precise LinkedIn whitelisting
+            if (origin.includes('vercel.app')) {
+                origin = 'https://bank-value-benchmark.vercel.app';
+            } else if (!origin.includes('localhost') && origin.startsWith('http://')) {
                 origin = origin.replace('http://', 'https://');
             }
             redirectUri = `${origin}/auth/callback`;
