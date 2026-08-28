@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { Redis } from 'ioredis';
+import nodemailer from 'nodemailer';
 
 export const SUITE_ORIGINS = new Set([
     'https://bank-value-benchmark-mvp.vercel.app',
@@ -136,6 +137,49 @@ export function buildSuiteLoginAlert(user, returnTo, now = new Date()) {
     };
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+export function buildSuiteLoginEmail(event, env = process.env) {
+    const smtpUser = env.SMTP_USER?.trim();
+    const senderEmail = env.EMAIL_SENDER?.trim() || smtpUser;
+    const adminEmail = env.ADMIN_EMAIL?.trim() || senderEmail;
+
+    if (!env.SMTP_SERVER?.trim() || !smtpUser || !env.SMTP_PASS || !adminEmail) {
+        throw new Error('Gmail notification configuration is incomplete');
+    }
+
+    const subject = `New FDIC Suite registration: ${event.name}`;
+    return {
+        from: `FDIC Suite Alerts <${senderEmail}>`,
+        to: adminEmail,
+        subject,
+        text: [
+            'A new LinkedIn user registered for the FDIC Intelligence Suite.',
+            `Name: ${event.name}`,
+            `Email: ${event.email || 'Not provided by LinkedIn'}`,
+            `Started from: ${event.sourceApp}`,
+            `Time: ${event.occurredAt}`,
+        ].join('\n'),
+        html: `
+            <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6;">
+                <h1 style="color: #2563eb;">New FDIC Suite registration</h1>
+                <p>A new LinkedIn user registered for the FDIC Intelligence Suite.</p>
+                <p><strong>Name:</strong> ${escapeHtml(event.name)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(event.email || 'Not provided by LinkedIn')}</p>
+                <p><strong>Started from:</strong> ${escapeHtml(event.sourceApp)}</p>
+                <p><strong>Time:</strong> ${escapeHtml(event.occurredAt)}</p>
+            </div>
+        `,
+    };
+}
+
 export async function recordFirstSuiteLogin(redis, user, returnTo, options = {}) {
     const event = buildSuiteLoginAlert(user, returnTo, options.now);
 
@@ -143,16 +187,40 @@ export async function recordFirstSuiteLogin(redis, user, returnTo, options = {})
     // users are not announced again during migration.
     if (await redis.exists(`notified:${user.sub}`)) return null;
 
+    const markerKey = `suite:sso:login-alert:${user.sub}`;
     const claimed = await redis.set(
-        `suite:sso:login-alert:${user.sub}`,
+        markerKey,
         event.eventId,
         'NX',
     );
     if (claimed !== 'OK') return null;
 
-    const logger = options.logger || console;
-    logger.info(`${LOGIN_ALERT_EVENT} ${JSON.stringify(event)}`);
-    return event;
+    try {
+        const env = options.env || process.env;
+        const transporter = options.transporter || nodemailer.createTransport({
+            host: env.SMTP_SERVER.trim(),
+            port: Number.parseInt(env.SMTP_PORT || '587', 10),
+            secure: Number.parseInt(env.SMTP_PORT || '587', 10) === 465,
+            auth: {
+                user: env.SMTP_USER.trim(),
+                pass: env.SMTP_PASS,
+            },
+        });
+        const delivery = await transporter.sendMail(buildSuiteLoginEmail(event, env));
+        await redis.set(`notified:${user.sub}`, 'true');
+
+        const logger = options.logger || console;
+        logger.info(`${LOGIN_ALERT_EVENT} ${JSON.stringify({
+            ...event,
+            delivery: 'sent',
+            messageId: delivery.messageId || null,
+        })}`);
+        return event;
+    } catch (error) {
+        // Let a later sign-in retry if Gmail was temporarily unavailable.
+        await redis.del(markerKey);
+        throw error;
+    }
 }
 
 export async function createOAuthState(res, redis, payload) {
@@ -203,5 +271,6 @@ export function anonymousReturnUrl(returnTo) {
 export async function closeRedis(redis) {
     if (redis) await redis.quit().catch(() => redis.disconnect());
 }
+
 
 

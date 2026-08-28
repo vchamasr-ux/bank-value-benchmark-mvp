@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
     anonymousReturnUrl,
     buildSuiteLoginAlert,
+    buildSuiteLoginEmail,
     CENTRAL_ORIGIN,
     LOGIN_ALERT_EVENT,
     normalizeReturnTo,
@@ -37,17 +38,20 @@ test('LinkedIn sign-in state survives a realistic MFA or consent pause', () => {
     assert.ok(OAUTH_TTL_SECONDS >= 60 * 30);
 });
 
-test('first LinkedIn login emits one monitor event without exposing the raw subject', async () => {
+test('first LinkedIn login sends one Gmail alert without exposing the raw subject', async () => {
     const values = new Map();
+    const deliveries = [];
     const redis = {
         async exists(key) {
             return values.has(key) ? 1 : 0;
         },
         async set(key, value, mode) {
-            assert.equal(mode, 'NX');
-            if (values.has(key)) return null;
+            if (mode === 'NX' && values.has(key)) return null;
             values.set(key, value);
             return 'OK';
+        },
+        async del(key) {
+            values.delete(key);
         },
     };
     const lines = [];
@@ -59,6 +63,19 @@ test('first LinkedIn login emits one monitor event without exposing the raw subj
     const options = {
         logger: { info: (line) => lines.push(line) },
         now: new Date('2026-08-28T20:00:00.000Z'),
+        env: {
+            SMTP_SERVER: 'smtp.gmail.com',
+            SMTP_PORT: '587',
+            SMTP_USER: 'owner@example.com',
+            SMTP_PASS: 'test-only',
+            EMAIL_SENDER: 'owner@example.com',
+        },
+        transporter: {
+            async sendMail(message) {
+                deliveries.push(message);
+                return { messageId: 'gmail-test-message' };
+            },
+        },
     };
 
     const first = await recordFirstSuiteLogin(
@@ -78,6 +95,9 @@ test('first LinkedIn login emits one monitor event without exposing the raw subj
     assert.equal(first.occurredAt, '2026-08-28T20:00:00.000Z');
     assert.equal(duplicate, null);
     assert.equal(lines.length, 1);
+    assert.equal(deliveries.length, 1);
+    assert.equal(deliveries[0].to, 'owner@example.com');
+    assert.match(deliveries[0].subject, /Test Member/);
     assert.match(lines[0], new RegExp(`^${LOGIN_ALERT_EVENT} `));
     assert.equal(lines[0].includes(user.sub), false);
 });
@@ -109,5 +129,56 @@ test('login alert builder rejects an invalid monitoring timestamp', () => {
         /Invalid login event timestamp/,
     );
 });
+
+test('Gmail delivery failure releases the first-login marker for retry', async () => {
+    const values = new Map();
+    const redis = {
+        async exists() {
+            return 0;
+        },
+        async set(key, value, mode) {
+            if (mode === 'NX' && values.has(key)) return null;
+            values.set(key, value);
+            return 'OK';
+        },
+        async del(key) {
+            values.delete(key);
+        },
+    };
+
+    await assert.rejects(
+        recordFirstSuiteLogin(
+            redis,
+            { sub: 'retry-member', name: 'Retry Member' },
+            CENTRAL_ORIGIN,
+            {
+                env: {
+                    SMTP_SERVER: 'smtp.gmail.com',
+                    SMTP_USER: 'owner@example.com',
+                    SMTP_PASS: 'invalid',
+                },
+                transporter: {
+                    async sendMail() {
+                        throw new Error('Gmail unavailable');
+                    },
+                },
+            },
+        ),
+        /Gmail unavailable/,
+    );
+
+    assert.equal(values.has('suite:sso:login-alert:retry-member'), false);
+});
+
+test('Gmail email builder rejects incomplete credentials', () => {
+    assert.throws(
+        () => buildSuiteLoginEmail(
+            buildSuiteLoginAlert({ sub: 'member', name: 'Member' }, CENTRAL_ORIGIN),
+            {},
+        ),
+        /configuration is incomplete/,
+    );
+});
+
 
 
