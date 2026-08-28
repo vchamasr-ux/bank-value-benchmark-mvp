@@ -9,8 +9,6 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
 
     const [isPeerModalOpen, setIsPeerModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
-    const [aiSummary, setAiSummary] = useState('');
     const [csvExporting, setCsvExporting] = useState(false);
 
     const handlePresentLiveToggled = () => {
@@ -176,7 +174,6 @@ const FinancialDashboard = ({ financials, benchmarks, authRequired = true, isPre
                 financials={financials}
                 benchmarks={benchmarks}
                 authRequired={authRequired}
-                onSummaryGenerated={setAiSummary}
             />
 
 
