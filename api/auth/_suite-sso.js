@@ -13,7 +13,10 @@ export const CENTRAL_ORIGIN = 'https://bank-value-benchmark-mvp.vercel.app';
 export const SESSION_COOKIE = 'fdic_suite_session';
 export const OAUTH_COOKIE = 'fdic_suite_oauth';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
-const OAUTH_TTL_SECONDS = 60 * 10;
+// A user may pause on LinkedIn for MFA, password recovery, or a consent review.
+// Keep the state cookie-bound, but allow enough time to finish that real-world
+// flow before the one-time Redis record and browser cookie expire.
+export const OAUTH_TTL_SECONDS = 60 * 30;
 const TICKET_TTL_SECONDS = 60;
 
 export function isAllowedSuiteOrigin(origin) {
@@ -154,3 +157,4 @@ export function anonymousReturnUrl(returnTo) {
 export async function closeRedis(redis) {
     if (redis) await redis.quit().catch(() => redis.disconnect());
 }
+

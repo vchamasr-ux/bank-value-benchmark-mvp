@@ -102,6 +102,11 @@ export const AuthProvider = ({ children }) => {
                     }
                 } catch (err) {
                     console.error("Auth Callback Error:", err);
+                    // Never leave an older local profile visible after the current
+                    // server-side OAuth exchange has failed. That would make the UI
+                    // look signed in even though no shared suite session exists.
+                    localStorage.removeItem('auth_user');
+                    setUser(null);
                     window.history.replaceState({}, document.title, "/");
                 } finally {
                     setCallbackLoading(false); // Always unblock, even on error
@@ -142,3 +147,4 @@ export const AuthProvider = ({ children }) => {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
+
