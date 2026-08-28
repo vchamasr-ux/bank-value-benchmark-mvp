@@ -288,16 +288,16 @@ const BankSearch = ({ onBankSelect }) => {
 
             {/* Recent Searches */}
             {recentBank && (
-                <div className="flex items-center justify-center gap-3 animate-fadeSlideIn">
-                    <span className="text-xs font-bold tracking-widest text-[#7285a5] uppercase">Recent:</span>
+                <div className="flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-0 w-full max-w-full animate-fadeSlideIn">
+                    <span className="shrink-0 text-xs font-bold tracking-widest text-[#7285a5] uppercase">Recent:</span>
                     <button
                         onClick={() => handleBankClick(recentBank)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#1e2336]/60 hover:bg-[#1e2336] border border-slate-700/50 hover:border-blue-500/50 rounded-full text-sm font-medium text-slate-300 hover:text-white transition-all duration-200 shadow-sm"
+                        className="flex flex-1 sm:flex-none min-w-0 max-w-[300px] items-center gap-2 px-3 sm:px-4 py-2 bg-[#1e2336]/60 hover:bg-[#1e2336] border border-slate-700/50 hover:border-blue-500/50 rounded-full text-sm font-medium text-slate-300 hover:text-white transition-all duration-200 shadow-sm"
                     >
                         <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="truncate max-w-[250px]">{recentBank.NAME}</span>
+                        <span className="min-w-0 flex-1 truncate sm:max-w-[250px]">{recentBank.NAME}</span>
                     </button>
                 </div>
             )}
@@ -306,3 +306,4 @@ const BankSearch = ({ onBankSelect }) => {
 };
 
 export default BankSearch;
+
