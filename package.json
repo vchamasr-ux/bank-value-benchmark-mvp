@@ -17,6 +17,7 @@
     "test:circular": "madge src/ --circular",
     "test:duplicates": "jscpd src/ --threshold 5",
     "test:garbage": "node tests/garbage-scanner.mjs",
+    "test:oauth": "node --test tests/suite-sso-config.test.mjs",
     "test:visual": "npx playwright test tests/visual.spec.js --reporter=list",
     "test:a11y": "npx playwright test tests/a11y-polish.spec.js --reporter=list",
     "test:quality": "npm run lint && npm run test:circular && npm run test:duplicates && npm run test:garbage && npm run test:a11y",

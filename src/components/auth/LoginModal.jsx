@@ -7,14 +7,6 @@ const LoginModal = ({ isOpen, onClose }) => {
     const [error, setError] = useState(null);
 
     const handleLinkedInSignIn = async () => {
-        const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
-
-        if (!clientId) {
-            console.error("CRITICAL: VITE_LINKEDIN_CLIENT_ID is missing in .env");
-            setError('System configuration error: LinkedIn integration is not configured. Please contact support.');
-            return;
-        }
-
         if (!consent) {
             setError('Please check the consent box to continue.');
             return;
@@ -28,29 +20,8 @@ const LoginModal = ({ isOpen, onClose }) => {
             consent
         }));
 
-        // LinkedIn OAuth Configuration
-        const configuredRedirect = import.meta.env.VITE_LINKEDIN_REDIRECT_URI;
-        let redirectUri;
-        
-        if (configuredRedirect) {
-            redirectUri = configuredRedirect;
-        } else {
-            let origin = window.location.origin;
-            // Force canonical production URL on all Vercel previews to satisfy precise LinkedIn whitelisting
-            if (origin.includes('vercel.app')) {
-                origin = 'https://bank-value-benchmark.vercel.app';
-            } else if (!origin.includes('localhost') && origin.startsWith('http://')) {
-                origin = origin.replace('http://', 'https://');
-            }
-            redirectUri = `${origin}/auth/callback`;
-        }
-
-        const state = Math.random().toString(36).substring(7);
-        localStorage.setItem('auth_state', state);
-
-        const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=openid%20profile%20email`;
-
-        window.location.href = authUrl;
+        const returnTo = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+        window.location.href = `/api/auth/sso-start?consent=1&return_to=${encodeURIComponent(returnTo)}`;
     };
 
     if (!isOpen) return null;

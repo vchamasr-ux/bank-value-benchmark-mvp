@@ -21,6 +21,7 @@ const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false
 
 import { useAuth } from './components/auth/AuthContext';
 import SavedBriefsModal from './components/modals/SavedBriefsModal';
+import LoginModal from './components/auth/LoginModal';
 
 /** Small inline button: only renders when user is authenticated */
 const BriefsNavButton = ({ onClick }) => {
@@ -42,6 +43,7 @@ const BriefsNavButton = ({ onClick }) => {
 };
 
 function App() {
+  const { user } = useAuth();
   const {
     selectedBank, setSelectedBank,
     allHistoricalKPIs,
@@ -67,6 +69,7 @@ function App() {
   });
 
   const [isBriefsModalOpen, setIsBriefsModalOpen] = useState(false);
+  const [isSuiteLoginOpen, setIsSuiteLoginOpen] = useState(false);
 
   // Global '/' keyboard shortcut — focus the bank search input (Datadog / Grafana convention)
   useEffect(() => {
@@ -155,16 +158,24 @@ function App() {
                   {/* Authenticated User Menu + Saved Briefs shortcut */}
                   <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2 flex items-center gap-1">
                     <BriefsNavButton onClick={() => setIsBriefsModalOpen(true)} />
+                    {!user && (
+                      <button
+                        onClick={() => setIsSuiteLoginOpen(true)}
+                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-300 hover:text-white hover:bg-blue-900/40 transition-all border border-blue-800"
+                      >
+                        Sign in
+                      </button>
+                    )}
                     <UserProfileMenu isBriefsModalOpen={isBriefsModalOpen} onBriefsModalClose={() => setIsBriefsModalOpen(false)} />
                   </div>
 
                   {/* Back to Suite */}
                   <a
                     href="https://fdic-suite-landing.vercel.app"
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-2"
+                    className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-1 sm:ml-2"
                     aria-label="Back to FDIC Intelligence Suite"
                   >
-                    Suite Home
+                    ← Suite
                   </a>
                 </nav>
               </div>
@@ -400,6 +411,7 @@ function App() {
 
           {/* Saved Briefs Modal — triggered from nav BriefsNavButton or UserProfileMenu */}
           <SavedBriefsModal isOpen={isBriefsModalOpen} onClose={() => setIsBriefsModalOpen(false)} />
+          <LoginModal isOpen={isSuiteLoginOpen} onClose={() => setIsSuiteLoginOpen(false)} />
 
           <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
             © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}
