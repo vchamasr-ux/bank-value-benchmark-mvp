@@ -65,25 +65,9 @@ export const AuthProvider = ({ children }) => {
 
                     if (userData.error) throw new Error(userData.error);
 
-                    // 2. Fetch pending registration data (consent)
-                    const pendingData = JSON.parse(localStorage.getItem('pending_registration') || '{}');
-
-                    // 3. Complete registration / notify admin
-                    const regResponse = await fetch('/api/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            sub: userData.sub,
-                            name: userData.name,
-                            email: userData.email,
-                            profileUrl: userData.profileUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(userData.name)}`, // Fallback search link if URL not provided
-                            consent: pendingData.consent ?? userData.consent
-                        })
-                    });
-
-                    await regResponse.json();
-
-                    // 4. Set user and clean up
+                    // 2. Set user and clean up. First-login monitoring now runs
+                    // inside the trusted server callback rather than accepting
+                    // browser-supplied identity data at /api/register.
                     const { continueUrl, consent: _consent, ...safeUserData } = userData;
                     const userWithProfile = {
                         ...safeUserData,
@@ -94,7 +78,7 @@ export const AuthProvider = ({ children }) => {
 
                     localStorage.removeItem('pending_registration');
 
-                    // 5. Continue to the requesting suite app, or clean the local URL.
+                    // 3. Continue to the requesting suite app, or clean the local URL.
                     if (continueUrl) {
                         window.location.replace(continueUrl);
                     } else {
@@ -147,4 +131,5 @@ export const AuthProvider = ({ children }) => {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
+
 

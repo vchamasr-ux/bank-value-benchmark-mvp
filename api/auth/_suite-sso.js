@@ -12,12 +12,21 @@ export const SUITE_ORIGINS = new Set([
 export const CENTRAL_ORIGIN = 'https://bank-value-benchmark-mvp.vercel.app';
 export const SESSION_COOKIE = 'fdic_suite_session';
 export const OAUTH_COOKIE = 'fdic_suite_oauth';
+export const LOGIN_ALERT_EVENT = 'FDIC_SUITE_LOGIN_FIRST_SEEN';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 // A user may pause on LinkedIn for MFA, password recovery, or a consent review.
 // Keep the state cookie-bound, but allow enough time to finish that real-world
 // flow before the one-time Redis record and browser cookie expire.
 export const OAUTH_TTL_SECONDS = 60 * 30;
 const TICKET_TTL_SECONDS = 60;
+
+const SUITE_APP_NAMES = new Map([
+    ['https://bank-value-benchmark-mvp.vercel.app', 'Bank Value Benchmark'],
+    ['https://bank-ma-radar.vercel.app', 'Bank M&A Radar'],
+    ['https://fintechprospector.vercel.app', 'B2B Fintech Prospector'],
+    ['https://de-novo-whitespace-explorer.vercel.app', 'De Novo Explorer'],
+    ['https://fdic-suite-landing.vercel.app', 'FDIC Intelligence Suite'],
+]);
 
 export function isAllowedSuiteOrigin(origin) {
     if (SUITE_ORIGINS.has(origin)) return true;
@@ -109,6 +118,43 @@ export async function createSession(res, redis, user) {
     return sessionId;
 }
 
+export function buildSuiteLoginAlert(user, returnTo, now = new Date()) {
+    if (!user?.sub) throw new Error('LinkedIn subject is required for login monitoring');
+
+    const destination = new URL(normalizeReturnTo(returnTo));
+    const occurredAt = now instanceof Date ? now : new Date(now);
+    if (Number.isNaN(occurredAt.getTime())) throw new Error('Invalid login event timestamp');
+
+    return {
+        event: 'first_linkedin_login',
+        eventId: crypto.createHash('sha256').update(String(user.sub)).digest('hex').slice(0, 16),
+        name: String(user.name || 'LinkedIn member').slice(0, 160),
+        email: user.email ? String(user.email).slice(0, 320) : null,
+        sourceApp: SUITE_APP_NAMES.get(destination.origin) || destination.hostname,
+        sourceOrigin: destination.origin,
+        occurredAt: occurredAt.toISOString(),
+    };
+}
+
+export async function recordFirstSuiteLogin(redis, user, returnTo, options = {}) {
+    const event = buildSuiteLoginAlert(user, returnTo, options.now);
+
+    // Preserve the old SMTP system's successful-notification marker so existing
+    // users are not announced again during migration.
+    if (await redis.exists(`notified:${user.sub}`)) return null;
+
+    const claimed = await redis.set(
+        `suite:sso:login-alert:${user.sub}`,
+        event.eventId,
+        'NX',
+    );
+    if (claimed !== 'OK') return null;
+
+    const logger = options.logger || console;
+    logger.info(`${LOGIN_ALERT_EVENT} ${JSON.stringify(event)}`);
+    return event;
+}
+
 export async function createOAuthState(res, redis, payload) {
     const state = randomToken();
     await redis.set(`suite:sso:oauth:${state}`, JSON.stringify(payload), 'EX', OAUTH_TTL_SECONDS);
@@ -157,4 +203,5 @@ export function anonymousReturnUrl(returnTo) {
 export async function closeRedis(redis) {
     if (redis) await redis.quit().catch(() => redis.disconnect());
 }
+
 
