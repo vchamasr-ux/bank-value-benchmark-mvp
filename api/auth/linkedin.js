@@ -1,9 +1,18 @@
 
-export default async function handler(req, res) {
-    const { code } = req.query;
+import {
+    CENTRAL_ORIGIN,
+    closeRedis,
+    consumeOAuthState,
+    createRedis,
+    createSession,
+    createSuiteTicket,
+} from './_suite-sso.js';
 
-    if (!code) {
-        return res.status(400).json({ error: 'Missing code' });
+export default async function handler(req, res) {
+    const { code, state } = req.query;
+
+    if (!code || !state) {
+        return res.status(400).json({ error: 'Missing code or state' });
     }
 
     const clientId = process.env.LINKEDIN_CLIENT_ID;
@@ -15,7 +24,10 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server configuration error: LinkedIn keys missing" });
     }
 
+    let redis;
     try {
+        redis = createRedis();
+        const oauthRequest = await consumeOAuthState(req, res, redis, state);
         // 1. Exchange code for access token
         const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
             method: 'POST',
@@ -54,13 +66,20 @@ export default async function handler(req, res) {
         // Note: LinkedIn OIDC doesn't provide the vanitiy profile URL directly.
         // We'll return what we have and let the frontend handle fallback/UI.
 
-        return res.status(200).json({
+        const user = {
             sub,
             name: name || `${given_name} ${family_name}`,
             picture,
             email,
-            token: tokenData.access_token // This is short-lived
-        });
+        };
+        await createSession(res, redis, user);
+
+        const returnTo = oauthRequest.returnTo || `${CENTRAL_ORIGIN}/`;
+        const continueUrl = new URL(returnTo).origin === CENTRAL_ORIGIN
+            ? returnTo
+            : await createSuiteTicket(redis, user, returnTo);
+
+        return res.status(200).json({ ...user, consent: oauthRequest.consent, continueUrl });
 
     } catch (error) {
         console.error("CRITICAL AUTH ERROR:", error);
@@ -69,5 +88,7 @@ export default async function handler(req, res) {
             error: "Authentication process failed critically.",
             details: error.message
         });
+    } finally {
+        await closeRedis(redis);
     }
 }

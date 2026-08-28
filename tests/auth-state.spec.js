@@ -41,6 +41,8 @@ test.describe('Auth State Matrix', () => {
 
         await expect(page.getByText('Something went wrong')).not.toBeVisible();
         // User badge or name should appear somewhere in the UI
+        // Click the avatar to open the dropdown
+        await page.locator('button[title="Test User\'s Profile"]').click();
         const bodyText = await page.evaluate(() => document.body.innerText);
         expect(bodyText).toContain('Test User');
     });

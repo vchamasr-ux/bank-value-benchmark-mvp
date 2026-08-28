@@ -49,11 +49,11 @@ export const searchBank = async (name) => {
 
     // FDIC API requires specific filters string format
     // We search for ACTIVE institutions using the flexible 'search' parameter
-    // and sort by ASSET DESC to prioritize the largest banks.
     const searchQuery = `NAME:"${name}" AND ACTIVE:1`;
-    const fields = 'NAME,CITY,STNAME,STALP,CERT';
+    // Add BKCLASS to fields so we can filter on it client-side
+    const fields = 'NAME,CITY,STNAME,STALP,CERT,BKCLASS';
     const limit = 10;
-
+    
     const url = `${FDIC_API_BASE}?search=${encodeURIComponent(searchQuery)}&sort_by=ASSET&sort_order=DESC&fields=${fields}&limit=${limit}&format=json`;
 
     try {
@@ -61,13 +61,26 @@ export const searchBank = async (name) => {
         if (!response.ok) {
             throw new Error(`FDIC API Error: ${response.statusText}`);
         }
+        
         const data = await response.json();
-        const results = data.data.map(item => item.data);
+        
+        if (!data || !Array.isArray(data.data)) {
+            // Do not silently fallback
+            throw new Error(`FDIC API returned an invalid data structure: expected an array but got ${typeof data?.data}`);
+        }
+
+        const results = data.data
+            .map(item => item.data)
+            .filter(bank => bank.BKCLASS !== 'NC' && bank.BKCLASS !== 'OI');
+
+        if (results.length === 0) {
+           throw new Error(`No active banks found matching "${name}".`);
+        }
 
         try {
             sessionStorage.setItem(cacheKey, JSON.stringify(results));
         } catch (e) {
-            throw new Error(`Session storage write failed: ${e.message}`);
+            console.warn(`Session storage write failed: ${e.message}`);
         }
 
         return results;
@@ -169,10 +182,14 @@ export const getPeerGroupBenchmark = async (assetSize, subjectState) => {
  */
 export const listPeerBanks = async ({ segmentKey }) => {
     const fields = 'NAME,CITY,STNAME,STALP,CERT';
-    let url = `https://api.fdic.gov/banks/institutions/?search=${encodeURIComponent('ACTIVE:1')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+    
+    // FDIC API uses %20AND%20 for filters, or - for search, but for filters it's usually `filters=... AND NOT_BKCLASS...` 
+    // Actually, FDIC `search` endpoint supports `-BKCLASS:NC`. The `filters` endpoint supports `-BKCLASS:NC`.
+    let url = `https://api.fdic.gov/banks/institutions/?search=${encodeURIComponent('ACTIVE:1 AND -BKCLASS:NC AND -BKCLASS:OI')}&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
 
     if (segmentKey && segmentKey.includes('ASSET:')) {
-        url = `https://api.fdic.gov/banks/institutions/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
+        // Exclude foreign branches here too
+        url = `https://api.fdic.gov/banks/institutions/?filters=${encodeURIComponent(segmentKey)}%20AND%20ACTIVE:1%20AND%20-BKCLASS:NC%20AND%20-BKCLASS:OI&fields=${fields}&limit=20&sort_by=ASSET&sort_order=DESC&format=json`;
     }
 
     try {

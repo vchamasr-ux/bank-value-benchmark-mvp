@@ -493,6 +493,28 @@ const run = async () => {
                                 formatMove(secondLever.id, (roaGap * 0.4) / secondLever.coef)
                             ];
 
+                            // Optimistic 80/20
+                            const optimisticPath = [
+                                formatMove(topLever.id, (roaGap * 0.8) / topLever.coef),
+                                formatMove(secondLever.id, (roaGap * 0.2) / secondLever.coef)
+                            ];
+
+                            // Conservative
+                            let conservativePath = [];
+                            if (validLevers.length >= 3) {
+                                const thirdLever = validLevers[2];
+                                conservativePath = [
+                                    formatMove(topLever.id, (roaGap * 0.4) / topLever.coef),
+                                    formatMove(secondLever.id, (roaGap * 0.3) / secondLever.coef),
+                                    formatMove(thirdLever.id, (roaGap * 0.3) / thirdLever.coef)
+                                ];
+                            } else {
+                                conservativePath = [
+                                    formatMove(topLever.id, (roaGap * 0.5) / topLever.coef),
+                                    formatMove(secondLever.id, (roaGap * 0.5) / secondLever.coef)
+                                ];
+                            }
+
                             // Check tradeoffs for aggressive
                             const tradeoffs = selectedTierModel.tradeoffs ? selectedTierModel.tradeoffs[topLever.id] : null;
                             if (tradeoffs) {
@@ -516,7 +538,9 @@ const run = async () => {
                                 roaGap: roaGap.toFixed(2),
                                 roaGapDollars: ((roaGap / 100) * (assets * 1000) / 1000000).toFixed(1),
                                 balancedPath,
-                                aggressivePath
+                                aggressivePath,
+                                optimisticPath,
+                                conservativePath
                             };
                         }
                     }
@@ -536,6 +560,10 @@ const run = async () => {
             ${scenarios.balancedPath.map(m => `- ${m.name}: ${m.deltaSign}${m.deltaVal} pts`).join('\n            ')}
             Aggressive Path recommended moves:
             ${scenarios.aggressivePath.map(m => `- ${m.name}: ${m.deltaSign}${m.deltaVal} pts ${m.tradeoff ? `(Tradeoff expected: ${m.tradeoff})` : ''}`).join('\n            ')}
+            Optimistic Path recommended moves:
+            ${scenarios.optimisticPath.map(m => `- ${m.name}: ${m.deltaSign}${m.deltaVal} pts`).join('\n            ')}
+            Conservative Path recommended moves:
+            ${scenarios.conservativePath.map(m => `- ${m.name}: ${m.deltaSign}${m.deltaVal} pts`).join('\n            ')}
             `;
         }
 

@@ -6,16 +6,20 @@ export default defineConfig({
     expect: {
         timeout: 10000,
     },
-    fullyParallel: true,
+    fullyParallel: false, // Turn off parallel to prevent FDIC search API rate-limits locally
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : undefined,
+    workers: 1, // Enforce single thread locally to stabilize FDIC calls
     reporter: 'html',
     use: {
         // Run tests against production Vercel — /api/benchmarks is a serverless function, not available locally.
         // Override with PLAYWRIGHT_TEST_BASE_URL=<your-preview-url> to test a Vercel preview branch.
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'https://bank-value-benchmark-mvp.vercel.app',
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:5173',
         trace: 'on-first-retry',
     },
-    // We don't need a dev server config block because we're running against live
+    webServer: process.env.PLAYWRIGHT_TEST_BASE_URL ? undefined : {
+        command: 'npm run dev -- --port 5173',
+        port: 5173,
+        reuseExistingServer: !process.env.CI,
+    }
 });

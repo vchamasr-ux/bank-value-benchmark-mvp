@@ -44,27 +44,37 @@ FDIC_VARS = [
 ]
 
 def fetch_data(tier_name, asset_filter):
-    """Fetch banks matching the specific asset tier filter."""
+    """Fetch banks matching the specific asset tier filter with 5 years of data (paginated)."""
     print(f"Fetching data for tier: {tier_name}...")
     base_url = "https://banks.data.fdic.gov/api/financials"
     fields = "CERT,REPDTE,ASSET,NUMEMP,INTINC,INTEXP,EINTEXP,NONII,NONIX,LNLSNET,NETINC,EQ,NCLNLS"
 
-    # Require ASSET > 0, dates from 2024 onwards, and the specific tier filter
-    filters = f'ASSET:>0 AND REPDTE:[20240101 TO *] AND {asset_filter}'
-
+    # Require ASSET > 0, dates from 2020 onwards (5 years), and the specific tier filter
+    filters = f'ASSET:>0 AND REPDTE:[20200101 TO *] AND {asset_filter}'
     encoded_filters = requests.utils.quote(filters)
-    url = f"{base_url}?filters={encoded_filters}&fields={fields}&limit={CONFIG['limit']}&sort_by=REPDTE&sort_order=DESC&format=json"
+    
+    records = []
+    offset = 0
+    limit = 10000
 
-    try:
-        response = requests.get(url, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        records = [item['data'] for item in data.get('data', [])]
-        print(f"  ...fetched {len(records)} records for {tier_name}.")
-        return records
-    except Exception as e:
-        print(f"Error fetching data for {tier_name}: {e}")
-        return []
+    while True:
+        url = f"{base_url}?filters={encoded_filters}&fields={fields}&limit={limit}&offset={offset}&sort_by=REPDTE&sort_order=DESC&format=json"
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            batch = [item['data'] for item in data.get('data', [])]
+            records.extend(batch)
+            print(f"  ...fetched {len(batch)} records for {tier_name} (Total: {len(records)}).")
+            
+            if len(batch) < limit:
+                break
+            offset += limit
+        except Exception as e:
+            print(f"Error fetching data for {tier_name} at offset {offset}: {e}")
+            break
+
+    return records
 
 def clean_data(raw_data):
     """Converts raw data to DataFrame and handles initial cleaning."""

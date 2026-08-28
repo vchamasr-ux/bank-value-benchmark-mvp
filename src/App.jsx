@@ -1,76 +1,75 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import FinancialDashboard from './components/FinancialDashboard';
-import OperationalDashboard from './components/OperationalDashboard';
-import MoversView from './components/MoversView';
-import UserProfileMenu from './components/UserProfileMenu';
-import LandingPage from './components/LandingPage';
+import FinancialDashboard from './components/dashboards/FinancialDashboard';
+import OperationalDashboard from './components/dashboards/OperationalDashboard';
+import MoversView from './components/views/MoversView';
+import UserProfileMenu from './components/layout/UserProfileMenu';
+import LandingPage from './components/layout/LandingPage';
 import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
-import FinancialDashboardSkeleton from './components/FinancialDashboardSkeleton';
-import PitchbookPresentation from './components/PitchbookPresentation';
-import { calculateKPIs } from './utils/kpiCalculator';
+import FinancialDashboardSkeleton from './components/dashboards/FinancialDashboardSkeleton';
+import PitchbookPresentation from './components/views/PitchbookPresentation';
+import { useBankData } from './hooks/useBankData';
 
 // Lazy-loaded heavy components — keeps main bundle lean and avoids Rollup TDZ issues
-const MoversSummaryModal = lazy(() => import('./components/MoversSummaryModal'));
-const StrategicPlannerTab = lazy(() => import('./components/StrategicPlannerTab'));
-const { getBankFinancials, getPeerGroupBenchmark } = fdicService;
+const MoversSummaryModal = lazy(() => import('./components/modals/MoversSummaryModal'));
+const StrategicPlannerTab = lazy(() => import('./components/views/StrategicPlannerTab'));
+const { getBankFinancials } = fdicService;
 
 // Feature flags: run `localStorage.setItem('feat_market_movers', 'true')` in console to enable
 const FEAT_MARKET_MOVERS = localStorage.getItem('feat_market_movers') !== 'false'; // Default to true
 const FEAT_AUTH_REQUIRED = localStorage.getItem('feat_auth_required') !== 'false'; // Default to true, allow explicit disable
 
-/**
- * Derive the prior quarter label from a report date string like "Q4 2025".
- * Avoids the need to manually update hardcoded constants each quarter.
- */
-const derivePriorQuarter = (reportDate) => {
-  if (!reportDate) return null;
-  const match = reportDate.match(/^Q([1-4]) (\d{4})$/);
-  if (!match) return null;
-  let q = parseInt(match[1], 10);
-  let y = parseInt(match[2], 10);
-  if (q === 1) { q = 4; y -= 1; } else { q -= 1; }
-  return `Q${q} ${y}`;
+import { useAuth } from './components/auth/AuthContext';
+import SavedBriefsModal from './components/modals/SavedBriefsModal';
+import LoginModal from './components/auth/LoginModal';
+
+/** Small inline button: only renders when user is authenticated */
+const BriefsNavButton = ({ onClick }) => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return (
+    <button
+      id="nav-saved-briefs"
+      onClick={onClick}
+      className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-1"
+      title="View your saved AI Intelligence Briefs"
+    >
+      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      Briefs
+    </button>
+  );
 };
 
 function App() {
-  // Deep-linking support parsed lazily for initial state
-  const getInitialBank = (paramName) => {
-    if (typeof window === 'undefined') return null;
-    const params = new URLSearchParams(window.location.search);
-    const cert = params.get(paramName) || (paramName === 'acq' ? params.get('b') : null);
-    return cert ? { CERT: cert, NAME: 'Loading...', CITY: '', STNAME: '' } : null;
-  };
+  const { user } = useAuth();
+  const {
+    selectedBank, setSelectedBank,
+    allHistoricalKPIs,
+    selectedQuarterIdx, setSelectedQuarterIdx,
+    benchmarks,
+    loadingFinancials,
+    errorFinancials,
+    view, setView,
+    radarContextBank, setRadarContextBank,
+    secondaryBank, setSecondaryBank,
+    secondaryFinancials,
+    loadingSecondary,
+    financials,
+    CURRENT_QUARTER,
+    PRIOR_QUARTER
+  } = useBankData();
 
-  const [selectedBank, setSelectedBank] = useState(() => getInitialBank('acq'));
-  const [allHistoricalKPIs, setAllHistoricalKPIs] = useState(null); // full 20-quarter array
-  const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(0); // 0 = latest (#2)
-  const [benchmarks, setBenchmarks] = useState(null);
-  const [loadingFinancials, setLoadingFinancials] = useState(false);
-  const [errorFinancials, setErrorFinancials] = useState(null);
-  const [view, setView] = useState('benchmark'); // 'benchmark' | 'movers'
   const [showMovers, setShowMovers] = useState(false);
-  const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
-  const [isPresentMode, setIsPresentMode] = useState(false);
+  const [isPresentMode, setIsPresentMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('present') === 'true';
+  });
 
-  const [secondaryBank, setSecondaryBank] = useState(() => getInitialBank('tgt'));
-  const [allSecondaryHistoricalKPIs, setAllSecondaryHistoricalKPIs] = useState(null);
-  const [loadingSecondary, setLoadingSecondary] = useState(false);
-
-  // Derive financials from history and selected quarter
-  const financials = allHistoricalKPIs && allHistoricalKPIs.length > 0 ? {
-    ...allHistoricalKPIs[selectedQuarterIdx],
-    history: allHistoricalKPIs.slice(selectedQuarterIdx)
-  } : null;
-
-  const secondaryFinancials = allSecondaryHistoricalKPIs && allSecondaryHistoricalKPIs.length > 0 ? {
-    ...allSecondaryHistoricalKPIs[selectedQuarterIdx],
-    history: allSecondaryHistoricalKPIs.slice(selectedQuarterIdx)
-  } : null;
-
-  // Derived quarter labels
-  const CURRENT_QUARTER = financials?.reportDate || null;
-  const PRIOR_QUARTER = derivePriorQuarter(CURRENT_QUARTER);
+  const [isBriefsModalOpen, setIsBriefsModalOpen] = useState(false);
+  const [isSuiteLoginOpen, setIsSuiteLoginOpen] = useState(false);
 
   // Global '/' keyboard shortcut — focus the bank search input (Datadog / Grafana convention)
   useEffect(() => {
@@ -84,97 +83,6 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-  // Clear radar context when bank is deselected
-  useEffect(() => {
-    if (!selectedBank) {
-      const clearState = () => {
-        setRadarContextBank(null);
-        setView('benchmark');
-        setSecondaryBank(null);
-        setAllSecondaryHistoricalKPIs(null);
-      };
-      clearState();
-    }
-  }, [selectedBank]);
-
-  useEffect(() => {
-    if (selectedBank) {
-      const fetchPrimary = async () => {
-        setLoadingFinancials(true);
-        setErrorFinancials(null);
-        setSelectedQuarterIdx(0); // Reset to latest on new bank selection (#2)
-
-        // Chain fetches: We need Bank Data first to get ASSET size for the Peer Group
-        getBankFinancials(selectedBank.CERT)
-          .then(async (bankData) => {
-            if (bankData) {
-              const historicalKPIs = calculateKPIs(bankData);
-              setAllHistoricalKPIs(historicalKPIs); // store full history for quarter selector (#2)
-
-              try {
-                const benchmarkData = await getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
-                if (benchmarkData) {
-                  const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
-                    const st = peer.stalp;
-                    acc[st] = (acc[st] || 0) + 1;
-                    return acc;
-                  }, {});
-
-                  // benchmarkData already contains accurate per-bank means (not aggregate totals)
-                  // computed by getPeerGroupBenchmark — spread directly, no re-calculation needed.
-                  setBenchmarks({
-                    ...benchmarkData,
-                    peerStateCounts,
-                  });
-                }
-              } catch (benchmarkErr) {
-                console.error("Benchmark fetch failed:", benchmarkErr);
-                setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks. FDIC API may be down.");
-              }
-            } else {
-              setErrorFinancials("No recent financial data found.");
-            }
-          })
-          .catch(err => {
-            console.error(err);
-            setErrorFinancials(err.message || "Failed to load financials.");
-          })
-          .finally(() => setLoadingFinancials(false));
-      };
-      fetchPrimary();
-    } else {
-      Promise.resolve().then(() => {
-        setBenchmarks(null);
-        setAllHistoricalKPIs(null);
-        setSelectedQuarterIdx(0);
-      });
-    }
-  }, [selectedBank]);
-
-  useEffect(() => {
-    if (secondaryBank) {
-      const fetchSecondary = async () => {
-        setLoadingSecondary(true);
-        getBankFinancials(secondaryBank.CERT)
-          .then((bankData) => {
-            if (bankData && bankData.length > 0) {
-              const historicalKPIs = calculateKPIs(bankData);
-              setAllSecondaryHistoricalKPIs(historicalKPIs);
-            } else {
-              setAllSecondaryHistoricalKPIs(null);
-            }
-          })
-          .catch(err => {
-            console.error("Secondary bank fetch failed:", err);
-            setAllSecondaryHistoricalKPIs(null);
-          })
-          .finally(() => setLoadingSecondary(false));
-      };
-      fetchSecondary();
-    } else {
-      Promise.resolve().then(() => setAllSecondaryHistoricalKPIs(null));
-    }
-  }, [secondaryBank]);
 
 
 
@@ -195,8 +103,8 @@ function App() {
         <>
           {/* Global Navigation Header */}
           <header className="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-[100] shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2 sm:gap-8">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 min-h-16 flex items-center justify-between">
+              <div className="flex items-center gap-1 sm:gap-8 min-w-0">
                 <h1
                   className="text-lg sm:text-xl font-black text-white tracking-tight cursor-pointer shrink-0"
                   onClick={() => { setView('benchmark'); setSelectedBank(null); setRadarContextBank(null); }}
@@ -204,63 +112,79 @@ function App() {
                   BANK<span className="text-blue-500">VALUE</span>
                 </h1>
 
-                <nav className="flex items-center gap-1 sm:gap-4">
+                <nav className="flex items-center gap-0.5 sm:gap-4 min-w-0">
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setView('benchmark')}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'benchmark'
+                      className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'benchmark'
                         ? 'bg-blue-900/40 text-blue-300'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Benchmarks</span>
+                      <span className={`hidden sm:block text-[9px] font-normal tracking-wide ${view === 'benchmark' ? 'text-blue-300' : 'text-slate-500'}`}>Financial KPIs</span>
                     </button>
                     <button
                       onClick={() => setView('movers')}
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Competitive Radar" : "Analyze peer group movements"}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'movers'
+                      className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'movers'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
-                          ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                          ? 'text-slate-500 opacity-50 cursor-not-allowed hover:opacity-75'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Radar</span>
+                      <span className={`hidden sm:block text-[9px] font-normal tracking-wide ${view === 'movers' ? 'text-blue-300' : 'text-slate-500'}`}>
+                        Market Position
+                      </span>
                     </button>
                     <button
                       onClick={() => setView('planner')}
                       disabled={!selectedBank}
                       title={!selectedBank ? "Select a bank first to unlock Strategic Planner" : "Run what-if strategic scenarios"}
-                      className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center leading-none ${view === 'planner'
+                      className={`min-h-11 px-1.5 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-bold transition-all flex flex-col items-center justify-center leading-none gap-0.5 ${view === 'planner'
                         ? 'bg-blue-900/40 text-blue-300'
                         : !selectedBank
-                          ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                          ? 'text-slate-500 opacity-50 cursor-not-allowed hover:opacity-75'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                     >
                       <span>Planner</span>
+                      <span className={`hidden sm:block text-[9px] font-normal tracking-wide ${view === 'planner' ? 'text-blue-300' : 'text-slate-500'}`}>
+                        Scenario Modeling
+                      </span>
                     </button>
                   </div>
 
-                  {/* Authenticated User Menu */}
-                  <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2">
-                    <UserProfileMenu />
+                  {/* Authenticated User Menu + Saved Briefs shortcut */}
+                  <div className="pl-2 sm:pl-4 border-l border-slate-200 ml-1 sm:ml-2 flex items-center gap-1">
+                    <BriefsNavButton onClick={() => setIsBriefsModalOpen(true)} />
+                    {!user && (
+                      <button
+                        onClick={() => setIsSuiteLoginOpen(true)}
+                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-300 hover:text-white hover:bg-blue-900/40 transition-all border border-blue-800"
+                      >
+                        Sign in
+                      </button>
+                    )}
+                    <UserProfileMenu isBriefsModalOpen={isBriefsModalOpen} onBriefsModalClose={() => setIsBriefsModalOpen(false)} />
                   </div>
 
                   {/* Back to Suite */}
                   <a
                     href="https://fdic-suite-landing.vercel.app"
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-2"
+                    className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-blue-300 hover:bg-blue-900/40 transition-all border border-slate-700 ml-1 sm:ml-2"
                     aria-label="Back to FDIC Intelligence Suite"
                   >
-                    Suite Home
+                    ← Suite
                   </a>
                 </nav>
               </div>
 
               {selectedBank && (
-                <div className={`hidden md:flex items-center gap-3 px-4 py-1.5 bg-slate-800/50 rounded-full text-xs font-bold text-slate-300 border border-slate-700/50 ${radarContextBank ? 'border-blue-500/50 bg-blue-900/30' : ''}`}>
-                  <span className={`w-2 h-2 rounded-full ${radarContextBank ? 'bg-blue-400' : 'bg-emerald-400 animate-pulse'}`}></span>
-                  {selectedBank.NAME}
-                  {radarContextBank && <span className="text-[10px] text-blue-400 ml-1">(Peer Drill-down)</span>}
+                <div className={`hidden md:flex items-center justify-end gap-3 px-4 py-1.5 bg-slate-800/50 rounded-full text-xs font-bold text-slate-300 border border-slate-700/50 shrink overflow-hidden max-w-[30%] ${radarContextBank ? 'border-blue-500/50 bg-blue-900/30' : ''}`}>
+                  <span className={`w-2 h-2 shrink-0 rounded-full ${radarContextBank ? 'bg-blue-400' : 'bg-emerald-400 animate-pulse'}`}></span>
+                  <span className="truncate">{selectedBank.NAME}</span>
+                  {radarContextBank && <span className="text-[10px] shrink-0 text-blue-400 ml-1">(Peer Drill-down)</span>}
                 </div>
               )}
             </div>
@@ -435,6 +359,8 @@ function App() {
                             setSecondaryBank={setSecondaryBank}
                             secondaryFinancials={secondaryFinancials}
                             loadingSecondary={loadingSecondary}
+                            bankName={selectedBank?.NAME}
+                            currentQuarter={CURRENT_QUARTER}
                           />
                         </div>
                       )}
@@ -482,6 +408,10 @@ function App() {
               />
             </Suspense>
           )}
+
+          {/* Saved Briefs Modal — triggered from nav BriefsNavButton or UserProfileMenu */}
+          <SavedBriefsModal isOpen={isBriefsModalOpen} onClose={() => setIsBriefsModalOpen(false)} />
+          <LoginModal isOpen={isSuiteLoginOpen} onClose={() => setIsSuiteLoginOpen(false)} />
 
           <footer className="text-center mt-12 pb-6 text-slate-400 text-xs select-none">
             © {new Date().getFullYear()} Vincent Chamasrour. All rights reserved.{' '}

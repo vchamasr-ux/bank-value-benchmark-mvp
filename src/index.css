@@ -9,6 +9,9 @@
     --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
     --shadow-premium-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
 
+    --shadow-glass-dark: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --shadow-glass-dark-hover: 0 8px 30px rgba(59, 130, 246, 0.15);
+
     --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -33,6 +36,16 @@
     100% {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@layer components {
+    .glass-panel-dark {
+        @apply relative bg-[#0B1120]/90 backdrop-blur-xl p-6 pt-8 rounded-xl shadow-[var(--shadow-glass-dark)] border border-white/10 mb-8 transition-all duration-300 hover:shadow-[var(--shadow-glass-dark-hover)];
+    }
+
+    .badge-premium {
+        @apply bg-blue-600 border border-blue-500 text-white font-bold px-2.5 py-0.5 rounded-full text-xs shadow-sm transition-colors hover:bg-blue-500 hover:border-blue-400 cursor-pointer;
     }
 }
 
@@ -64,56 +77,5 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-    }
-}
-
-/* Print / Save as PDF — hide chrome, show only the slide canvas (#5) */
-@page {
-    size: landscape;
-    margin: 0;
-}
-
-@media screen {
-    .print-only {
-        display: none !important;
-    }
-}
-
-@media print {
-    body {
-        margin: 0;
-        padding: 0;
-        background: white !important;
-    }
-
-    /* Hide app chrome during print */
-    .screen-only {
-        display: none !important;
-    }
-
-    .print-only {
-        display: block !important;
-        width: 100%;
-    }
-
-    .pitchbook-print-slide {
-        page-break-after: always;
-        break-after: page;
-        width: 100vw;
-        height: 100vh;
-        max-width: 100vw;
-        max-height: 100vh;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        position: relative;
-    }
-
-    /* Ensure backgrounds print correctly */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
     }
 }

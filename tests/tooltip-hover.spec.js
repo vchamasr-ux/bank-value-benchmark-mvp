@@ -97,7 +97,7 @@ test.describe('Suite 1 — Gauge Label Tooltip.jsx (CSS group-hover)', () => {
 
             // The tooltip content div: inside .group, becomes visible on hover
             // Selector targets the slate-800 tooltip box that is a sibling of the child
-            const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group")]//div[contains(@class,"group-hover:visible")]').first();
+            const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group/tooltip")]//div[contains(@class,"group-hover/tooltip:visible")]').first();
 
             // Verify it became visible (CSS visibility change)
             await expect(tooltipBox).toBeVisible();
@@ -111,7 +111,7 @@ test.describe('Suite 1 — Gauge Label Tooltip.jsx (CSS group-hover)', () => {
             await h3.hover();
             await page.waitForTimeout(350);
 
-            const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group")]//div[contains(@class,"group-hover:visible")]').first();
+            const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group/tooltip")]//div[contains(@class,"group-hover/tooltip:visible")]').first();
             const isVis = await tooltipBox.isVisible().catch(() => false);
             if (isVis) {
                 await withinViewport(page, tooltipBox, `${label} tooltip`);
@@ -124,7 +124,7 @@ test.describe('Suite 1 — Gauge Label Tooltip.jsx (CSS group-hover)', () => {
         await h3.hover();
         await page.waitForTimeout(350);
 
-        const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group")]//div[contains(@class,"group-hover:visible")]').first();
+        const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group/tooltip")]//div[contains(@class,"group-hover/tooltip:visible")]').first();
         await expect(tooltipBox).toBeVisible();
 
         // Move away
@@ -140,7 +140,7 @@ test.describe('Suite 1 — Gauge Label Tooltip.jsx (CSS group-hover)', () => {
         await h3.hover();
         await page.waitForTimeout(350);
 
-        const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group")]//div[contains(@class,"group-hover:visible")]').first();
+        const tooltipBox = h3.locator('xpath=ancestor::div[contains(@class,"group/tooltip")]//div[contains(@class,"group-hover/tooltip:visible")]').first();
         const isVis = await tooltipBox.isVisible().catch(() => false);
         if (isVis) {
             const box = await tooltipBox.boundingBox();
@@ -410,7 +410,7 @@ test.describe('Suite 5 — Tooltip edge cases & regression guards', () => {
         await h3.hover();
         await page.waitForTimeout(350);
 
-        const tooltipContent = h3.locator('xpath=ancestor::div[contains(@class,"group")]//div[contains(@class,"max-w")]').first();
+        const tooltipContent = h3.locator('xpath=ancestor::div[contains(@class,"group/tooltip")]//div[contains(@class,"max-w")]').first();
         const isVis = await tooltipContent.isVisible().catch(() => false);
         if (isVis) {
             const box = await tooltipContent.boundingBox();
@@ -429,7 +429,7 @@ test.describe('Suite 5 — Tooltip edge cases & regression guards', () => {
         }
 
         // After hovering three labels, only ONE tooltip should be visible at a time
-        const visibleTooltips = await page.locator('div.group-hover\\:visible, div.group-hover\\:opacity-100').evaluateAll(
+        const visibleTooltips = await page.locator('div.group-hover\\/tooltip\\:visible, div.group-hover\\/tooltip\\:opacity-100').evaluateAll(
             els => els.filter(el => {
                 const style = window.getComputedStyle(el);
                 return style.visibility === 'visible' && style.opacity !== '0';

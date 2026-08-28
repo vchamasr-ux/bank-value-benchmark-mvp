@@ -7,15 +7,33 @@ import { test, expect } from '@playwright/test';
 const FDIC_PATTERN = '**/api.fdic.gov/api/financials**';
 const BENCHMARK_PATTERN = '**/api/benchmarks**';
 
+// ─── Helper: Load bank dashboard via UI search ────────────────────────────────
+// Using UI navigation instead of deprecated ?acq= query params so the FDIC
+// route intercepts fire correctly before App.jsx reads the cert from state.
+async function loadDashboardViaSearch(page, { fdicRoute, benchmarkRoute } = {}) {
+    if (fdicRoute) await page.route(FDIC_PATTERN, fdicRoute);
+    if (benchmarkRoute) await page.route(BENCHMARK_PATTERN, benchmarkRoute);
+
+    await page.goto('/');
+    const searchInput = page.locator('#bank-search-input');
+    await expect(searchInput).toBeVisible({ timeout: 15000 });
+    await searchInput.fill('JPMorgan Chase');
+
+    const firstResult = page.locator('li').filter({ hasText: /JPMorgan/i }).first();
+    await expect(firstResult).toBeVisible({ timeout: 10000 });
+    await firstResult.click();
+
+    await page.waitForTimeout(5000);
+}
+
 test.describe('ErrorBoundary Stress Test', () => {
 
     test('Test 1 — FDIC 500: ErrorBoundary renders and "Try Again" button is visible', async ({ page }) => {
-        await page.route(FDIC_PATTERN, async (route) => {
-            await route.fulfill({ status: 500, body: 'Internal Server Error' });
+        await loadDashboardViaSearch(page, {
+            fdicRoute: async (route) => {
+                await route.fulfill({ status: 500, body: 'Internal Server Error' });
+            }
         });
-
-        await page.goto('/?acq=628&tgt=3510');
-        await page.waitForTimeout(5000);
 
         // Either the ErrorBoundary shows OR the app shows a graceful empty state.
         // What is NOT acceptable: a completely blank screen with no UI at all.
@@ -38,16 +56,15 @@ test.describe('ErrorBoundary Stress Test', () => {
     });
 
     test('Test 2 — Malformed benchmark JSON: App handles gracefully', async ({ page }) => {
-        await page.route(BENCHMARK_PATTERN, async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: '{"broken": true, "this_is_not_a_benchmark": 123}'
-            });
+        await loadDashboardViaSearch(page, {
+            benchmarkRoute: async (route) => {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: '{"broken": true, "this_is_not_a_benchmark": 123}'
+                });
+            }
         });
-
-        await page.goto('/?acq=628&tgt=3510');
-        await page.waitForTimeout(5000);
 
         // Should NOT show a blank screen
         const bodyText = await page.evaluate(() => document.body.innerText.trim());
@@ -55,16 +72,15 @@ test.describe('ErrorBoundary Stress Test', () => {
     });
 
     test('Test 3 — Empty FDIC data: App renders empty state, NOT an ErrorBoundary crash', async ({ page }) => {
-        await page.route(FDIC_PATTERN, async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({ data: [], meta: { total: 0 } })
-            });
+        await loadDashboardViaSearch(page, {
+            fdicRoute: async (route) => {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ data: [], meta: { total: 0 } })
+                });
+            }
         });
-
-        await page.goto('/?acq=628&tgt=3510');
-        await page.waitForTimeout(5000);
 
         // Empty data should show a user-friendly message, not a crash
         await expect(page.getByText('Something went wrong')).not.toBeVisible();
@@ -73,14 +89,11 @@ test.describe('ErrorBoundary Stress Test', () => {
     });
 
     test('Test 4 — Network offline: ErrorBoundary or error state renders, no blank screen', async ({ page }) => {
-        await page.goto('/');
-        // Simulate offline for the FDIC API only
-        await page.route(FDIC_PATTERN, async (route) => {
-            await route.abort('failed');
+        await loadDashboardViaSearch(page, {
+            fdicRoute: async (route) => {
+                await route.abort('failed');
+            }
         });
-
-        await page.goto('/?acq=628&tgt=3510');
-        await page.waitForTimeout(5000);
 
         const bodyText = await page.evaluate(() => document.body.innerText.trim());
         expect(bodyText.length, 'App shows a blank screen when network fails').toBeGreaterThan(20);

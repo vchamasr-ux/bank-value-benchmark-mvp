@@ -5,6 +5,11 @@ test.describe('Lighthouse Optimizations', () => {
     // Increase timeout for Lighthouse audits
     test.setTimeout(180000);
 
+    // Lighthouse requires a production-like built environment with a stable port.
+    // It always fails locally against 'npm run dev' (Vite HMR mode) — skip it.
+    // It runs automatically in CI via .github/workflows/lighthouse.yml.
+    test.skip(!process.env.CI, 'Lighthouse only runs in CI — not against local dev server');
+
     test('should pass Lighthouse performance and SEO audits', async () => {
         // Lighthouse requires remote-debugging-port to be open
         const browser = await chromium.launch({
