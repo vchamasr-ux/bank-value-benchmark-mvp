@@ -6,6 +6,7 @@ import {
     createRedis,
     createSession,
     createSuiteTicket,
+    recordFirstSuiteLogin,
 } from './_suite-sso.js';
 
 export default async function handler(req, res) {
@@ -75,6 +76,15 @@ export default async function handler(req, res) {
         await createSession(res, redis, user);
 
         const returnTo = oauthRequest.returnTo || `${CENTRAL_ORIGIN}/`;
+        try {
+            await recordFirstSuiteLogin(redis, user, returnTo);
+        } catch (notificationError) {
+            // Monitoring must never turn a successful LinkedIn login into an
+            // authentication failure.
+            console.warn('FDIC_SUITE_LOGIN_MONITOR_FAILED', {
+                message: notificationError.message,
+            });
+        }
         const continueUrl = new URL(returnTo).origin === CENTRAL_ORIGIN
             ? returnTo
             : await createSuiteTicket(redis, user, returnTo);
@@ -92,3 +102,4 @@ export default async function handler(req, res) {
         await closeRedis(redis);
     }
 }
+

@@ -15,11 +15,6 @@ const LoginModal = ({ isOpen, onClose }) => {
         setIsSubmitting(true);
         setError(null);
 
-        // Save metadata to local storage so we can retrieve it after the redirect
-        localStorage.setItem('pending_registration', JSON.stringify({
-            consent
-        }));
-
         const returnTo = `${window.location.origin}${window.location.pathname}${window.location.search}`;
         window.location.href = `/api/auth/sso-start?consent=1&return_to=${encodeURIComponent(returnTo)}`;
     };
@@ -111,3 +106,4 @@ const LoginModal = ({ isOpen, onClose }) => {
 };
 
 export default LoginModal;
+
