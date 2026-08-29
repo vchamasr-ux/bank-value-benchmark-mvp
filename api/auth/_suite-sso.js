@@ -87,6 +87,10 @@ export function clearCookie(res, name) {
     setCookie(res, name, '', 0);
 }
 
+export function oauthCookieName(state) {
+    return `${OAUTH_COOKIE}_${state}`;
+}
+
 export function createRedis() {
     const redisUrl = process.env.REDIS_URL?.trim();
     if (!redisUrl) throw new Error('REDIS_URL is not configured');
@@ -226,15 +230,23 @@ export async function recordFirstSuiteLogin(redis, user, returnTo, options = {})
 export async function createOAuthState(res, redis, payload) {
     const state = randomToken();
     await redis.set(`suite:sso:oauth:${state}`, JSON.stringify(payload), 'EX', OAUTH_TTL_SECONDS);
-    setCookie(res, OAUTH_COOKIE, state, OAUTH_TTL_SECONDS);
+    // A user can start sign-in from several suite apps or browser tabs. Keep
+    // each pending request in its own cookie so a newer flow cannot overwrite
+    // the state that an earlier LinkedIn callback still needs to validate.
+    setCookie(res, oauthCookieName(state), state, OAUTH_TTL_SECONDS);
     return state;
 }
 
 export async function consumeOAuthState(req, res, redis, state) {
-    const cookieState = parseCookies(req)[OAUTH_COOKIE];
+    const cookies = parseCookies(req);
+    const stateCookieName = oauthCookieName(state);
+    // Accept the former shared cookie for any sign-in already in flight while
+    // this change rolls out, then clear only the cookie that was consumed.
+    const usesLegacyCookie = !cookies[stateCookieName] && Boolean(cookies[OAUTH_COOKIE]);
+    const cookieState = cookies[stateCookieName] || cookies[OAUTH_COOKIE];
     if (!constantTimeEqual(cookieState, state)) throw new Error('OAuth state validation failed');
     const raw = await redis.call('GETDEL', `suite:sso:oauth:${state}`);
-    clearCookie(res, OAUTH_COOKIE);
+    clearCookie(res, usesLegacyCookie ? OAUTH_COOKIE : stateCookieName);
     if (!raw) throw new Error('OAuth state is missing, expired, or already used');
     return JSON.parse(raw);
 }
@@ -271,6 +283,7 @@ export function anonymousReturnUrl(returnTo) {
 export async function closeRedis(redis) {
     if (redis) await redis.quit().catch(() => redis.disconnect());
 }
+
 
 
 

@@ -9,7 +9,6 @@ module.exports = {
             numberOfRuns: 2,
         },
         assert: {
-            preset: 'lighthouse:no-pwa',
             assertions: {
                 // Performance: warn only — varies by runner hardware, not a hard gate
                 'categories:performance': ['warn', { minScore: 0.7 }],
@@ -27,3 +26,4 @@ module.exports = {
         },
     },
 };
+

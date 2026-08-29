@@ -5,8 +5,11 @@ import {
     buildSuiteLoginAlert,
     buildSuiteLoginEmail,
     CENTRAL_ORIGIN,
+    consumeOAuthState,
+    createOAuthState,
     LOGIN_ALERT_EVENT,
     normalizeReturnTo,
+    oauthCookieName,
     OAUTH_TTL_SECONDS,
     recordFirstSuiteLogin,
     SUITE_ORIGINS,
@@ -36,6 +39,55 @@ test('anonymous handoff is marked and preserves the destination', () => {
 
 test('LinkedIn sign-in state survives a realistic MFA or consent pause', () => {
     assert.ok(OAUTH_TTL_SECONDS >= 60 * 30);
+});
+
+test('parallel LinkedIn sign-ins keep independent cookie-bound states', async () => {
+    const values = new Map();
+    const redis = {
+        async set(key, value) {
+            values.set(key, value);
+            return 'OK';
+        },
+        async call(command, key) {
+            assert.equal(command, 'GETDEL');
+            const value = values.get(key);
+            values.delete(key);
+            return value;
+        },
+    };
+    const createResponse = () => {
+        const headers = new Map();
+        return {
+            getHeader(name) {
+                return headers.get(name);
+            },
+            setHeader(name, value) {
+                headers.set(name, value);
+            },
+        };
+    };
+    const firstResponse = createResponse();
+    const secondResponse = createResponse();
+    const firstState = await createOAuthState(firstResponse, redis, { returnTo: CENTRAL_ORIGIN });
+    const secondState = await createOAuthState(secondResponse, redis, { returnTo: CENTRAL_ORIGIN });
+    const cookiePair = (response) => response.getHeader('Set-Cookie').split(';', 1)[0];
+    const request = {
+        headers: {
+            cookie: `${cookiePair(firstResponse)}; ${cookiePair(secondResponse)}`,
+        },
+    };
+
+    assert.notEqual(firstState, secondState);
+    assert.match(cookiePair(firstResponse), new RegExp(`^${oauthCookieName(firstState)}=`));
+    assert.match(cookiePair(secondResponse), new RegExp(`^${oauthCookieName(secondState)}=`));
+    assert.deepEqual(
+        await consumeOAuthState(request, createResponse(), redis, firstState),
+        { returnTo: CENTRAL_ORIGIN },
+    );
+    assert.deepEqual(
+        await consumeOAuthState(request, createResponse(), redis, secondState),
+        { returnTo: CENTRAL_ORIGIN },
+    );
 });
 
 test('first LinkedIn login sends one Gmail alert without exposing the raw subject', async () => {
@@ -179,6 +231,7 @@ test('Gmail email builder rejects incomplete credentials', () => {
         /configuration is incomplete/,
     );
 });
+
 
 
 
