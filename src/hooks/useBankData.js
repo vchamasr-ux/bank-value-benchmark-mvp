@@ -16,8 +16,8 @@ export const derivePriorQuarter = (reportDate) => {
   return `Q${q} ${y}`;
 };
 
-export const canShowFinancialDashboard = ({ financials, loading, error, view }) =>
-  Boolean(financials && !loading && !error && view === 'benchmark');
+export const canShowFinancialDashboard = ({ financials, loading, financialError, view }) =>
+  Boolean(financials && !loading && !financialError && view === 'benchmark');
 
 // Deep-linking support parsed lazily for initial state
 export const getInitialBank = (paramName) => {
@@ -34,6 +34,7 @@ export const useBankData = () => {
   const [benchmarks, setBenchmarks] = useState(null);
   const [loadingFinancials, setLoadingFinancials] = useState(false);
   const [errorFinancials, setErrorFinancials] = useState(null);
+  const [errorBenchmarks, setErrorBenchmarks] = useState(null);
   const [view, setView] = useState('benchmark'); // 'benchmark' | 'movers' | 'planner'
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
 
@@ -62,6 +63,7 @@ export const useBankData = () => {
     setSelectedQuarterIdx(0);
     setLoadingFinancials(Boolean(bank));
     setErrorFinancials(null);
+    setErrorBenchmarks(null);
     if (!bank) {
       setRadarContextBank(null);
       setView('benchmark');
@@ -75,6 +77,7 @@ export const useBankData = () => {
     if (selectedBank) {
       setLoadingFinancials(true);
       setErrorFinancials(null);
+      setErrorBenchmarks(null);
       setAllHistoricalKPIs(null);
       setBenchmarks(null);
       setSelectedQuarterIdx(0); // Reset to latest on new bank selection
@@ -104,7 +107,7 @@ export const useBankData = () => {
           } catch (benchmarkErr) {
             if (!isCurrentRequest) return;
             console.error("Benchmark fetch failed:", benchmarkErr);
-            setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks.");
+            setErrorBenchmarks(benchmarkErr.message || "Failed to load peer benchmarks.");
           }
         } catch (err) {
           if (!isCurrentRequest) return;
@@ -118,6 +121,7 @@ export const useBankData = () => {
     } else {
       setLoadingFinancials(false);
       setErrorFinancials(null);
+      setErrorBenchmarks(null);
       setBenchmarks(null);
       setAllHistoricalKPIs(null);
       setSelectedQuarterIdx(0);
@@ -157,6 +161,7 @@ export const useBankData = () => {
     benchmarks,
     loadingFinancials,
     errorFinancials,
+    errorBenchmarks,
     view, setView,
     radarContextBank, setRadarContextBank,
     secondaryBank, setSecondaryBank,

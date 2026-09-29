@@ -68,10 +68,11 @@ test('missing or malformed FDIC financial data fails instead of producing dashbo
 
 test('financial dashboard is hidden while loading or after the selected bank request fails', () => {
   const financials = { reportDate: 'Q2 2026', returnOnAssets: 2 };
-  assert.equal(canShowFinancialDashboard({ financials, loading: false, error: null, view: 'benchmark' }), true);
-  assert.equal(canShowFinancialDashboard({ financials, loading: true, error: null, view: 'benchmark' }), false);
-  assert.equal(canShowFinancialDashboard({ financials, loading: false, error: 'FDIC unavailable', view: 'benchmark' }), false);
-  assert.equal(canShowFinancialDashboard({ financials, loading: false, error: null, view: 'planner' }), false);
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, financialError: null, view: 'benchmark' }), true);
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, financialError: null, benchmarkError: 'Peer service unavailable', view: 'benchmark' }), true);
+  assert.equal(canShowFinancialDashboard({ financials, loading: true, financialError: null, view: 'benchmark' }), false);
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, financialError: 'FDIC unavailable', view: 'benchmark' }), false);
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, financialError: null, view: 'planner' }), false);
 });
 
 test('CAGR handles growth and non-positive source values', () => {
