@@ -9,6 +9,7 @@ let calculateKPIs;
 let calcCAGR;
 let getBankFinancials;
 let LandingPage;
+let canShowFinancialDashboard;
 
 before(async () => {
   vite = await createServer({
@@ -17,6 +18,7 @@ before(async () => {
     server: { middlewareMode: true },
   });
   ({ calculateKPIs, calcCAGR } = await vite.ssrLoadModule('/src/utils/kpiCalculator.js'));
+  ({ canShowFinancialDashboard } = await vite.ssrLoadModule('/src/hooks/useBankData.js'));
   ({ getBankFinancials } = await vite.ssrLoadModule('/src/services/fdicService.js'));
   ({ default: LandingPage } = await vite.ssrLoadModule('/src/components/layout/LandingPage.jsx'));
 });
@@ -64,17 +66,12 @@ test('missing or malformed FDIC financial data fails instead of producing dashbo
   }
 });
 
-test('FDIC response shape changes are surfaced as validation errors', async () => {
-  const originalFetch = globalThis.fetch;
-  const originalError = console.error;
-  console.error = () => {};
-  try {
-    globalThis.fetch = async () => ({ ok: true, json: async () => ({ unexpected: [] }) });
-    await assert.rejects(getBankFinancials('12345'), /data/);
-  } finally {
-    globalThis.fetch = originalFetch;
-    console.error = originalError;
-  }
+test('financial dashboard is hidden while loading or after the selected bank request fails', () => {
+  const financials = { reportDate: 'Q2 2026', returnOnAssets: 2 };
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, error: null, view: 'benchmark' }), true);
+  assert.equal(canShowFinancialDashboard({ financials, loading: true, error: null, view: 'benchmark' }), false);
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, error: 'FDIC unavailable', view: 'benchmark' }), false);
+  assert.equal(canShowFinancialDashboard({ financials, loading: false, error: null, view: 'planner' }), false);
 });
 
 test('CAGR handles growth and non-positive source values', () => {

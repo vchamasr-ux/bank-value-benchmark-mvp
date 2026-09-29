@@ -16,6 +16,9 @@ export const derivePriorQuarter = (reportDate) => {
   return `Q${q} ${y}`;
 };
 
+export const canShowFinancialDashboard = ({ financials, loading, error, view }) =>
+  Boolean(financials && !loading && !error && view === 'benchmark');
+
 // Deep-linking support parsed lazily for initial state
 export const getInitialBank = (paramName) => {
   if (typeof window === 'undefined') return null;
@@ -63,53 +66,58 @@ export const useBankData = () => {
   }, []);
 
   useEffect(() => {
+    let isCurrentRequest = true;
     if (selectedBank) {
+      setLoadingFinancials(true);
+      setErrorFinancials(null);
+      setAllHistoricalKPIs(null);
+      setBenchmarks(null);
+      setSelectedQuarterIdx(0); // Reset to latest on new bank selection
+
       const fetchPrimary = async () => {
-        setLoadingFinancials(true);
-        setErrorFinancials(null);
-        setSelectedQuarterIdx(0); // Reset to latest on new bank selection
+        try {
+          const bankData = await fdicService.getBankFinancials(selectedBank.CERT);
+          if (!isCurrentRequest) return;
+          if (!bankData || bankData.length === 0) {
+            setErrorFinancials("No recent financial data found.");
+            return;
+          }
 
-        fdicService.getBankFinancials(selectedBank.CERT)
-          .then(async (bankData) => {
-            if (bankData) {
-              const historicalKPIs = calculateKPIs(bankData);
-              setAllHistoricalKPIs(historicalKPIs);
-
-              try {
-                const benchmarkData = await fdicService.getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
-                if (benchmarkData) {
-                  const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
-                    const st = peer.stalp;
-                    acc[st] = (acc[st] || 0) + 1;
-                    return acc;
-                  }, {});
-                  setBenchmarks({
-                    ...benchmarkData,
-                    peerStateCounts,
-                  });
-                }
-              } catch (benchmarkErr) {
-                console.error("Benchmark fetch failed:", benchmarkErr);
-                setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks.");
-              }
-            } else {
-              setErrorFinancials("No recent financial data found.");
+          const historicalKPIs = calculateKPIs(bankData);
+          setAllHistoricalKPIs(historicalKPIs);
+          try {
+            const benchmarkData = await fdicService.getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
+            if (!isCurrentRequest) return;
+            if (benchmarkData) {
+              const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
+                const st = peer.stalp;
+                acc[st] = (acc[st] || 0) + 1;
+                return acc;
+              }, {});
+              setBenchmarks({ ...benchmarkData, peerStateCounts });
             }
-          })
-          .catch(err => {
-            console.error(err);
-            setErrorFinancials(err.message || "Failed to load financials.");
-          })
-          .finally(() => setLoadingFinancials(false));
+          } catch (benchmarkErr) {
+            if (!isCurrentRequest) return;
+            console.error("Benchmark fetch failed:", benchmarkErr);
+            setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks.");
+          }
+        } catch (err) {
+          if (!isCurrentRequest) return;
+          console.error(err);
+          setErrorFinancials(err.message || "Failed to load financials.");
+        } finally {
+          if (isCurrentRequest) setLoadingFinancials(false);
+        }
       };
       fetchPrimary();
     } else {
-      Promise.resolve().then(() => {
-        setBenchmarks(null);
-        setAllHistoricalKPIs(null);
-        setSelectedQuarterIdx(0);
-      });
+      setLoadingFinancials(false);
+      setErrorFinancials(null);
+      setBenchmarks(null);
+      setAllHistoricalKPIs(null);
+      setSelectedQuarterIdx(0);
     }
+    return () => { isCurrentRequest = false; };
   }, [selectedBank]);
 
   useEffect(() => {
