@@ -28,8 +28,6 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom'],
           // Recharts — isolated because it's heavy
           'vendor-charts': ['recharts'],
-          // PDF rendering libs — only needed when user exports; split from core bundle
-          'vendor-pdf': ['jspdf', 'html-to-image'],
         },
       },
     },

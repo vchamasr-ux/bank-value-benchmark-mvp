@@ -16,6 +16,9 @@ export const derivePriorQuarter = (reportDate) => {
   return `Q${q} ${y}`;
 };
 
+export const canShowFinancialDashboard = ({ financials, loading, financialError, view }) =>
+  Boolean(financials && !loading && !financialError && view === 'benchmark');
+
 // Deep-linking support parsed lazily for initial state
 export const getInitialBank = (paramName) => {
   if (typeof window === 'undefined') return null;
@@ -31,6 +34,7 @@ export const useBankData = () => {
   const [benchmarks, setBenchmarks] = useState(null);
   const [loadingFinancials, setLoadingFinancials] = useState(false);
   const [errorFinancials, setErrorFinancials] = useState(null);
+  const [errorBenchmarks, setErrorBenchmarks] = useState(null);
   const [view, setView] = useState('benchmark'); // 'benchmark' | 'movers' | 'planner'
   const [radarContextBank, setRadarContextBank] = useState(null); // { cert, name, view }
 
@@ -54,6 +58,12 @@ export const useBankData = () => {
 
   const setSelectedBank = useCallback((bank) => {
     setSelectedBankState(bank);
+    setAllHistoricalKPIs(null);
+    setBenchmarks(null);
+    setSelectedQuarterIdx(0);
+    setLoadingFinancials(Boolean(bank));
+    setErrorFinancials(null);
+    setErrorBenchmarks(null);
     if (!bank) {
       setRadarContextBank(null);
       setView('benchmark');
@@ -63,53 +73,60 @@ export const useBankData = () => {
   }, []);
 
   useEffect(() => {
+    let isCurrentRequest = true;
     if (selectedBank) {
+      setLoadingFinancials(true);
+      setErrorFinancials(null);
+      setErrorBenchmarks(null);
+      setAllHistoricalKPIs(null);
+      setBenchmarks(null);
+      setSelectedQuarterIdx(0); // Reset to latest on new bank selection
+
       const fetchPrimary = async () => {
-        setLoadingFinancials(true);
-        setErrorFinancials(null);
-        setSelectedQuarterIdx(0); // Reset to latest on new bank selection
+        try {
+          const bankData = await fdicService.getBankFinancials(selectedBank.CERT);
+          if (!isCurrentRequest) return;
+          if (!bankData || bankData.length === 0) {
+            setErrorFinancials("No recent financial data found.");
+            return;
+          }
 
-        fdicService.getBankFinancials(selectedBank.CERT)
-          .then(async (bankData) => {
-            if (bankData) {
-              const historicalKPIs = calculateKPIs(bankData);
-              setAllHistoricalKPIs(historicalKPIs);
-
-              try {
-                const benchmarkData = await fdicService.getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
-                if (benchmarkData) {
-                  const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
-                    const st = peer.stalp;
-                    acc[st] = (acc[st] || 0) + 1;
-                    return acc;
-                  }, {});
-                  setBenchmarks({
-                    ...benchmarkData,
-                    peerStateCounts,
-                  });
-                }
-              } catch (benchmarkErr) {
-                console.error("Benchmark fetch failed:", benchmarkErr);
-                setErrorFinancials(benchmarkErr.message || "Failed to load peer benchmarks.");
-              }
-            } else {
-              setErrorFinancials("No recent financial data found.");
+          const historicalKPIs = calculateKPIs(bankData);
+          setAllHistoricalKPIs(historicalKPIs);
+          try {
+            const benchmarkData = await fdicService.getPeerGroupBenchmark(bankData[0].ASSET, bankData[0].STALP);
+            if (!isCurrentRequest) return;
+            if (benchmarkData) {
+              const peerStateCounts = benchmarkData.peerBanks.reduce((acc, peer) => {
+                const st = peer.stalp;
+                acc[st] = (acc[st] || 0) + 1;
+                return acc;
+              }, {});
+              setBenchmarks({ ...benchmarkData, peerStateCounts });
             }
-          })
-          .catch(err => {
-            console.error(err);
-            setErrorFinancials(err.message || "Failed to load financials.");
-          })
-          .finally(() => setLoadingFinancials(false));
+          } catch (benchmarkErr) {
+            if (!isCurrentRequest) return;
+            console.error("Benchmark fetch failed:", benchmarkErr);
+            setErrorBenchmarks(benchmarkErr.message || "Failed to load peer benchmarks.");
+          }
+        } catch (err) {
+          if (!isCurrentRequest) return;
+          console.error(err);
+          setErrorFinancials(err.message || "Failed to load financials.");
+        } finally {
+          if (isCurrentRequest) setLoadingFinancials(false);
+        }
       };
       fetchPrimary();
     } else {
-      Promise.resolve().then(() => {
-        setBenchmarks(null);
-        setAllHistoricalKPIs(null);
-        setSelectedQuarterIdx(0);
-      });
+      setLoadingFinancials(false);
+      setErrorFinancials(null);
+      setErrorBenchmarks(null);
+      setBenchmarks(null);
+      setAllHistoricalKPIs(null);
+      setSelectedQuarterIdx(0);
     }
+    return () => { isCurrentRequest = false; };
   }, [selectedBank]);
 
   useEffect(() => {
@@ -144,6 +161,7 @@ export const useBankData = () => {
     benchmarks,
     loadingFinancials,
     errorFinancials,
+    errorBenchmarks,
     view, setView,
     radarContextBank, setRadarContextBank,
     secondaryBank, setSecondaryBank,

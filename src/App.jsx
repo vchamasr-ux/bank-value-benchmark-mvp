@@ -8,7 +8,7 @@ import { formatAssets } from './utils/formatUtils';
 import * as fdicService from './services/fdicService';
 import FinancialDashboardSkeleton from './components/dashboards/FinancialDashboardSkeleton';
 import PitchbookPresentation from './components/views/PitchbookPresentation';
-import { useBankData } from './hooks/useBankData';
+import { canShowFinancialDashboard, useBankData } from './hooks/useBankData';
 
 // Lazy-loaded heavy components — keeps main bundle lean and avoids Rollup TDZ issues
 const MoversSummaryModal = lazy(() => import('./components/modals/MoversSummaryModal'));
@@ -51,6 +51,7 @@ function App() {
     benchmarks,
     loadingFinancials,
     errorFinancials,
+    errorBenchmarks,
     view, setView,
     radarContextBank, setRadarContextBank,
     secondaryBank, setSecondaryBank,
@@ -347,7 +348,9 @@ function App() {
                       )}
                       {errorFinancials && <div className="text-red-500 my-10 bg-red-50 p-6 rounded-lg text-center shadow-sm border border-red-100">{errorFinancials}</div>}
 
-                      {financials && !loadingFinancials && view === 'benchmark' && (
+                      {errorBenchmarks && <div role="status" className="text-amber-800 my-6 bg-amber-50 p-4 rounded-lg text-center border border-amber-200">Peer benchmarks are temporarily unavailable: {errorBenchmarks}</div>}
+
+                      {canShowFinancialDashboard({ financials, loading: loadingFinancials, financialError: errorFinancials, view }) && (
                         <div className="w-full relative animate-fade-in-up" style={{ animationDelay: '0ms' }}>
                           <FinancialDashboard
                             financials={financials}
@@ -365,7 +368,7 @@ function App() {
                         </div>
                       )}
 
-                      {selectedBank && view === 'benchmark' && !loadingFinancials && (
+                      {selectedBank && view === 'benchmark' && !loadingFinancials && !errorFinancials && (
                         <div className="w-full relative mt-12 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
                           <OperationalDashboard
                             key={selectedBank.CERT}
@@ -374,7 +377,7 @@ function App() {
                         </div>
                       )}
 
-                      {financials && !loadingFinancials && view === 'planner' && (
+                      {financials && !loadingFinancials && !errorFinancials && !errorBenchmarks && view === 'planner' && (
                         <div className="w-full relative animate-fade-in-up">
                           <Suspense fallback={<div className="flex justify-center items-center h-64 text-blue-400 animate-pulse font-bold">Loading Strategic Planner...</div>}>
                             <StrategicPlannerTab
