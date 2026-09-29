@@ -57,6 +57,11 @@ export const useBankData = () => {
 
   const setSelectedBank = useCallback((bank) => {
     setSelectedBankState(bank);
+    setAllHistoricalKPIs(null);
+    setBenchmarks(null);
+    setSelectedQuarterIdx(0);
+    setLoadingFinancials(Boolean(bank));
+    setErrorFinancials(null);
     if (!bank) {
       setRadarContextBank(null);
       setView('benchmark');
